@@ -31,18 +31,6 @@ export default async function CollectionPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-[#08090d] text-white">
 
-      <header className="border-b border-white/10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-2xl font-black tracking-[0.18em]">
-            MONSTER<span className="text-purple-400">.</span>
-          </Link>
-
-          <Link href="/watch" className="text-sm text-zinc-400 hover:text-white">
-            ← All Collections
-          </Link>
-        </div>
-      </header>
-
       <section className="mx-auto max-w-7xl px-6 py-20">
 
         <p className="mb-5 text-xs font-bold tracking-[0.3em] text-purple-400">

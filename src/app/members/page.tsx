@@ -6,18 +6,6 @@ export default function MembersPage() {
   return (
     <main className="min-h-screen bg-[#08090d] text-white">
 
-      <header className="border-b border-white/10 bg-[#08090d]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-2xl font-black tracking-[0.18em]">
-            MONSTER<span className="text-purple-400">.</span>
-          </Link>
-
-          <Link href="/" className="text-sm text-zinc-400 hover:text-white">
-            ← Back to Home
-          </Link>
-        </div>
-      </header>
-
       <section className="mx-auto max-w-7xl px-6 py-20">
 
         <div className="mb-14">

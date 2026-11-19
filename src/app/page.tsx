@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const categories = [
   "All",
@@ -20,6 +21,7 @@ const contents = [
     description: "The journey before debut",
     gradient: "from-violet-950 via-purple-900 to-black",
     symbol: "01",
+    href: "/watch/pre-debut/last-evaluation-ep-1",
   },
   {
     title: "BATTER UP",
@@ -28,6 +30,7 @@ const contents = [
     description: "Debut era performances",
     gradient: "from-red-950 via-rose-900 to-black",
     symbol: "02",
+    href: "/watch/music-show-stages",
   },
   {
     title: "SHEESH",
@@ -36,6 +39,7 @@ const contents = [
     description: "Music shows and live stages",
     gradient: "from-orange-950 via-red-900 to-black",
     symbol: "03",
+    href: "/watch/music-show-stages/sheesh-performance-video",
   },
   {
     title: "VARIETY ARCHIVE",
@@ -44,6 +48,7 @@ const contents = [
     description: "Shows, interviews and games",
     gradient: "from-blue-950 via-indigo-900 to-black",
     symbol: "04",
+    href: "/watch/variety-interviews",
   },
   {
     title: "BEHIND THE SCENES",
@@ -52,6 +57,7 @@ const contents = [
     description: "Behind the music and cameras",
     gradient: "from-emerald-950 via-teal-900 to-black",
     symbol: "05",
+    href: "/watch/behind-the-scenes",
   },
   {
     title: "AWARDS & EVENTS",
@@ -60,6 +66,7 @@ const contents = [
     description: "Award shows and special events",
     gradient: "from-amber-950 via-yellow-900 to-black",
     symbol: "06",
+    href: "/watch/awards",
   },
 ];
 
@@ -81,28 +88,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#08090d] text-white">
-      {/* NAVIGATION */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#08090d]/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <a href="#" className="text-2xl font-black tracking-[0.18em]">
-            MONSTER<span className="text-purple-400">.</span>
-          </a>
-
-          
-          <nav className="hidden items-center gap-8 text-sm text-zinc-400 md:flex">
-            <a href="/" className="hover:text-white">Home</a>
-            <a href="/members" className="hover:text-white">Members</a>
-            <a href="/watch" className="hover:text-white">Watch</a>
-            <a href="/#about" className="hover:text-white">About</a>
-          </nav>
-
-
-          <div className="text-xs font-semibold tracking-wider text-zinc-400">
-            GLOBAL FAN ARCHIVE
-          </div>
-        </div>
-      </header>
-
       {/* HERO */}
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_30%,rgba(124,58,237,0.22),transparent_55%)]" />
@@ -211,8 +196,9 @@ export default function Home() {
         {/* CARDS */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filteredContents.map((item) => (
-            <article
+            <Link
               key={item.title}
+              href={item.href}
               className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] transition hover:-translate-y-1 hover:border-purple-400/50"
             >
               <div
@@ -248,7 +234,7 @@ export default function Home() {
                   {item.description}
                 </p>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
 

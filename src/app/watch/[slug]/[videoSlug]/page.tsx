@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { watchVideos } from "@/data/watch";
+import YouTubePlayer from "@/components/YouTubePlayer";
 
 type PageProps = {
   params: Promise<{
@@ -49,23 +50,6 @@ export default async function VideoPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-[#08090d] text-white">
 
-      <header className="border-b border-white/10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-
-          <Link href="/" className="text-2xl font-black tracking-[0.18em]">
-            MONSTER<span className="text-purple-400">.</span>
-          </Link>
-
-          <Link
-            href={`/watch/${slug}`}
-            className="text-sm text-zinc-400 hover:text-white"
-          >
-            ← Back to Collection
-          </Link>
-
-        </div>
-      </header>
-
       <section className="mx-auto max-w-6xl px-6 py-14">
 
         <p className="mb-5 text-xs font-bold tracking-[0.3em] text-purple-400">
@@ -78,18 +62,11 @@ export default async function VideoPage({ params }: PageProps) {
 
         {/* VIDEO PLAYER */}
 
-        <div className="aspect-video overflow-hidden rounded-xl border border-white/10 bg-black">
-
-          <iframe
-            src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}`}
-            title={video.title}
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allowFullScreen
-          />
-
-        </div>
+        <YouTubePlayer
+          videoId={video.youtubeId}
+          title={video.title}
+          expectedPath={`/watch/${slug}/${videoSlug}`}
+        />
 
         {/* VIDEO INFORMATION */}
 
