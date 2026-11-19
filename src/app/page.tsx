@@ -92,7 +92,7 @@ export default function Home() {
           <nav className="hidden items-center gap-8 text-sm text-zinc-400 md:flex">
             <a href="/" className="hover:text-white">Home</a>
             <a href="/members" className="hover:text-white">Members</a>
-            <a href="/#watch" className="hover:text-white">Watch</a>
+            <a href="/watch" className="hover:text-white">Watch</a>
             <a href="/#about" className="hover:text-white">About</a>
           </nav>
 
