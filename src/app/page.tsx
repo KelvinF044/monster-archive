@@ -88,12 +88,14 @@ export default function Home() {
             MONSTER<span className="text-purple-400">.</span>
           </a>
 
+          
           <nav className="hidden items-center gap-8 text-sm text-zinc-400 md:flex">
-            <a href="#" className="text-white">Home</a>
-            <a href="#watch" className="hover:text-white">Watch</a>
-            <a href="#explore" className="hover:text-white">Explore</a>
-            <a href="#about" className="hover:text-white">About</a>
+            <a href="/" className="hover:text-white">Home</a>
+            <a href="/members" className="hover:text-white">Members</a>
+            <a href="/#watch" className="hover:text-white">Watch</a>
+            <a href="/#about" className="hover:text-white">About</a>
           </nav>
+
 
           <div className="text-xs font-semibold tracking-wider text-zinc-400">
             GLOBAL FAN ARCHIVE

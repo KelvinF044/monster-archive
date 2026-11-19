@@ -1,41 +1,6 @@
 
-const members = [
-  {
-    name: "RUKA",
-    number: "01",
-    color: "from-purple-950 via-violet-900 to-black",
-  },
-  {
-    name: "PHARITA",
-    number: "02",
-    color: "from-pink-950 via-rose-900 to-black",
-  },
-  {
-    name: "ASA",
-    number: "03",
-    color: "from-blue-950 via-indigo-900 to-black",
-  },
-  {
-    name: "AHYEON",
-    number: "04",
-    color: "from-red-950 via-red-900 to-black",
-  },
-  {
-    name: "RAMI",
-    number: "05",
-    color: "from-emerald-950 via-teal-900 to-black",
-  },
-  {
-    name: "RORA",
-    number: "06",
-    color: "from-amber-950 via-orange-900 to-black",
-  },
-  {
-    name: "CHIQUITA",
-    number: "07",
-    color: "from-fuchsia-950 via-purple-900 to-black",
-  },
-];
+import Link from "next/link";
+import { members } from "@/data/members";
 
 export default function MembersPage() {
   return (
@@ -43,19 +8,13 @@ export default function MembersPage() {
 
       <header className="border-b border-white/10 bg-[#08090d]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <a
-            href="/"
-            className="text-2xl font-black tracking-[0.18em]"
-          >
+          <Link href="/" className="text-2xl font-black tracking-[0.18em]">
             MONSTER<span className="text-purple-400">.</span>
-          </a>
+          </Link>
 
-          <a
-            href="/"
-            className="text-sm text-zinc-400 transition hover:text-white"
-          >
+          <Link href="/" className="text-sm text-zinc-400 hover:text-white">
             ← Back to Home
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -90,13 +49,13 @@ export default function MembersPage() {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
           {members.map((member) => (
-            <article
-              key={member.name}
+            <Link
+              key={member.slug}
+              href={`/members/${member.slug}`}
               className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] transition duration-300 hover:-translate-y-1 hover:border-purple-400/50"
             >
-              <div
-                className={`relative flex aspect-[4/5] items-center justify-center overflow-hidden bg-gradient-to-br ${member.color}`}
-              >
+              <div className={`relative flex aspect-[4/5] items-center justify-center overflow-hidden bg-gradient-to-br ${member.gradient}`}>
+
                 <div className="absolute inset-0 bg-black/20 transition group-hover:bg-transparent" />
 
                 <span className="absolute left-5 top-5 text-xs font-bold tracking-widest text-white/50">
@@ -127,7 +86,7 @@ export default function MembersPage() {
                   </span>
                 </div>
               </div>
-            </article>
+            </Link>
           ))}
 
         </div>
