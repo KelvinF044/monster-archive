@@ -23,11 +23,11 @@ export const watchCollections = [
   {
     slug: "music-show-stages",
     number: "02",
-    title: "Music Show Stages",
+    title: "Stages & Performance Videos",
     label: "LIVE PERFORMANCES",
     category: "Stages",
     description:
-      "A dedicated collection for music show performances and special stages.",
+      "Music shows, official performance videos and special stages.",
     gradient: "from-red-950 via-rose-900 to-black",
   },
   {
@@ -69,5 +69,44 @@ export const watchCollections = [
     description:
       "Award ceremonies, nominations, wins and special performances.",
     gradient: "from-fuchsia-950 via-purple-900 to-black",
+  },
+] as const;
+
+export const watchVideos = [
+  {
+    slug: "last-evaluation-ep-1",
+    collectionSlug: "pre-debut",
+    title: "BABYMONSTER - 'Last Evaluation' EP.1",
+    description:
+      "The first episode of the official Last Evaluation pre-debut series.",
+    publishedAt: "March 9, 2023",
+    youtubeId: "hCgZqFscMp0",
+    sourceName: "BABYMONSTER Official YouTube",
+    sourceUrl: "https://www.youtube.com/watch?v=hCgZqFscMp0",
+    gradient: "from-violet-950 via-purple-900 to-black",
+  },
+  {
+    slug: "sheesh-performance-video",
+    collectionSlug: "music-show-stages",
+    title: "BABYMONSTER - 'SHEESH' PERFORMANCE VIDEO",
+    description:
+      "The official SHEESH performance video from the BABYMONSTER channel.",
+    publishedAt: "April 4, 2024",
+    youtubeId: "kOanBE5Wg24",
+    sourceName: "BABYMONSTER Official YouTube",
+    sourceUrl: "https://www.youtube.com/watch?v=kOanBE5Wg24",
+    gradient: "from-red-950 via-rose-900 to-black",
+  },
+  {
+    slug: "really-like-you-music-show-behind",
+    collectionSlug: "behind-the-scenes",
+    title: "BABYMONSTER - 'Really Like You' MUSIC SHOW BEHIND",
+    description:
+      "Behind-the-scenes footage related to the Really Like You music-show promotions.",
+    publishedAt: "February 17, 2026",
+    youtubeId: "CAdRNXmkuc4",
+    sourceName: "BABYMONSTER Official YouTube",
+    sourceUrl: "https://www.youtube.com/watch?v=CAdRNXmkuc4",
+    gradient: "from-emerald-950 via-teal-900 to-black",
   },
 ] as const;

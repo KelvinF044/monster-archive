@@ -179,7 +179,8 @@ export default function WatchPage() {
 
             {filteredCollections.map((item) => (
 
-              <article
+              <Link
+                href={`/watch/${item.slug}`}
                 key={item.slug}
                 className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] transition duration-300 hover:-translate-y-1 hover:border-purple-400/50"
               >
@@ -232,7 +233,7 @@ export default function WatchPage() {
 
                 </div>
 
-              </article>
+              </Link>
 
             ))}
 
