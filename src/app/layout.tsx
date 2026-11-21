@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import { Suspense } from "react";
 
 import "./globals.css";
@@ -13,15 +13,51 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const siteName = "MONSTER ARCHIVE";
+
+const siteDescription =
+  "An independent, fan-made archive dedicated to BABYMONSTER. Explore member profiles, performances, music videos, and memorable moments from every era.";
+
+const socialImage = "/og-image.jpg";
 
 export const metadata: Metadata = {
-  title: "MONSTER ARCHIVE | BABYMONSTER Fan Archive",
-  description:
-    "A global independent fan archive dedicated to BABYMONSTER. Discover performances, videos, members and unforgettable moments.",
+  metadataBase: new URL("https://www.themonsterarchive.com"),
+
+  title: {
+    default: "MONSTER ARCHIVE | BABYMONSTER Fan Archive",
+    template: "%s | MONSTER ARCHIVE",
+  },
+
+  description: siteDescription,
+
+  applicationName: siteName,
+  creator: siteName,
+  publisher: siteName,
+  category: "Entertainment",
+
+  openGraph: {
+    type: "website",
+    url: "https://www.themonsterarchive.com",
+    siteName,
+    title: "MONSTER ARCHIVE | BABYMONSTER Fan Archive",
+    description: siteDescription,
+    locale: "en_US",
+    images: [
+      {
+        url: socialImage,
+        width: 1200,
+        height: 630,
+        alt: "MONSTER ARCHIVE — Every Era. Every Stage. Every Memory.",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "MONSTER ARCHIVE | BABYMONSTER Fan Archive",
+    description: siteDescription,
+    images: [socialImage],
+  },
 };
 
 function LayoutFallback() {
@@ -45,7 +81,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <Suspense fallback={<LayoutFallback />}>
