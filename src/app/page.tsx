@@ -164,16 +164,18 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#08090d] text-white">
-
       {/* HERO */}
 
       <section className="relative overflow-hidden border-b border-white/10">
 
-        {/* RESPONSIVE HERO IMAGE */}
+        {/* RESPONSIVE HERO IMAGE
+            The image area is always reserved to prevent CLS.
+            The background remains visible while Supabase loads the URL.
+        */}
 
-        {heroImage && (
-          <div className="relative mb-8 aspect-[16/9] overflow-hidden md:absolute md:inset-0 md:mb-0 md:aspect-auto">
+        <div className="relative mb-8 aspect-[16/9] overflow-hidden bg-gradient-to-br from-[#151020] via-[#0c0c12] to-[#08090d] md:absolute md:inset-0 md:mb-0 md:aspect-auto">
 
+          {heroImage ? (
             <Image
               src={heroImage}
               alt={home.heroImageAlt}
@@ -182,13 +184,18 @@ export default function Home() {
               fetchPriority="high"
               className="object-contain md:object-cover md:object-center 2xl:object-[center_15%]"
             />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-br from-[#151020] via-[#0c0c12] to-[#08090d]"
+            />
+          )}
 
-            {/* MOBILE IMAGE GRADIENT */}
+          {/* MOBILE IMAGE GRADIENT */}
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#08090d] to-transparent md:hidden" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#08090d] to-transparent md:hidden" />
 
-          </div>
-        )}
+        </div>
 
         {/* DARK OVERLAYS */}
 
