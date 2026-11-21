@@ -3,6 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { watchCollections as staticCollections } from "@/data/watch";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import { getDictionary } from "@/lib/i18n/server";
+import type { Locale } from "@/lib/i18n/config";
+import YouTubeThumbnail from "@/components/YouTubeThumbnail";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -17,20 +22,89 @@ const gradients: Record<string, string> = {
   Awards: "from-fuchsia-950 via-purple-900 to-black",
 };
 
+function formatLocalizedDate(
+  value: string | null,
+  locale: Locale
+) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return new Intl.DateTimeFormat(
+    locale === "pt-BR" ? "pt-BR" : "en-US",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }
+  ).format(date);
+}
+
 export function generateStaticParams() {
   return staticCollections.map((collection) => ({
     slug: collection.slug,
   }));
 }
 
-export default async function CollectionPage({ params }: PageProps) {
+export default function CollectionPage({ params }: PageProps) {
+  return (
+    <Suspense fallback={<CollectionLoading />}>
+      <CollectionContent params={params} />
+    </Suspense>
+  );
+}
+
+function CollectionLoading() {
+  return (
+    <main className="min-h-screen bg-[#08090d] px-6 py-20 text-white">
+      <div className="mx-auto max-w-7xl animate-pulse">
+        <div className="h-4 w-48 rounded bg-purple-400/20" />
+
+        <div className="mt-8 h-20 max-w-2xl rounded bg-white/10" />
+
+        <div className="mt-8 h-5 max-w-xl rounded bg-white/5" />
+
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="overflow-hidden rounded-xl border border-white/10"
+            >
+              <div className="aspect-video bg-white/10" />
+
+              <div className="space-y-4 p-5">
+                <div className="h-5 rounded bg-white/10" />
+                <div className="h-12 rounded bg-white/5" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
+
+async function CollectionContent({ params }: PageProps) {
+  await connection();
+
   const { slug } = await params;
+
+  const { locale, dictionary } = await getDictionary();
+
+  const copy = dictionary.watch;
+  const videoCopy = dictionary.videoPage;
+
   const supabase = await createClient();
 
   // 1. Retrieve collection from Supabase
   const { data: collection, error: collectionError } = await supabase
     .from("watch_collections")
-    .select("id, slug, title, category, label, description, display_order")
+    .select(
+      "id, slug, title, category, label, description, display_order"
+    )
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();
@@ -40,8 +114,9 @@ export default async function CollectionPage({ params }: PageProps) {
       <main className="min-h-[60vh] bg-[#08090d] px-6 py-20 text-white">
         <div className="mx-auto max-w-3xl">
           <h1 className="text-2xl font-black text-red-400">
-            Unable to load collection
+            {copy.collectionErrorTitle}
           </h1>
+
           <p className="mt-4 text-sm text-zinc-400">
             {collectionError.message}
           </p>
@@ -63,8 +138,9 @@ export default async function CollectionPage({ params }: PageProps) {
     return (
       <main className="min-h-[60vh] bg-[#08090d] px-6 py-20 text-white">
         <h1 className="text-2xl font-black text-red-400">
-          Unable to load collection videos
+          {copy.collectionVideosErrorTitle}
         </h1>
+
         <p className="mt-4 text-sm text-zinc-400">
           {relationsError.message}
         </p>
@@ -84,13 +160,15 @@ export default async function CollectionPage({ params }: PageProps) {
     youtube_video_id: string;
     source_name: string;
     source_url: string;
+    thumbnail_url: string | null;
+    thumbnail_alt: string | null;
   }> = [];
 
   if (videoIds.length > 0) {
     const { data: videoData, error: videosError } = await supabase
       .from("watch_videos")
       .select(
-        "id, slug, title, description, published_at, youtube_video_id, source_name, source_url"
+        "id, slug, title, description, published_at, youtube_video_id, source_name, source_url, thumbnail_url, thumbnail_alt"
       )
       .in("id", videoIds)
       .eq("status", "published");
@@ -99,8 +177,9 @@ export default async function CollectionPage({ params }: PageProps) {
       return (
         <main className="min-h-[60vh] bg-[#08090d] px-6 py-20 text-white">
           <h1 className="text-2xl font-black text-red-400">
-            Unable to load videos
+            {copy.videosErrorTitle}
           </h1>
+
           <p className="mt-4 text-sm text-zinc-400">
             {videosError.message}
           </p>
@@ -109,7 +188,10 @@ export default async function CollectionPage({ params }: PageProps) {
     }
 
     const orderMap = new Map(
-      relations!.map((item) => [item.video_id, item.display_order])
+      (relations ?? []).map((item) => [
+        item.video_id,
+        item.display_order,
+      ])
     );
 
     videos = (videoData ?? []).sort(
@@ -119,70 +201,73 @@ export default async function CollectionPage({ params }: PageProps) {
     );
   }
 
+  // 4. Retrieve localized collection content
+  const collectionTranslation =
+    dictionary.home.collectionContent[slug];
+
+  const localizedTitle =
+    collectionTranslation?.title || collection.title;
+
+  const localizedDescription =
+    collectionTranslation?.description || collection.description;
+
+  const categoryLabel =
+    copy.categoryNames[collection.category] ||
+    collection.category;
+
+  const collectionGradient =
+    gradients[collection.category] || "from-zinc-800 to-black";
+
   return (
     <main className="min-h-screen bg-[#08090d] text-white">
-
       <section className="mx-auto max-w-7xl px-6 py-20">
 
         <p className="mb-5 text-xs font-bold tracking-[0.3em] text-purple-400">
-          WATCH / {collection.category.toUpperCase()}
+          {locale === "pt-BR" ? "VÍDEOS" : "WATCH"} /{" "}
+          {categoryLabel.toUpperCase()}
         </p>
 
         <h1 className="max-w-4xl text-5xl font-black md:text-7xl">
-          {collection.title}
+          {localizedTitle}
           <span className="text-purple-400">.</span>
         </h1>
 
         <p className="mt-6 max-w-2xl text-base leading-8 text-zinc-400">
-          {collection.description}
+          {localizedDescription}
         </p>
 
         <div className="mt-9 flex flex-wrap gap-4 border-y border-white/10 py-5">
           <span className="text-xs font-bold tracking-widest text-zinc-400">
-            {String(videos.length).padStart(2, "0")} CATALOGUED VIDEOS
+            {String(videos.length).padStart(2, "0")}{" "}
+            {copy.cataloguedVideos}
           </span>
 
           <span className="text-xs text-zinc-600">
-            Independent fan archive
+            {copy.independentArchive}
           </span>
         </div>
 
         {videos.length > 0 ? (
-
           <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-
             {videos.map((video) => (
-
               <Link
                 key={video.id}
                 href={`/watch/${slug}/${video.slug}`}
                 className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] transition hover:-translate-y-1 hover:border-purple-400/50"
               >
 
-                <div
-                  className={`relative flex aspect-video items-center justify-center bg-gradient-to-br ${
-                    gradients[collection.category] || "from-zinc-800 to-black"
-                  }`}
-                >
-                  <span className="text-6xl font-black text-white/10 transition group-hover:scale-110">
-                    ▶
-                  </span>
+                {/* AUTOMATIC YOUTUBE THUMBNAIL */}
 
-                  <span className="absolute bottom-4 left-4 text-[10px] font-bold tracking-widest text-white/70">
-                    OFFICIAL VIDEO SOURCE
-                  </span>
-                </div>
+                <YouTubeThumbnail
+                  videoId={video.youtube_video_id}
+                  thumbnailUrl={video.thumbnail_url}
+                  alt={video.thumbnail_alt || video.title}
+                  fallbackGradient={collectionGradient}
+                />
 
                 <div className="p-5">
-
                   <p className="text-[10px] font-bold tracking-widest text-purple-400">
-                    {video.published_at
-                      ? new Date(`${video.published_at}T00:00:00`).toLocaleDateString("en-US", {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "DATE NOT REGISTERED"}
+                    {formatLocalizedDate(video.published_at, locale)}
                   </p>
 
                   <h2 className="mt-3 text-lg font-black leading-snug">
@@ -190,36 +275,26 @@ export default async function CollectionPage({ params }: PageProps) {
                   </h2>
 
                   <p className="mt-3 text-sm leading-6 text-zinc-500">
-                    {video.description}
+                    {video.description || videoCopy.noDescription}
                   </p>
 
                   <div className="mt-5 border-t border-white/10 pt-4 text-xs font-bold text-purple-400">
-                    WATCH DETAILS ↗
+                    {copy.videoDetails}
                   </div>
-
                 </div>
-
               </Link>
-
             ))}
-
           </div>
-
         ) : (
-
           <div className="mt-12 rounded-xl border border-white/10 bg-white/[0.03] px-6 py-20 text-center">
-
             <p className="text-2xl font-black">
-              The archive is growing.
+              {copy.archiveGrowingTitle}
             </p>
 
             <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-zinc-500">
-              No published videos have been catalogued in this collection yet.
-              New entries will be added as the archive develops.
+              {copy.noPublishedVideos} {copy.newEntriesSoon}
             </p>
-
           </div>
-
         )}
 
         <div className="mt-16">
@@ -227,16 +302,14 @@ export default async function CollectionPage({ params }: PageProps) {
             href="/watch"
             className="text-sm font-bold text-zinc-400 hover:text-white"
           >
-            ← BACK TO WATCH
+            {copy.backToWatch}
           </Link>
         </div>
-
       </section>
 
       <footer className="border-t border-white/10 px-6 py-8 text-center text-xs text-zinc-600">
-        MONSTER ARCHIVE · Independent fan-made project
+        {copy.footerDisclaimer}
       </footer>
-
     </main>
   );
 }

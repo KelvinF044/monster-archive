@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import YouTubePlayer from "@/components/YouTubePlayer";
 import { watchVideos } from "@/data/watch";
+import { connection } from "next/server";
+import { getDictionary } from "@/lib/i18n/server";
+import type { Locale } from "@/lib/i18n/config";
 
 type PageProps = {
   params: Promise<{
@@ -30,8 +33,34 @@ export function generateStaticParams({
     : [{ videoSlug: "__no-video-yet__" }];
 }
 
+function formatLocalizedDate(
+  value: string | null,
+  locale: Locale
+) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return new Intl.DateTimeFormat(
+    locale === "pt-BR" ? "pt-BR" : "en-US",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }
+  ).format(date);
+}
+
 export default async function VideoPage({ params }: PageProps) {
+  await connection();
+
   const { slug, videoSlug } = await params;
+
+  const { locale, dictionary } = await getDictionary();
+  const copy = dictionary.videoPage;
 
   const supabase = await createClient();
 
@@ -48,8 +77,9 @@ export default async function VideoPage({ params }: PageProps) {
       <main className="min-h-[60vh] bg-[#08090d] px-6 py-20 text-white">
         <div className="mx-auto max-w-3xl">
           <h1 className="text-2xl font-black text-red-400">
-            Unable to load collection
+            {copy.collectionErrorTitle}
           </h1>
+
           <p className="mt-4 text-sm text-zinc-400">
             {collectionError.message}
           </p>
@@ -82,8 +112,9 @@ export default async function VideoPage({ params }: PageProps) {
       <main className="min-h-[60vh] bg-[#08090d] px-6 py-20 text-white">
         <div className="mx-auto max-w-3xl">
           <h1 className="text-2xl font-black text-red-400">
-            Unable to load video
+            {copy.videoErrorTitle}
           </h1>
+
           <p className="mt-4 text-sm text-zinc-400">
             {videoError.message}
           </p>
@@ -107,8 +138,9 @@ export default async function VideoPage({ params }: PageProps) {
       <main className="min-h-[60vh] bg-[#08090d] px-6 py-20 text-white">
         <div className="mx-auto max-w-3xl">
           <h1 className="text-2xl font-black text-red-400">
-            Unable to verify video collection
+            {copy.relationshipErrorTitle}
           </h1>
+
           <p className="mt-4 text-sm text-zinc-400">
             {relationshipError.message}
           </p>
@@ -119,15 +151,11 @@ export default async function VideoPage({ params }: PageProps) {
 
   if (!relationship) notFound();
 
-  // 4. Formatar a data
-  const formattedDate = video.published_at
-    ? new Intl.DateTimeFormat("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        timeZone: "UTC",
-      }).format(new Date(`${video.published_at}T00:00:00Z`))
-    : "DATE NOT REGISTERED";
+  // 4. Formatar a data no idioma selecionado
+  const formattedDate = formatLocalizedDate(
+    video.published_at,
+    locale
+  );
 
   return (
     <main className="min-h-screen bg-[#08090d] text-white">
@@ -135,7 +163,7 @@ export default async function VideoPage({ params }: PageProps) {
       <section className="mx-auto max-w-6xl px-6 py-14">
 
         <p className="mb-5 text-xs font-bold tracking-[0.3em] text-purple-400">
-          MONSTER ARCHIVE / WATCH
+          {copy.archiveLabel}
         </p>
 
         <h1 className="mb-8 text-3xl font-black leading-tight md:text-5xl">
@@ -156,7 +184,7 @@ export default async function VideoPage({ params }: PageProps) {
 
           <div>
             <p className="text-xs font-bold tracking-[0.25em] text-purple-400">
-              ABOUT THIS VIDEO
+              {copy.aboutVideo}
             </p>
 
             <h2 className="mt-4 text-2xl font-black">
@@ -164,21 +192,21 @@ export default async function VideoPage({ params }: PageProps) {
             </h2>
 
             <p className="mt-5 text-base leading-8 text-zinc-400">
-              {video.description || "No description available."}
+              {video.description || copy.noDescription}
             </p>
           </div>
 
           <aside className="h-fit rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
             <p className="text-xs font-bold tracking-widest text-zinc-500">
-              VIDEO INFORMATION
+              {copy.videoInformation}
             </p>
 
             <div className="mt-6 space-y-5">
 
               <div>
                 <p className="text-[10px] font-bold tracking-widest text-zinc-600">
-                  PUBLICATION DATE
+                  {copy.publicationDate}
                 </p>
 
                 <p className="mt-2 text-sm font-semibold">
@@ -188,7 +216,7 @@ export default async function VideoPage({ params }: PageProps) {
 
               <div>
                 <p className="text-[10px] font-bold tracking-widest text-zinc-600">
-                  ORIGINAL SOURCE
+                  {copy.originalSource}
                 </p>
 
                 <p className="mt-2 text-sm font-semibold">
@@ -198,11 +226,11 @@ export default async function VideoPage({ params }: PageProps) {
 
               <div>
                 <p className="text-[10px] font-bold tracking-widest text-zinc-600">
-                  ARCHIVE STATUS
+                  {copy.archiveStatus}
                 </p>
 
                 <p className="mt-2 text-sm font-semibold text-green-400">
-                  Published
+                  {copy.published}
                 </p>
               </div>
 
@@ -214,7 +242,7 @@ export default async function VideoPage({ params }: PageProps) {
               rel="noopener noreferrer"
               className="mt-8 block rounded-lg bg-white px-5 py-4 text-center text-xs font-black text-black transition hover:bg-purple-200"
             >
-              WATCH ORIGINAL ON YOUTUBE ↗
+              {copy.watchOriginal}
             </a>
 
           </aside>
@@ -226,14 +254,14 @@ export default async function VideoPage({ params }: PageProps) {
             href={`/watch/${slug}`}
             className="text-sm font-bold text-zinc-400 hover:text-white"
           >
-            ← BACK TO COLLECTION
+            {copy.backToCollection}
           </Link>
         </div>
 
       </section>
 
       <footer className="border-t border-white/10 px-6 py-8 text-center text-xs text-zinc-600">
-        MONSTER ARCHIVE · Independent fan-made project
+        {copy.footerDisclaimer}
       </footer>
 
     </main>
