@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { useLanguage } from "@/components/LanguageProvider";
+import { watchCollections } from "@/data/watch";
+
 import type { Locale } from "@/lib/i18n/config";
 
 function LanguageSwitcher({
@@ -104,7 +106,9 @@ function LanguageSwitcher({
                     : "text-zinc-300 hover:bg-white/10 hover:text-white"
                 }`}
               >
-                <span>{option.code === "pt-BR" ? "PT-BR" : "EN"}</span>
+                <span>
+                  {option.code === "pt-BR" ? "PT-BR" : "EN"}
+                </span>
 
                 {selected && (
                   <span className="text-purple-400">✓</span>
@@ -120,16 +124,49 @@ function LanguageSwitcher({
 
 export default function SiteHeader() {
   const pathname = usePathname();
+
   const [menuOpen, setMenuOpen] = useState(false);
+  const [watchMenuOpen, setWatchMenuOpen] = useState(false);
+  const [mobileWatchOpen, setMobileWatchOpen] = useState(false);
 
   const { locale, setLocale, dictionary } = useLanguage();
 
   const navigation = [
-    { label: dictionary.navigation.home, href: "/" },
-    { label: dictionary.navigation.members, href: "/members" },
-    { label: dictionary.navigation.watch, href: "/watch" },
-    { label: dictionary.navigation.about, href: "/#about" },
+    {
+      label: dictionary.navigation.home,
+      href: "/",
+    },
+    {
+      label: dictionary.navigation.members,
+      href: "/members",
+    },
+    {
+      label: dictionary.navigation.watch,
+      href: "/watch",
+    },
+    {
+      label: dictionary.navigation.about,
+      href: "/#about",
+    },
   ];
+
+  const categoryFilterKeys = {
+    "Pre-debut": "preDebut",
+    Stages: "stages",
+    Variety: "variety",
+    Behind: "behind",
+    Events: "events",
+    Awards: "awards",
+  } as const;
+
+  const watchCategoryLinks = watchCollections.map((collection) => ({
+    slug: collection.slug,
+    category: collection.category,
+    label:
+      dictionary.watch.filters[
+        categoryFilterKeys[collection.category]
+      ],
+  }));
 
   function isActive(href: string) {
     if (href === "/") {
@@ -147,6 +184,15 @@ export default function SiteHeader() {
     return false;
   }
 
+  function isCategoryActive(slug: string) {
+    const categoryPath = `/watch/${slug}`;
+
+    return (
+      pathname === categoryPath ||
+      pathname.startsWith(`${categoryPath}/`)
+    );
+  }
+
   function linkClass(href: string) {
     const base =
       "block w-full whitespace-nowrap px-1 text-center text-sm font-medium transition-colors duration-200";
@@ -158,38 +204,137 @@ export default function SiteHeader() {
     }`;
   }
 
+  function closeMobileNavigation() {
+    setMenuOpen(false);
+    setMobileWatchOpen(false);
+  }
+
+  function closeWatchDropdown() {
+    setWatchMenuOpen(false);
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#08090d]/95 text-white backdrop-blur-xl">
 
-      {/* HEADER - FIXED RESPONSIVE GRID */}
+      {/* HEADER */}
 
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_360px_minmax(0,1fr)]">
 
-        {/* LOGO - LEFT */}
+        {/* LOGO */}
 
         <Link
           href="/"
-          onClick={() => setMenuOpen(false)}
+          onClick={closeMobileNavigation}
           className="shrink-0 text-xl font-black tracking-[0.18em] lg:justify-self-start"
         >
           MONSTER<span className="text-purple-400">.</span>
         </Link>
 
-        {/* DESKTOP NAVIGATION - ALWAYS CENTERED */}
+        {/* DESKTOP NAVIGATION */}
 
-        <nav className="hidden w-[360px] grid-cols-4 items-center lg:grid lg:justify-self-center">
-          {navigation.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={
-                isActive(item.href) ? "page" : undefined
+        <nav className="hidden h-full w-[360px] grid-cols-4 items-center lg:grid lg:justify-self-center">
+
+          <Link
+            href="/"
+            aria-current={isActive("/") ? "page" : undefined}
+            className={linkClass("/")}
+          >
+            {navigation[0].label}
+          </Link>
+
+          <Link
+            href="/members"
+            aria-current={
+              isActive("/members") ? "page" : undefined
+            }
+            className={linkClass("/members")}
+          >
+            {navigation[1].label}
+          </Link>
+
+          {/* WATCH DROPDOWN */}
+
+          <div
+            className="relative flex h-full items-center justify-center"
+            onMouseEnter={() => setWatchMenuOpen(true)}
+            onMouseLeave={closeWatchDropdown}
+            onFocusCapture={() => setWatchMenuOpen(true)}
+            onBlur={(event) => {
+              const nextTarget =
+                event.relatedTarget as Node | null;
+
+              if (
+                !nextTarget ||
+                !event.currentTarget.contains(nextTarget)
+              ) {
+                closeWatchDropdown();
               }
-              className={linkClass(item.href)}
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                closeWatchDropdown();
+              }
+            }}
+          >
+            <Link
+              href="/watch"
+              aria-current={
+                isActive("/watch") ? "page" : undefined
+              }
+              aria-haspopup="menu"
+              aria-expanded={watchMenuOpen}
+              aria-controls="desktop-watch-menu"
+              className={linkClass("/watch")}
+              onClick={closeWatchDropdown}
             >
-              {item.label}
+              {navigation[2].label}
             </Link>
-          ))}
+
+            {/* DESKTOP CATEGORY LIST */}
+
+            <div
+              className={`absolute left-1/2 top-full z-[70] w-48 -translate-x-1/2 pt-2 transition-all duration-200 ${
+                watchMenuOpen
+                  ? "visible translate-y-0 opacity-100"
+                  : "invisible pointer-events-none translate-y-2 opacity-0"
+              }`}
+            >
+              <div
+                id="desktop-watch-menu"
+                role="menu"
+                aria-label="Watch categories"
+                className="overflow-hidden rounded-lg border border-white/10 bg-[#08090d] py-2 shadow-2xl shadow-black/50"
+              >
+                {watchCategoryLinks.map((item) => {
+                  const selected = isCategoryActive(item.slug);
+
+                  return (
+                    <Link
+                      key={item.slug}
+                      href={`/watch/${item.slug}`}
+                      role="menuitem"
+                      onClick={closeWatchDropdown}
+                      className={`block px-4 py-3 text-left text-xs transition ${
+                        selected
+                          ? "bg-purple-500/25 font-bold text-white"
+                          : "text-white/80 hover:bg-white/5 hover:text-white"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <Link
+            href="/#about"
+            className={linkClass("/#about")}
+          >
+            {navigation[3].label}
+          </Link>
+
         </nav>
 
         {/* RIGHT SIDE */}
@@ -209,7 +354,10 @@ export default function SiteHeader() {
 
           <button
             type="button"
-            onClick={() => setMenuOpen((previous) => !previous)}
+            onClick={() => {
+              setMenuOpen((previous) => !previous);
+              setMobileWatchOpen(false);
+            }}
             aria-label={
               menuOpen
                 ? "Close navigation menu"
@@ -231,19 +379,122 @@ export default function SiteHeader() {
 
           <div className="mx-auto flex max-w-7xl flex-col gap-5">
 
-            {navigation.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                aria-current={
-                  isActive(item.href) ? "page" : undefined
-                }
-                className="text-sm font-medium text-zinc-400 transition-colors hover:text-white"
-              >
-                {item.label}
-              </Link>
-            ))}
+            <Link
+              href="/"
+              onClick={closeMobileNavigation}
+              aria-current={isActive("/") ? "page" : undefined}
+              className={`text-sm font-medium transition-colors ${
+                isActive("/")
+                  ? "text-purple-400"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              {navigation[0].label}
+            </Link>
+
+            <Link
+              href="/members"
+              onClick={closeMobileNavigation}
+              aria-current={
+                isActive("/members") ? "page" : undefined
+              }
+              className={`text-sm font-medium transition-colors ${
+                isActive("/members")
+                  ? "text-purple-400"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              {navigation[1].label}
+            </Link>
+
+            {/* MOBILE WATCH */}
+
+            <div className="flex flex-col gap-3">
+
+              <div className="flex items-center justify-between gap-4">
+
+                <Link
+                  href="/watch"
+                  onClick={closeMobileNavigation}
+                  aria-current={
+                    isActive("/watch") ? "page" : undefined
+                  }
+                  className={`text-sm font-medium transition-colors ${
+                    isActive("/watch")
+                      ? "text-purple-400"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  {navigation[2].label}
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMobileWatchOpen((previous) => !previous)
+                  }
+                  aria-label={
+                    locale === "pt-BR"
+                      ? "Abrir categorias de vídeos"
+                      : "Open Watch categories"
+                  }
+                  aria-expanded={mobileWatchOpen}
+                  aria-controls="mobile-watch-categories"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-zinc-400 transition hover:border-purple-400/50 hover:text-white"
+                >
+                  <svg
+                    className={`h-4 w-4 transition-transform ${
+                      mobileWatchOpen ? "rotate-180" : ""
+                    }`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+
+              </div>
+
+              {/* MOBILE CATEGORY LIST - NO CONTAINER */}
+
+              {mobileWatchOpen && (
+                <div
+                  id="mobile-watch-categories"
+                  className="flex flex-col py-1"
+                >
+                  {watchCategoryLinks.map((item) => {
+                    const selected = isCategoryActive(item.slug);
+
+                    return (
+                      <Link
+                        key={item.slug}
+                        href={`/watch/${item.slug}`}
+                        onClick={closeMobileNavigation}
+                        className={`block rounded-md px-4 py-3 text-xs transition ${
+                          selected
+                            ? "bg-purple-500/25 font-bold text-white"
+                            : "text-white/80 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+
+            </div>
+
+            <Link
+              href="/#about"
+              onClick={closeMobileNavigation}
+              className="text-sm font-medium text-zinc-400 transition-colors hover:text-white"
+            >
+              {navigation[3].label}
+            </Link>
 
             <div className="border-t border-white/10 pt-4 text-[10px] font-bold tracking-widest text-zinc-600">
               {dictionary.navigation.globalArchive}
