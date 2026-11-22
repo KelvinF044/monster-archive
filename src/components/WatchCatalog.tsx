@@ -164,37 +164,53 @@ export default function WatchCatalog({
 
       {/* HERO */}
 
-      <section className="relative isolate min-h-[560px] overflow-hidden border-b border-white/10 md:min-h-[650px]">
+      <section className="relative isolate min-h-[560px] overflow-hidden border-b border-white/10 bg-[#08090d] md:min-h-[650px]">
 
-        {/* HOME HERO IMAGE */}
+        {/* RESPONSIVE BACKGROUND IMAGE */}
 
-        {heroImageUrl && (
-          <Image
-            src={heroImageUrl}
-            alt={dictionary.home.heroImageAlt}
-            fill
-            priority
-            quality={80}
-            sizes="100vw"
-            className="object-cover object-center"
-          />
-        )}
+        <div className="pointer-events-none absolute inset-x-0 top-0 aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#151020] via-[#0c0c12] to-[#08090d] md:inset-0 md:aspect-auto">
 
-        {/* DARK OVERLAYS */}
+          {heroImageUrl ? (
+            <Image
+              src={heroImageUrl}
+              alt={dictionary.home.heroImageAlt}
+              fill
+              priority
+              quality={80}
+              sizes="100vw"
+              className="object-contain object-top md:object-cover md:object-[center_20%]"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#151020] via-[#0c0c12] to-[#08090d]" />
+          )}
 
-        <div className="absolute inset-0 bg-gradient-to-r from-[#08090d]/90 via-[#08090d]/65 to-[#08090d]/30" />
+          {/* IMAGE FADE - SAME AS HOME */}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#08090d] via-[#08090d]/25 to-[#08090d]/20" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#08090d]/10 via-[#08090d]/25 to-[#08090d] md:bg-gradient-to-t md:from-[#08090d]/85 md:via-transparent md:to-[#08090d]/15" />
 
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(124,58,237,0.25),transparent_55%)]" />
+        </div>
 
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_10%_90%,rgba(88,28,135,0.20),transparent_50%)]" />
+        {/* DARK HORIZONTAL OVERLAY - SAME AS HOME */}
 
-        <div className="relative z-10 mx-auto flex min-h-[560px] max-w-7xl items-center px-6 py-20 md:min-h-[650px] md:py-24">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#08090d]/65 via-[#08090d]/35 to-[#08090d]/20 md:from-[#08090d]/85 md:via-[#08090d]/55 md:to-[#08090d]/20" />
+
+        {/* BOTTOM DARK OVERLAY - SAME AS HOME */}
+
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08090d]/45 via-transparent to-transparent" />
+
+        {/* PURPLE EFFECTS - SAME AS HOME */}
+
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_30%,rgba(124,58,237,0.22),transparent_55%)]" />
+
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_10%_90%,rgba(88,28,135,0.15),transparent_50%)]" />
+
+        {/* HERO CONTENT */}
+
+        <div className="relative z-10 mx-auto max-w-7xl px-6 pt-28 pb-20 md:py-36">
 
           <div className="w-full max-w-5xl">
 
-            <div className="mb-7 flex items-center gap-3">
+            <div className="mb-8 flex items-center gap-3">
               <span className="h-px w-10 bg-purple-400" />
 
               <span className="text-xs font-bold tracking-[0.3em] text-purple-300">
