@@ -21,6 +21,7 @@ type Collection = {
 
 type Props = {
   collections: Collection[];
+  heroImageUrl: string | null;
 };
 
 /* COLLECTION COVER */
@@ -97,7 +98,10 @@ function CollectionCover({
   );
 }
 
-export default function WatchCatalog({ collections }: Props) {
+export default function WatchCatalog({
+  collections,
+  heroImageUrl,
+}: Props) {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
 
@@ -160,40 +164,68 @@ export default function WatchCatalog({ collections }: Props) {
 
       {/* HERO */}
 
-      <section className="relative overflow-hidden border-b border-white/10">
+      <section className="relative isolate min-h-[560px] overflow-hidden border-b border-white/10 md:min-h-[650px]">
+
+        {/* HOME HERO IMAGE */}
+
+        {heroImageUrl && (
+          <Image
+            src={heroImageUrl}
+            alt={dictionary.home.heroImageAlt}
+            fill
+            priority
+            quality={80}
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        )}
+
+        {/* DARK OVERLAYS */}
+
+        <div className="absolute inset-0 bg-gradient-to-r from-[#08090d]/90 via-[#08090d]/65 to-[#08090d]/30" />
+
+        <div className="absolute inset-0 bg-gradient-to-t from-[#08090d] via-[#08090d]/25 to-[#08090d]/20" />
+
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(124,58,237,0.25),transparent_55%)]" />
 
-        <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32">
-          <div className="mb-7 flex items-center gap-3">
-            <span className="h-px w-10 bg-purple-400" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_10%_90%,rgba(88,28,135,0.20),transparent_50%)]" />
 
-            <span className="text-xs font-bold tracking-[0.3em] text-purple-300">
-              {copy.heroEyebrow}
-            </span>
+        <div className="relative z-10 mx-auto flex min-h-[560px] max-w-7xl items-center px-6 py-20 md:min-h-[650px] md:py-24">
+
+          <div className="w-full max-w-5xl">
+
+            <div className="mb-7 flex items-center gap-3">
+              <span className="h-px w-10 bg-purple-400" />
+
+              <span className="text-xs font-bold tracking-[0.3em] text-purple-300">
+                {copy.heroEyebrow}
+              </span>
+            </div>
+
+            {/* HERO TITLE */}
+
+            <h1 className="w-full max-w-5xl text-[clamp(3.2rem,10vw,7.5rem)] font-black leading-[0.92] tracking-tight">
+              <span className="block max-w-full break-words">
+                {copy.heroTitleLine1}
+              </span>
+
+              <span className="mt-1 block max-w-full break-words bg-gradient-to-r from-purple-300 via-fuchsia-400 to-white bg-clip-text text-transparent">
+                {copy.heroTitleLine2}
+              </span>
+            </h1>
+
+            <p className="mt-8 max-w-2xl text-base leading-8 text-zinc-300 md:text-lg">
+              {copy.heroDescription}
+            </p>
+
+            <a
+              href="#catalog"
+              className="mt-10 inline-block rounded-lg bg-white px-7 py-4 text-sm font-bold text-black transition hover:bg-purple-200"
+            >
+              {copy.exploreCatalogue}
+            </a>
+
           </div>
-
-          {/* RESPONSIVE HERO TITLE */}
-
-          <h1 className="w-full max-w-4xl text-[clamp(1.75rem,8.5vw,3.75rem)] font-black leading-[0.98] tracking-tight sm:text-6xl md:text-8xl">
-            <span className="block max-w-full break-words">
-              {copy.heroTitleLine1}
-            </span>
-
-            <span className="block max-w-full break-words bg-gradient-to-r from-purple-300 via-fuchsia-400 to-white bg-clip-text text-transparent">
-              {copy.heroTitleLine2}
-            </span>
-          </h1>
-
-          <p className="mt-8 max-w-2xl text-base leading-8 text-zinc-400 md:text-lg">
-            {copy.heroDescription}
-          </p>
-
-          <a
-            href="#catalog"
-            className="mt-10 inline-block rounded-lg bg-white px-7 py-4 text-sm font-bold text-black transition hover:bg-purple-200"
-          >
-            {copy.exploreCatalogue}
-          </a>
         </div>
       </section>
 
