@@ -5,7 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import type { Dictionary } from "@/lib/i18n/messages";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export type HomeCollection = {
   id: string;
@@ -19,12 +19,9 @@ export type HomeCollection = {
   cover_image_alt: string | null;
 };
 
-type HomeDictionary = Dictionary["home"];
-
 type HomeCatalogProps = {
   collections: HomeCollection[];
   collectionsError: boolean;
-  home: HomeDictionary;
 };
 
 const gradients: Record<string, string> = {
@@ -39,8 +36,10 @@ const gradients: Record<string, string> = {
 export default function HomeCatalog({
   collections,
   collectionsError,
-  home,
 }: HomeCatalogProps) {
+  const { dictionary } = useLanguage();
+  const home = dictionary.home;
+
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
 
@@ -168,8 +167,6 @@ export default function HomeCatalog({
         </div>
       ) : filteredCollections.length > 0 ? (
 
-        /* DATABASE COLLECTIONS */
-
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
 
           {filteredCollections.map((item) => {
@@ -220,11 +217,7 @@ export default function HomeCatalog({
                     </>
                   )}
 
-                  {/* IMAGE OVERLAY */}
-
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-black/10 transition group-hover:from-black/45" />
-
-                  {/* CATEGORY */}
 
                   <span className="absolute right-5 top-5 rounded-full border border-white/20 bg-black/30 px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
                     {getCategoryLabel(item.category)}
@@ -269,8 +262,6 @@ export default function HomeCatalog({
 
         </div>
       ) : (
-
-        /* EMPTY RESULTS */
 
         <div className="rounded-xl border border-white/10 bg-white/[0.03] px-6 py-20 text-center">
           <p className="text-xl font-bold">

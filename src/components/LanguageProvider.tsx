@@ -11,7 +11,7 @@ import {
 } from "react";
 
 import type { ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import type { Locale } from "@/lib/i18n/config";
 import { LOCALE_COOKIE } from "@/lib/i18n/config";
@@ -36,6 +36,7 @@ export default function LanguageProvider({
   initialLocale: Locale;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [locale, setLocaleState] =
     useState<Locale>(initialLocale);
@@ -48,16 +49,27 @@ export default function LanguageProvider({
     (nextLocale: Locale) => {
       if (nextLocale === locale) return;
 
+      // Atualização imediata do idioma no navegador.
       setLocaleState(nextLocale);
 
+      // Persistência da escolha para as próximas visitas.
       document.cookie =
         `${LOCALE_COOKIE}=${encodeURIComponent(nextLocale)}; Path=/; Max-Age=31536000; SameSite=Lax`;
 
       document.documentElement.lang = nextLocale;
 
-      router.refresh();
+      // Na Home, todos os textos já são Client Components
+      // ligados ao contexto. Não precisamos fazer nova
+      // requisição ao servidor para atualizar o idioma.
+      //
+      // Nas outras páginas, mantemos o refresh porque
+      // elas ainda usam getDictionary() no servidor.
+
+      if (pathname !== "/") {
+        router.refresh();
+      }
     },
-    [locale, router]
+    [locale, pathname, router]
   );
 
   const value = useMemo(
