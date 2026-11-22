@@ -181,6 +181,7 @@ export default function Home() {
               alt={home.heroImageAlt}
               fill
               sizes="100vw"
+              quality={65}
               fetchPriority="high"
               className="object-contain md:object-cover md:object-center 2xl:object-[center_15%]"
             />
@@ -419,7 +420,8 @@ export default function Home() {
                         src={item.cover_image_url}
                         alt={item.cover_image_alt || title}
                         fill
-                        sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                        quality={65}
+                        sizes="(max-width: 639px) calc(100vw - 3rem), (max-width: 1023px) calc((100vw - 4.25rem) / 2), (max-width: 1279px) calc((100vw - 5.5rem) / 3), 397px"
                         className="object-cover transition duration-700 group-hover:scale-105"
                       />
                     ) : (
