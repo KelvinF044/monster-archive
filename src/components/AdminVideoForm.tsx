@@ -1,9 +1,9 @@
-
 "use client";
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/client";
 
 type Collection = {
@@ -19,24 +19,49 @@ type Member = {
   name: string;
 };
 
+type VideoStatus = "draft" | "published";
+
+type InitialVideo = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  published_at: string | null;
+  youtube_video_id: string;
+  source_name: string;
+  status: VideoStatus;
+  is_featured: boolean;
+  era: string | null;
+  collectionIds: string[];
+  memberIds: string[];
+};
+
 type Props = {
   collections: Collection[];
   members: Member[];
+  initialVideo?: InitialVideo | null;
 };
 
-type VideoStatus = "draft" | "published";
+const suggestedEras = [
+  "BATTER UP",
+  "SHEESH",
+  "DRIP",
+  "WE GO UP",
+];
 
 function extractYouTubeId(value: string): string | null {
   const input = value.trim();
 
-  // Also accepts a plain 11-character YouTube video ID.
   if (/^[A-Za-z0-9_-]{11}$/.test(input)) {
     return input;
   }
 
   try {
     const url = new URL(input);
-    const host = url.hostname.replace(/^www\./, "").toLowerCase();
+
+    const host = url.hostname
+      .replace(/^www\./i, "")
+      .toLowerCase();
 
     if (host === "youtu.be") {
       return url.pathname.split("/").filter(Boolean)[0] ?? null;
@@ -82,25 +107,66 @@ function createSlug(value: string): string {
     .replace(/-+$/g, "");
 }
 
+function normalizeEra(value: string): string | null {
+  const clean = value.trim().replace(/\s+/g, " ");
+
+  return clean
+    ? clean.toLocaleUpperCase("en-US")
+    : null;
+}
+
 export default function AdminVideoForm({
   collections,
   members,
+  initialVideo = null,
 }: Props) {
   const router = useRouter();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [publishedAt, setPublishedAt] = useState("");
-  const [sourceName, setSourceName] = useState(
-    "BABYMONSTER Official YouTube"
+  const isEditing = Boolean(initialVideo);
+
+  const [title, setTitle] = useState(
+    initialVideo?.title ?? ""
   );
 
-  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [description, setDescription] = useState(
+    initialVideo?.description ?? ""
+  );
 
-  const [status, setStatus] = useState<VideoStatus>("draft");
-  const [isFeatured, setIsFeatured] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState(
+    initialVideo?.youtube_video_id
+      ? `https://www.youtube.com/watch?v=${initialVideo.youtube_video_id}`
+      : ""
+  );
+
+  const [publishedAt, setPublishedAt] = useState(
+    initialVideo?.published_at?.slice(0, 10) ?? ""
+  );
+
+  const [sourceName, setSourceName] = useState(
+    initialVideo?.source_name ?? "BABYMONSTER Official YouTube"
+  );
+
+  const [era, setEra] = useState(
+    initialVideo?.era ?? ""
+  );
+
+  const [selectedCollections, setSelectedCollections] =
+    useState<string[]>(
+      initialVideo?.collectionIds ?? []
+    );
+
+  const [selectedMembers, setSelectedMembers] =
+    useState<string[]>(
+      initialVideo?.memberIds ?? []
+    );
+
+  const [status, setStatus] = useState<VideoStatus>(
+    initialVideo?.status ?? "draft"
+  );
+
+  const [isFeatured, setIsFeatured] = useState(
+    initialVideo?.is_featured ?? false
+  );
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -118,7 +184,9 @@ export default function AdminVideoForm({
     );
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
 
     setError("");
@@ -126,6 +194,8 @@ export default function AdminVideoForm({
 
     const cleanTitle = title.trim();
     const cleanSource = sourceName.trim();
+    const cleanEra = normalizeEra(era);
+
     const slug = createSlug(cleanTitle);
     const youtubeId = extractYouTubeId(youtubeUrl);
 
@@ -134,13 +204,21 @@ export default function AdminVideoForm({
       return;
     }
 
-    if (!youtubeId || !/^[A-Za-z0-9_-]{11}$/.test(youtubeId)) {
+    if (
+      !youtubeId ||
+      !/^[A-Za-z0-9_-]{11}$/.test(youtubeId)
+    ) {
       setError("Invalid YouTube link. Check the video URL.");
       return;
     }
 
     if (!cleanSource) {
       setError("Please enter the original video source.");
+      return;
+    }
+
+    if (cleanEra && cleanEra.length > 60) {
+      setError("The era name cannot exceed 60 characters.");
       return;
     }
 
@@ -159,23 +237,203 @@ export default function AdminVideoForm({
 
     setSaving(true);
 
-    try {
-      const supabase = createClient();
+    const supabase = createClient();
 
-      // 1. Create the video.
+    const videoPayload = {
+      slug,
+      title: cleanTitle,
+      description: description.trim() || null,
+      published_at: publishedAt || null,
+      youtube_video_id: youtubeId,
+      source_name: cleanSource,
+      source_url: `https://www.youtube.com/watch?v=${youtubeId}`,
+      status,
+      is_featured: isFeatured,
+      era: cleanEra,
+    };
+
+    try {
+      // --------------------------------------------------
+      // EDIT EXISTING VIDEO
+      // --------------------------------------------------
+
+      if (initialVideo) {
+        const previousCollections =
+          initialVideo.collectionIds;
+
+        const previousMembers =
+          initialVideo.memberIds;
+
+        const collectionsToAdd = selectedCollections.filter(
+          (id) => !previousCollections.includes(id)
+        );
+
+        const collectionsToRemove = previousCollections.filter(
+          (id) => !selectedCollections.includes(id)
+        );
+
+        const membersToAdd = selectedMembers.filter(
+          (id) => !previousMembers.includes(id)
+        );
+
+        const membersToRemove = previousMembers.filter(
+          (id) => !selectedMembers.includes(id)
+        );
+
+        let addedCollectionLinks = false;
+        let addedMemberLinks = false;
+
+        // Add new collection relationships first.
+
+        if (collectionsToAdd.length > 0) {
+          const collectionLinks = collectionsToAdd.map(
+            (collectionId) => ({
+              video_id: initialVideo.id,
+              collection_id: collectionId,
+              display_order: 0,
+            })
+          );
+
+          const { error: collectionError } = await supabase
+            .from("watch_video_collections")
+            .insert(collectionLinks);
+
+          if (collectionError) {
+            throw new Error(
+              `Could not add collections: ${collectionError.message}`
+            );
+          }
+
+          addedCollectionLinks = true;
+        }
+
+        // Add new member relationships.
+
+        if (membersToAdd.length > 0) {
+          const memberLinks = membersToAdd.map(
+            (memberId) => ({
+              video_id: initialVideo.id,
+              member_id: memberId,
+            })
+          );
+
+          const { error: memberError } = await supabase
+            .from("watch_video_members")
+            .insert(memberLinks);
+
+          if (memberError) {
+            if (addedCollectionLinks) {
+              await supabase
+                .from("watch_video_collections")
+                .delete()
+                .eq("video_id", initialVideo.id)
+                .in("collection_id", collectionsToAdd);
+            }
+
+            throw new Error(
+              `Could not add participating members: ${memberError.message}`
+            );
+          }
+
+          addedMemberLinks = true;
+        }
+
+        // Update the main video information.
+
+        const { error: updateError } = await supabase
+          .from("watch_videos")
+          .update(videoPayload)
+          .eq("id", initialVideo.id);
+
+        if (updateError) {
+          // Roll back newly added relationships if the main update fails.
+
+          if (addedCollectionLinks) {
+            await supabase
+              .from("watch_video_collections")
+              .delete()
+              .eq("video_id", initialVideo.id)
+              .in("collection_id", collectionsToAdd);
+          }
+
+          if (addedMemberLinks) {
+            await supabase
+              .from("watch_video_members")
+              .delete()
+              .eq("video_id", initialVideo.id)
+              .in("member_id", membersToAdd);
+          }
+
+          if (updateError.code === "23505") {
+            throw new Error(
+              "Another video already uses this title or slug. Please choose a different title."
+            );
+          }
+
+          if (updateError.code === "42501") {
+            throw new Error(
+              "You are not authorized to edit videos. Please sign in with an active administrator account."
+            );
+          }
+
+          throw new Error(updateError.message);
+        }
+
+        // --------------------------------------------------
+        // REMOVE OLD RELATIONSHIPS
+        // --------------------------------------------------
+
+        let removalErrorMessage = "";
+
+        if (collectionsToRemove.length > 0) {
+          const { error: collectionRemovalError } = await supabase
+            .from("watch_video_collections")
+            .delete()
+            .eq("video_id", initialVideo.id)
+            .in("collection_id", collectionsToRemove);
+
+          if (collectionRemovalError) {
+            removalErrorMessage =
+              collectionRemovalError.message;
+          }
+        }
+
+        if (membersToRemove.length > 0) {
+          const { error: memberRemovalError } = await supabase
+            .from("watch_video_members")
+            .delete()
+            .eq("video_id", initialVideo.id)
+            .in("member_id", membersToRemove);
+
+          if (memberRemovalError && !removalErrorMessage) {
+            removalErrorMessage =
+              memberRemovalError.message;
+          }
+        }
+
+        if (removalErrorMessage) {
+          router.refresh();
+
+          throw new Error(
+            `The video information was updated, but some old relationships could not be removed. Please reopen the video and review its collections and members. Details: ${removalErrorMessage}`
+          );
+        }
+
+        setSuccess("Video updated successfully!");
+
+        router.push("/admin/videos");
+        router.refresh();
+
+        return;
+      }
+
+      // --------------------------------------------------
+      // CREATE NEW VIDEO
+      // --------------------------------------------------
+
       const { data: video, error: videoError } = await supabase
         .from("watch_videos")
-        .insert({
-          slug,
-          title: cleanTitle,
-          description: description.trim() || null,
-          published_at: publishedAt || null,
-          youtube_video_id: youtubeId,
-          source_name: cleanSource,
-          source_url: `https://www.youtube.com/watch?v=${youtubeId}`,
-          status,
-          is_featured: isFeatured,
-        })
+        .insert(videoPayload)
         .select("id, slug")
         .single();
 
@@ -195,12 +453,15 @@ export default function AdminVideoForm({
         throw new Error(videoError.message);
       }
 
-      // 2. Connect the selected collections.
-      const collectionLinks = selectedCollections.map((collectionId) => ({
-        video_id: video.id,
-        collection_id: collectionId,
-        display_order: 0,
-      }));
+      // Connect selected collections.
+
+      const collectionLinks = selectedCollections.map(
+        (collectionId) => ({
+          video_id: video.id,
+          collection_id: collectionId,
+          display_order: 0,
+        })
+      );
 
       const { error: collectionError } = await supabase
         .from("watch_video_collections")
@@ -217,12 +478,15 @@ export default function AdminVideoForm({
         );
       }
 
-      // 3. Connect participating members, if selected.
+      // Connect selected members.
+
       if (selectedMembers.length > 0) {
-        const memberLinks = selectedMembers.map((memberId) => ({
-          video_id: video.id,
-          member_id: memberId,
-        }));
+        const memberLinks = selectedMembers.map(
+          (memberId) => ({
+            video_id: video.id,
+            member_id: memberId,
+          })
+        );
 
         const { error: memberError } = await supabase
           .from("watch_video_members")
@@ -244,7 +508,6 @@ export default function AdminVideoForm({
 
       router.push("/admin/videos");
       router.refresh();
-
     } catch (err) {
       setError(
         err instanceof Error
@@ -262,7 +525,6 @@ export default function AdminVideoForm({
       {/* BASIC INFORMATION */}
 
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
-
         <h2 className="text-xl font-black">
           Video information
         </h2>
@@ -274,11 +536,15 @@ export default function AdminVideoForm({
         <div className="mt-7 space-y-6">
 
           <div>
-            <label className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+            <label
+              htmlFor="video-title"
+              className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
+            >
               VIDEO TITLE *
             </label>
 
             <input
+              id="video-title"
               required
               maxLength={200}
               value={title}
@@ -289,11 +555,15 @@ export default function AdminVideoForm({
           </div>
 
           <div>
-            <label className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+            <label
+              htmlFor="youtube-url"
+              className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
+            >
               YOUTUBE URL *
             </label>
 
             <input
+              id="youtube-url"
               required
               value={youtubeUrl}
               onChange={(event) => setYoutubeUrl(event.target.value)}
@@ -307,11 +577,15 @@ export default function AdminVideoForm({
           </div>
 
           <div>
-            <label className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+            <label
+              htmlFor="video-description"
+              className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
+            >
               DESCRIPTION
             </label>
 
             <textarea
+              id="video-description"
               rows={4}
               maxLength={3000}
               value={description}
@@ -321,14 +595,51 @@ export default function AdminVideoForm({
             />
           </div>
 
+          {/* ERA */}
+
+          <div>
+            <label
+              htmlFor="video-era"
+              className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
+            >
+              ERA (OPTIONAL)
+            </label>
+
+            <input
+              id="video-era"
+              list="babymonster-eras"
+              maxLength={60}
+              value={era}
+              onChange={(event) => setEra(event.target.value)}
+              placeholder="Select or type an era..."
+              className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-purple-400"
+            />
+
+            <datalist id="babymonster-eras">
+              {suggestedEras.map((item) => (
+                <option key={item} value={item} />
+              ))}
+            </datalist>
+
+            <p className="mt-2 text-xs leading-6 text-zinc-600">
+              Optional. Select a suggested era or type a new one.
+              Leave this field empty when the video does not belong
+              to a specific era.
+            </p>
+          </div>
+
           <div className="grid gap-6 sm:grid-cols-2">
 
             <div>
-              <label className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+              <label
+                htmlFor="published-at"
+                className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
+              >
                 PUBLICATION DATE
               </label>
 
               <input
+                id="published-at"
                 type="date"
                 value={publishedAt}
                 onChange={(event) => setPublishedAt(event.target.value)}
@@ -337,11 +648,15 @@ export default function AdminVideoForm({
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+              <label
+                htmlFor="source-name"
+                className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
+              >
                 ORIGINAL SOURCE *
               </label>
 
               <input
+                id="source-name"
                 required
                 maxLength={150}
                 value={sourceName}
@@ -352,15 +667,12 @@ export default function AdminVideoForm({
             </div>
 
           </div>
-
         </div>
-
       </section>
 
       {/* COLLECTIONS */}
 
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
-
         <h2 className="text-xl font-black">
           Collections *
         </h2>
@@ -370,7 +682,6 @@ export default function AdminVideoForm({
         </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
-
           {collections.map((collection) => (
             <label
               key={collection.id}
@@ -380,7 +691,6 @@ export default function AdminVideoForm({
                   : "border-white/10 bg-black/20 hover:border-white/30"
               }`}
             >
-
               <input
                 type="checkbox"
                 checked={selectedCollections.includes(collection.id)}
@@ -403,18 +713,14 @@ export default function AdminVideoForm({
                   {collection.category}
                 </span>
               </span>
-
             </label>
           ))}
-
         </div>
-
       </section>
 
       {/* MEMBERS */}
 
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
-
         <h2 className="text-xl font-black">
           Participating members
         </h2>
@@ -424,7 +730,6 @@ export default function AdminVideoForm({
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-
           {members.map((member) => (
             <label
               key={member.id}
@@ -434,7 +739,6 @@ export default function AdminVideoForm({
                   : "border-white/10 bg-black/20 hover:border-white/30"
               }`}
             >
-
               <input
                 type="checkbox"
                 checked={selectedMembers.includes(member.id)}
@@ -451,18 +755,14 @@ export default function AdminVideoForm({
               <span className="text-sm font-bold">
                 {member.name}
               </span>
-
             </label>
           ))}
-
         </div>
-
       </section>
 
       {/* PUBLICATION SETTINGS */}
 
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
-
         <h2 className="text-xl font-black">
           Publication settings
         </h2>
@@ -470,19 +770,28 @@ export default function AdminVideoForm({
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
 
           <div>
-            <label className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+            <label
+              htmlFor="video-status"
+              className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
+            >
               VIDEO STATUS
             </label>
 
             <select
+              id="video-status"
               value={status}
               onChange={(event) =>
                 setStatus(event.target.value as VideoStatus)
               }
               className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
             >
-              <option value="draft">Draft — Not visible publicly</option>
-              <option value="published">Published — Visible in WATCH</option>
+              <option value="draft">
+                Draft — Not visible publicly
+              </option>
+
+              <option value="published">
+                Published — Visible in WATCH
+              </option>
             </select>
           </div>
 
@@ -506,7 +815,6 @@ export default function AdminVideoForm({
           </label>
 
         </div>
-
       </section>
 
       {/* FEEDBACK */}
@@ -532,7 +840,6 @@ export default function AdminVideoForm({
       {/* ACTIONS */}
 
       <div className="flex flex-wrap items-center justify-between gap-4">
-
         <Link
           href="/admin/videos"
           className="rounded-lg border border-white/10 px-6 py-4 text-xs font-bold text-zinc-400 transition hover:text-white"
@@ -545,11 +852,15 @@ export default function AdminVideoForm({
           disabled={saving}
           className="rounded-lg bg-white px-8 py-4 text-xs font-black text-black transition hover:bg-purple-200 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {saving ? "SAVING VIDEO..." : "SAVE VIDEO →"}
+          {saving
+            ? isEditing
+              ? "UPDATING VIDEO..."
+              : "SAVING VIDEO..."
+            : isEditing
+              ? "UPDATE VIDEO →"
+              : "SAVE VIDEO →"}
         </button>
-
       </div>
-
     </form>
   );
 }
