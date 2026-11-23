@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  let supabase;
+  let supabase: ReturnType<typeof createServiceClient>;
 
   try {
     supabase = createServiceClient();
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
   }
 
   const staleVideos = (staleRows ?? []) as VideoRow[];
-  const apiBatches = [];
+  const apiBatches: VideoRow[][] = [];
   let refreshedCount = 0;
   let unavailableCount = 0;
   let apiErrors = 0;
@@ -143,19 +143,9 @@ export async function GET(request: NextRequest) {
       const current = byId.get(existing.youtube_video_id);
 
       if (!current?.snippet) {
-        const { error } = await supabase
-          .from("watch_videos")
-          .update({
-            title: unavailableTitle(existing.youtube_video_id),
-            description: null,
-            published_at: null,
-            status: "draft",
-            metadata_source: "unavailable",
-            youtube_metadata_refreshed_at: null,
-          })
-          .eq("id", existing.id);
+        const removed = await removeImportedVideo(supabase, existing.id);
 
-        if (!error) unavailableCount += 1;
+        if (removed) unavailableCount += 1;
         continue;
       }
 
@@ -197,16 +187,32 @@ async function clearExpiredMetadata(
       continue;
     }
 
-    await supabase
-      .from("watch_videos")
-      .update({
-        title: unavailableTitle(video.youtube_video_id),
-        description: null,
-        published_at: null,
-        status: "draft",
-        metadata_source: "unavailable",
-        youtube_metadata_refreshed_at: null,
-      })
-      .eq("id", video.id);
+    await removeImportedVideo(supabase, video.id);
   }
+}
+
+async function removeImportedVideo(
+  supabase: ReturnType<typeof createServiceClient>,
+  videoId: string
+) {
+  const { error: collectionError } = await supabase
+    .from("watch_video_collections")
+    .delete()
+    .eq("video_id", videoId);
+
+  if (collectionError) return false;
+
+  const { error: memberError } = await supabase
+    .from("watch_video_members")
+    .delete()
+    .eq("video_id", videoId);
+
+  if (memberError) return false;
+
+  const { error: videoError } = await supabase
+    .from("watch_videos")
+    .delete()
+    .eq("id", videoId);
+
+  return !videoError;
 }
