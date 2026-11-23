@@ -48,7 +48,7 @@ export default async function AdminErasPage() {
             href="/admin"
             className="text-xs font-bold text-zinc-500 transition hover:text-white"
           >
-            ← BACK TO DASHBOARD
+            {t("← BACK TO DASHBOARD")}
           </Link>
 
           <div className="mt-10 rounded-xl border border-red-500/20 bg-red-500/10 p-6">
@@ -89,7 +89,7 @@ export default async function AdminErasPage() {
             href="/admin"
             className="text-xs font-bold text-zinc-500 transition hover:text-white"
           >
-            ← BACK TO DASHBOARD
+            {t("← BACK TO DASHBOARD")}
           </Link>
 
           <p className="mt-8 text-xs font-bold tracking-[0.3em] text-purple-400">
@@ -100,7 +100,7 @@ export default async function AdminErasPage() {
             <div>
               <h1 className="text-4xl font-black">{t("Era management.")}</h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-500">
-                Maintain the central era catalog used to organize BABYMONSTER videos.
+                {t("Maintain the central era catalog used to organize BABYMONSTER videos.")}
               </p>
             </div>
 
@@ -108,7 +108,7 @@ export default async function AdminErasPage() {
               href="/admin/videos"
               className="rounded-lg border border-white/10 px-4 py-3 text-xs font-bold text-zinc-300 transition hover:border-purple-400/50 hover:text-white"
             >
-              MANAGE VIDEOS →
+              {t("MANAGE VIDEOS →")}
             </Link>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default async function AdminErasPage() {
         </div>
 
         <footer className="mt-16 border-t border-white/10 pt-7 text-xs text-zinc-600">
-          MONSTER ARCHIVE ADMIN · Restricted access
+          {t("MONSTER ARCHIVE ADMIN · Restricted access")}
         </footer>
       </div>
     </main>
