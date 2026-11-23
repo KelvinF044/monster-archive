@@ -551,7 +551,7 @@ export default function AdminImportCenter({
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
         <div className="border-b border-white/10 pb-5">
           <p className="text-xs font-bold tracking-[0.25em] text-purple-400">
-            YOUTUBE SOURCES
+            {t("YOUTUBE SOURCES")}
           </p>
           <h2 className="mt-3 text-2xl font-black">{t("Add a playlist source.")}</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-500">
@@ -562,7 +562,7 @@ export default function AdminImportCenter({
         <form onSubmit={addSource} className="mt-6 grid gap-4 md:grid-cols-2">
           <div>
             <label htmlFor="source-name" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-              SOURCE NAME *
+              {t("SOURCE NAME *")}
             </label>
             <input
               id="source-name"
@@ -577,7 +577,7 @@ export default function AdminImportCenter({
 
           <div>
             <label htmlFor="playlist-url" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-              YOUTUBE PLAYLIST URL *
+              {t("YOUTUBE PLAYLIST URL *")}
             </label>
             <input
               id="playlist-url"
@@ -591,7 +591,7 @@ export default function AdminImportCenter({
 
           <div>
             <label htmlFor="source-default-collection" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-              DEFAULT COLLECTION *
+              {t("DEFAULT COLLECTION *")}
             </label>
             <select
               id="source-default-collection"
@@ -611,7 +611,7 @@ export default function AdminImportCenter({
 
           <div>
             <label htmlFor="source-default-era" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-              DEFAULT ERA (OPTIONAL)
+              {t("DEFAULT ERA (OPTIONAL)")}
             </label>
             <select
               id="source-default-era"
@@ -628,7 +628,7 @@ export default function AdminImportCenter({
 
           <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
             <p className="text-xs leading-5 text-zinc-600">
-              A coleção e a Era são sugestões configuradas por você. Cada lote pode ser revisado e ajustado antes da importação.
+              {t("A coleção e a Era são sugestões configuradas por você. Cada lote pode ser revisado e ajustado antes da importação.")}
             </p>
             <button
               type="submit"
@@ -648,7 +648,7 @@ export default function AdminImportCenter({
             <h2 className="mt-2 text-2xl font-black">{t("Playlist library.")}</h2>
             <p className="mt-2 text-sm text-zinc-500">{t("Escolha uma fonte ativa para buscar os próximos vídeos.")}</p>
           </div>
-          <span className="text-xs text-zinc-600">{sources.length} SOURCE(S)</span>
+          <span className="text-xs text-zinc-600">{sources.length} {t("SOURCE(S)")}</span>
         </div>
 
         {sources.length === 0 ? (
@@ -678,12 +678,12 @@ export default function AdminImportCenter({
                         <span className={`rounded-full px-2.5 py-1 text-[9px] font-bold tracking-wider ${
                           source.is_active ? "bg-green-500/10 text-green-400" : "bg-zinc-500/10 text-zinc-500"
                         }`}>
-                          {source.is_active ? t("ACTIVE") : t("INACTIVE")}
+                          {source.is_active ? t("ACTIVE SOURCE") : t("INACTIVE SOURCE")}
                         </span>
                       </div>
                       <p className="mt-2 break-all text-xs text-zinc-500">{t("Playlist ID:")} {source.playlist_id}</p>
                       <p className="mt-2 text-xs text-zinc-500">
-                        Default: {sourceCollection?.title ?? t("Collection not found")}
+                        {t("Default:")} {sourceCollection?.title ?? t("Collection not found")}
                         {sourceEra ? ` · ${sourceEra.name}` : ""}
                       </p>
                       {source.last_scanned_at && (
@@ -699,7 +699,7 @@ export default function AdminImportCenter({
                         rel="noreferrer"
                         className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 hover:text-white"
                       >
-                        OPEN YOUTUBE ↗
+                        {t("OPEN YOUTUBE ↗")}
                       </a>
                       <button
                         type="button"
@@ -743,7 +743,7 @@ export default function AdminImportCenter({
           <div className="grid gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-5 md:grid-cols-2">
             <div>
               <label htmlFor="batch-collection" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-                COLLECTION FOR THIS BATCH *
+                {t("COLLECTION FOR THIS BATCH *")}
               </label>
               <select
                 id="batch-collection"
@@ -762,7 +762,7 @@ export default function AdminImportCenter({
 
             <div>
               <label htmlFor="batch-era" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-                ERA FOR THIS BATCH
+                {t("ERA FOR THIS BATCH")}
               </label>
               <select
                 id="batch-era"
@@ -780,7 +780,7 @@ export default function AdminImportCenter({
             <div className="md:col-span-2">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs font-bold tracking-widest text-zinc-400">{t("MEMBERS IN THIS BATCH (OPTIONAL)")}</p>
-                <span className="text-[10px] text-zinc-600">{batchMemberIds.length} SELECTED</span>
+                <span className="text-[10px] text-zinc-600">{batchMemberIds.length} {t("SELECTED")}</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {members.map((member) => {
@@ -830,7 +830,7 @@ export default function AdminImportCenter({
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder=t("Filter loaded videos...")
+              placeholder={t("Filter loaded videos...")}
               className="w-full max-w-xs rounded-lg border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-400"
             />
           </div>
@@ -871,7 +871,7 @@ export default function AdminImportCenter({
                       <span className="font-bold text-white">{candidate.title}</span>
                       {candidate.alreadyRegistered && (
                         <span className="rounded-full bg-green-500/10 px-2 py-1 text-[9px] font-bold text-green-400">
-                          ALREADY IN ARCHIVE
+                          {t("ALREADY IN ARCHIVE")}
                         </span>
                       )}
                     </span>
@@ -882,7 +882,7 @@ export default function AdminImportCenter({
                       {t("Added to playlist:")} {formatDate(candidate.playlistAddedAt)}
                     </span>
                     <span className="mt-3 inline-block text-[10px] font-bold text-purple-300">
-                      YOUTUBE · ORIGINAL VIDEO
+                      {t("YOUTUBE · ORIGINAL VIDEO")}
                     </span>
                   </span>
                   <a
@@ -892,7 +892,7 @@ export default function AdminImportCenter({
                     onClick={(event) => event.stopPropagation()}
                     className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 hover:text-white"
                   >
-                    OPEN ↗
+                    {t("OPEN ↗")}
                   </a>
                 </label>
               ))}
@@ -906,7 +906,7 @@ export default function AdminImportCenter({
               disabled={availableCandidates.length === 0}
               className="text-xs font-bold text-zinc-400 hover:text-white disabled:opacity-40"
             >
-              SELECT / DESELECT VISIBLE
+              {t("SELECT / DESELECT VISIBLE")}
             </button>
 
             {nextPageToken && (
