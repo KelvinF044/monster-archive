@@ -114,7 +114,7 @@ async function AdminVisualContent() {
             href="/admin"
             className="mt-8 inline-block text-sm font-bold text-purple-400"
           >
-            ← BACK TO DASHBOARD
+            {t("← BACK TO DASHBOARD")}
           </Link>
         </div>
       </main>
@@ -200,19 +200,19 @@ async function AdminVisualContent() {
               href="/admin"
               className="text-xs font-bold text-zinc-500 transition hover:text-white"
             >
-              ← BACK TO DASHBOARD
+              {t("← BACK TO DASHBOARD")}
             </Link>
 
             <p className="mt-7 text-xs font-bold tracking-[0.3em] text-purple-400">
-              MONSTER ARCHIVE / DESIGN SYSTEM
+              {t("MONSTER ARCHIVE / DESIGN SYSTEM")}
             </p>
 
             <h1 className="mt-3 text-4xl font-black">
-              Visual Studio.
+              {t("Visual Studio.")}
             </h1>
 
             <p className="mt-3 text-sm text-zinc-500">
-              Manage the visual identity of your global fan archive.
+              {t("Manage the visual identity of your global fan archive.")}
             </p>
           </div>
 
@@ -220,7 +220,7 @@ async function AdminVisualContent() {
             href="/"
             className="rounded-lg border border-white/10 px-5 py-3 text-xs font-bold text-zinc-400 transition hover:text-white"
           >
-            VIEW WEBSITE ↗
+            {t("VIEW WEBSITE ↗")}
           </Link>
 
         </header>
@@ -231,7 +231,7 @@ async function AdminVisualContent() {
 
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-xs font-bold tracking-widest text-zinc-500">
-              IMAGE SLOTS
+              {t("IMAGE SLOTS")}
             </p>
 
             <p className="mt-3 text-4xl font-black">
@@ -241,7 +241,7 @@ async function AdminVisualContent() {
 
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-xs font-bold tracking-widest text-zinc-500">
-              CUSTOM IMAGES
+              {t("CUSTOM IMAGES")}
             </p>
 
             <p className="mt-3 text-4xl font-black">
@@ -251,7 +251,7 @@ async function AdminVisualContent() {
 
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-xs font-bold tracking-widest text-zinc-500">
-              AWAITING IMAGES
+              {t("AWAITING IMAGES")}
             </p>
 
             <p className="mt-3 text-4xl font-black">
@@ -267,11 +267,11 @@ async function AdminVisualContent() {
 
           <div className="mb-7">
             <h2 className="text-xl font-black">
-              Archive Image Library
+              {t("Archive Image Library")}
             </h2>
 
             <p className="mt-2 text-sm text-zinc-500">
-              Upload, preview and manage the images used throughout the website.
+              {t("Upload, preview and manage the images used throughout the website.")}
             </p>
           </div>
 
@@ -280,7 +280,7 @@ async function AdminVisualContent() {
         </section>
 
         <footer className="mt-16 border-t border-white/10 py-8 text-center text-xs text-zinc-600">
-          MONSTER ARCHIVE · VISUAL MANAGEMENT SYSTEM
+          {t("MONSTER ARCHIVE · VISUAL MANAGEMENT SYSTEM")}
         </footer>
 
       </div>
