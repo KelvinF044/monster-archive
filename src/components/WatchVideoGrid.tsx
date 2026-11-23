@@ -44,7 +44,7 @@ type Props = {
 function normalizeLegacyEra(value: string | null): string {
   return (value ?? "")
     .trim()
-    .replace(/\\s+/g, " ")
+    .replace(/\s+/g, " ")
     .toLocaleUpperCase("en-US");
 }
 
