@@ -357,11 +357,11 @@ async function AdminVideosContent({
             </p>
 
             <h1 className="mt-3 text-4xl font-black">
-              Watch Videos.
+              {t("Watch Videos.")}
             </h1>
 
             <p className="mt-3 text-sm text-zinc-500">
-              Manage your audiovisual archive.
+              {t("Manage your audiovisual archive.")}
             </p>
           </div>
 
@@ -370,14 +370,14 @@ async function AdminVideosContent({
               href="/admin"
               className="rounded-lg border border-white/10 px-5 py-3 text-xs font-bold text-zinc-400 transition hover:text-white"
             >
-              ← DASHBOARD
+              {t("← DASHBOARD")}
             </Link>
 
             <Link
               href="/admin/videos/new"
               className="rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
             >
-              + ADD NEW VIDEO
+              {t("+ ADD NEW VIDEO")}
             </Link>
           </div>
         </div>
@@ -410,11 +410,11 @@ async function AdminVideosContent({
         <section className="mt-12 rounded-xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
           <div className="mb-5">
             <h2 className="text-sm font-bold tracking-widest text-zinc-300">
-              SEARCH AND FILTERS
+              {t("SEARCH AND FILTERS")}
             </h2>
 
             <p className="mt-2 text-xs leading-6 text-zinc-500">
-              Search by video title, era or original source.
+              {t("Search by video title, era or original source.")}
             </p>
           </div>
 
@@ -428,7 +428,7 @@ async function AdminVideosContent({
                 htmlFor="video-search"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-500"
               >
-                SEARCH VIDEOS
+                {t("SEARCH VIDEOS")}
               </label>
 
               <input
@@ -446,7 +446,7 @@ async function AdminVideosContent({
                 htmlFor="collection-filter"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-500"
               >
-                COLLECTION
+                {t("COLLECTION")}
               </label>
 
               <select
@@ -473,7 +473,7 @@ async function AdminVideosContent({
                 htmlFor="era-filter"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-500"
               >
-                ERA
+                {t("ERA")}
               </label>
 
               <select
@@ -497,7 +497,7 @@ async function AdminVideosContent({
                 htmlFor="status-filter"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-500"
               >
-                STATUS
+                {t("STATUS")}
               </label>
 
               <select
@@ -517,14 +517,14 @@ async function AdminVideosContent({
                 type="submit"
                 className="rounded-lg bg-white px-6 py-3 text-xs font-black text-black transition hover:bg-purple-200"
               >
-                APPLY FILTERS →
+                {t("APPLY FILTERS →")}
               </button>
 
               <Link
                 href="/admin/videos"
                 className="rounded-lg border border-white/10 px-6 py-3 text-xs font-bold text-zinc-400 transition hover:text-white"
               >
-                CLEAR FILTERS
+                {t("CLEAR FILTERS")}
               </Link>
             </div>
           </form>
@@ -535,7 +535,7 @@ async function AdminVideosContent({
         <section className="mt-12">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-bold tracking-widest text-zinc-400">
-              REGISTERED CONTENT
+              {t("REGISTERED CONTENT")}
             </h2>
 
             <span className="text-xs text-zinc-500">
@@ -553,7 +553,7 @@ async function AdminVideosContent({
           {listError ? (
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-6">
               <p className="font-bold text-red-400">
-                Unable to load videos
+                {t("Unable to load videos")}
               </p>
 
               <p className="mt-3 text-sm text-zinc-400">
@@ -606,14 +606,14 @@ async function AdminVideosContent({
                       rel="noopener noreferrer"
                       className="text-xs font-bold text-purple-400 transition hover:text-purple-300"
                     >
-                      SOURCE ↗
+                      {t("SOURCE ↗")}
                     </a>
 
                     <Link
                       href={`/admin/videos/${video.id}/edit`}
                       className="rounded-lg border border-purple-400/30 px-4 py-2 text-xs font-bold text-purple-300 transition hover:border-purple-400 hover:bg-purple-400/10"
                     >
-                      EDIT
+                      {t("EDIT")}
                     </Link>
                   </div>
                 </article>
@@ -622,11 +622,11 @@ async function AdminVideosContent({
           ) : (
             <div className="rounded-xl border border-white/10 bg-white/[0.03] px-6 py-20 text-center">
               <p className="text-xl font-black">
-                No videos found.
+                {t("No videos found.")}
               </p>
 
               <p className="mt-3 text-sm text-zinc-500">
-                Try another search or clear the filters.
+                {t("Try another search or clear the filters.")}
               </p>
             </div>
           )}
