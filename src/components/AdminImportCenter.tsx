@@ -952,8 +952,8 @@ export default function AdminImportCenter({
           A fila de candidatos é carregada ao vivo e não fica salva como uma cópia da playlist. A importação aprovada consulta os metadados atuais do vídeo e cria um rascunho no arquivo. A classificação padrão é definida manualmente por playlist; nenhum vídeo será publicado ou classificado por IA automaticamente.
         </p>
         <div className="mt-4 flex flex-wrap gap-4 text-xs font-bold">
-          <Link href="/admin/videos" className="text-purple-300 hover:text-purple-200">OPEN VIDEO MANAGER →</Link>
-          <Link href="/admin/eras" className="text-purple-300 hover:text-purple-200">MANAGE ERAS →</Link>
+          <Link href="/admin/videos" className="text-purple-300 hover:text-purple-200">{t("OPEN VIDEO MANAGER →")}</Link>
+          <Link href="/admin/eras" className="text-purple-300 hover:text-purple-200">{t("MANAGE ERAS →")}</Link>
         </div>
       </section>
     </div>
