@@ -4,13 +4,10 @@ import { connection } from "next/server";
 
 import AdminEraManager from "@/components/AdminEraManager";
 import { createClient } from "@/lib/supabase/server";
-import { getLocale } from "@/lib/i18n/server";
-import { translateAdminText } from "@/lib/i18n/admin";
+import AdminText from "@/components/AdminText";
 
 export default async function AdminErasPage() {
   await connection();
-  const locale = await getLocale();
-  const t = (value: string) => translateAdminText(locale, value);
 
   const supabase = await createClient();
 
@@ -48,18 +45,18 @@ export default async function AdminErasPage() {
             href="/admin"
             className="text-xs font-bold text-zinc-500 transition hover:text-white"
           >
-            {t("← BACK TO DASHBOARD")}
+            <AdminText>← BACK TO DASHBOARD</AdminText>
           </Link>
 
           <div className="mt-10 rounded-xl border border-red-500/20 bg-red-500/10 p-6">
             <h1 className="text-2xl font-black text-red-400">
-              Unable to load the era catalog.
+              <AdminText>Unable to load the era catalog.</AdminText>
             </h1>
             <p className="mt-3 text-sm leading-6 text-zinc-400">
               {erasError.message}
             </p>
             <p className="mt-3 text-xs leading-6 text-zinc-500">
-              Confirm that migration 202611230002_manage_watch_eras.sql has been applied in Supabase.
+              <AdminText>Confirm that migration 202611230002_manage_watch_eras.sql has been applied in Supabase.</AdminText>
             </p>
           </div>
         </div>
@@ -89,18 +86,18 @@ export default async function AdminErasPage() {
             href="/admin"
             className="text-xs font-bold text-zinc-500 transition hover:text-white"
           >
-            {t("← BACK TO DASHBOARD")}
+            <AdminText>← BACK TO DASHBOARD</AdminText>
           </Link>
 
           <p className="mt-8 text-xs font-bold tracking-[0.3em] text-purple-400">
-            MONSTER ARCHIVE / ADMIN / WATCH
+            <AdminText>MONSTER ARCHIVE / ADMIN / WATCH</AdminText>
           </p>
 
           <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-black">{t("Era management.")}</h1>
+              <h1 className="text-4xl font-black"><AdminText>Era management.</AdminText></h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-500">
-                {t("Maintain the central era catalog used to organize BABYMONSTER videos.")}
+                <AdminText>Maintain the central era catalog used to organize BABYMONSTER videos.</AdminText>
               </p>
             </div>
 
@@ -108,7 +105,7 @@ export default async function AdminErasPage() {
               href="/admin/videos"
               className="rounded-lg border border-white/10 px-4 py-3 text-xs font-bold text-zinc-300 transition hover:border-purple-400/50 hover:text-white"
             >
-              {t("MANAGE VIDEOS →")}
+              <AdminText>MANAGE VIDEOS →</AdminText>
             </Link>
           </div>
         </div>
@@ -118,7 +115,7 @@ export default async function AdminErasPage() {
         </div>
 
         <footer className="mt-16 border-t border-white/10 pt-7 text-xs text-zinc-600">
-          {t("MONSTER ARCHIVE ADMIN · Restricted access")}
+          <AdminText>MONSTER ARCHIVE ADMIN · Restricted access</AdminText>
         </footer>
       </div>
     </main>
