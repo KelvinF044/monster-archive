@@ -38,8 +38,16 @@ function LanguageSwitcher({
   return (
     <div
       className="relative shrink-0"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onPointerEnter={(event) => {
+        if (event.pointerType === "mouse") {
+          setOpen(true);
+        }
+      }}
+      onPointerLeave={(event) => {
+        if (event.pointerType === "mouse") {
+          setOpen(false);
+        }
+      }}
       onBlur={(event) => {
         const nextTarget = event.relatedTarget as Node | null;
 

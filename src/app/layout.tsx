@@ -7,6 +7,7 @@ import { Suspense } from "react";
 
 import "./globals.css";
 import LocaleShell from "@/components/LocaleShell";
+import ScrollToTopOnReload from "@/components/ScrollToTopOnReload";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -84,6 +85,7 @@ export default function RootLayout({
       className={`${geistSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <ScrollToTopOnReload />
         <Suspense fallback={<LayoutFallback />}>
           <LocaleShell>{children}</LocaleShell>
         </Suspense>
