@@ -1,0 +1,963 @@
+"use client";
+
+/* eslint-disable @next/next/no-img-element */
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+
+import { createClient } from "@/lib/supabase/client";
+
+type Collection = {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+};
+
+type Era = {
+  id: string;
+  name: string;
+  display_order: number;
+  is_active: boolean;
+};
+
+type Member = {
+  id: string;
+  slug: string;
+  name: string;
+};
+
+type ImportSource = {
+  id: string;
+  name: string;
+  playlist_id: string;
+  playlist_url: string;
+  default_collection_id: string;
+  default_era_id: string | null;
+  is_active: boolean;
+  last_scanned_at: string | null;
+  created_at: string;
+};
+
+type Candidate = {
+  videoId: string;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  channelTitle: string;
+  playlistAddedAt: string | null;
+  position: number;
+  alreadyRegistered: boolean;
+  youtubeUrl: string;
+};
+
+type Props = {
+  initialSources: ImportSource[];
+  collections: Collection[];
+  eras: Era[];
+  members: Member[];
+  apiConfigured: boolean;
+  refreshConfigured: boolean;
+};
+
+function parsePlaylistId(value: string): string | null {
+  try {
+    const url = new URL(value.trim());
+    const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+
+    if (!["youtube.com", "m.youtube.com", "music.youtube.com"].includes(host)) {
+      return null;
+    }
+
+    const playlistId = url.searchParams.get("list");
+
+    return playlistId && /^[A-Za-z0-9_-]{10,100}$/.test(playlistId)
+      ? playlistId
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function formatDate(value: string | null) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+export default function AdminImportCenter({
+  initialSources,
+  collections,
+  eras,
+  members,
+  apiConfigured,
+  refreshConfigured,
+}: Props) {
+  const supabase = createClient();
+
+  const [sources, setSources] = useState(initialSources);
+  const [sourceName, setSourceName] = useState("");
+  const [playlistUrl, setPlaylistUrl] = useState("");
+  const [newCollectionId, setNewCollectionId] = useState(
+    collections[0]?.id ?? ""
+  );
+  const [newEraId, setNewEraId] = useState("");
+  const [savingSource, setSavingSource] = useState(false);
+
+  const [activeSourceId, setActiveSourceId] = useState<string | null>(null);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
+  const [totalResults, setTotalResults] = useState<number | null>(null);
+  const [loadingPage, setLoadingPage] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
+
+  const [batchCollectionId, setBatchCollectionId] = useState("");
+  const [batchEraId, setBatchEraId] = useState("");
+  const [batchMemberIds, setBatchMemberIds] = useState<string[]>([]);
+  const [savingDefaults, setSavingDefaults] = useState(false);
+  const [importing, setImporting] = useState(false);
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [importSummary, setImportSummary] = useState("");
+
+  const activeSource = sources.find((source) => source.id === activeSourceId) ?? null;
+
+  const filteredCandidates = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase("pt-BR");
+
+    if (!query) return candidates;
+
+    return candidates.filter((candidate) =>
+      candidate.title.toLocaleLowerCase("pt-BR").includes(query)
+    );
+  }, [candidates, search]);
+
+  const availableCandidates = filteredCandidates.filter(
+    (candidate) => !candidate.alreadyRegistered
+  );
+
+  const selectedCount = selectedIds.length;
+  const importedCount = candidates.filter((candidate) => candidate.alreadyRegistered).length;
+
+  function clearMessages() {
+    setError("");
+    setSuccess("");
+    setImportSummary("");
+  }
+
+  async function addSource(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    clearMessages();
+
+    const cleanName = sourceName.trim();
+    const cleanUrl = playlistUrl.trim();
+    const playlistId = parsePlaylistId(cleanUrl);
+
+    if (!cleanName) {
+      setError("Informe um nome para identificar esta playlist.");
+      return;
+    }
+
+    if (!playlistId) {
+      setError("Cole um link válido de playlist pública do YouTube.");
+      return;
+    }
+
+    if (!newCollectionId) {
+      setError("Escolha a coleção padrão desta playlist.");
+      return;
+    }
+
+    setSavingSource(true);
+
+    const { data, error: insertError } = await supabase
+      .from("watch_import_sources")
+      .insert({
+        name: cleanName,
+        playlist_id: playlistId,
+        playlist_url: cleanUrl,
+        default_collection_id: newCollectionId,
+        default_era_id: newEraId || null,
+        is_active: true,
+      })
+      .select(
+        "id, name, playlist_id, playlist_url, default_collection_id, default_era_id, is_active, last_scanned_at, created_at"
+      )
+      .single();
+
+    if (insertError || !data) {
+      setError(
+        insertError?.code === "23505"
+          ? "Esta playlist já está cadastrada."
+          : insertError?.message ?? "Não foi possível cadastrar a playlist."
+      );
+      setSavingSource(false);
+      return;
+    }
+
+    setSources((current) => [data as ImportSource, ...current]);
+    setSourceName("");
+    setPlaylistUrl("");
+    setNewEraId("");
+    setActiveSourceId(data.id);
+    setBatchCollectionId(data.default_collection_id);
+    setBatchEraId(data.default_era_id ?? "");
+    setCandidates([]);
+    setSelectedIds([]);
+    setSuccess("Playlist cadastrada. Agora você pode consultar os vídeos.");
+    setSavingSource(false);
+  }
+
+  async function toggleSource(source: ImportSource) {
+    clearMessages();
+
+    const nextActive = !source.is_active;
+
+    const { error: updateError } = await supabase
+      .from("watch_import_sources")
+      .update({
+        is_active: nextActive,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", source.id);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+
+    setSources((current) =>
+      current.map((item) =>
+        item.id === source.id ? { ...item, is_active: nextActive } : item
+      )
+    );
+
+    if (!nextActive && activeSourceId === source.id) {
+      setActiveSourceId(null);
+      setCandidates([]);
+      setSelectedIds([]);
+      setNextPageToken(null);
+    }
+
+    setSuccess(
+      nextActive
+        ? "Fonte ativada."
+        : "Fonte desativada. Nenhum vídeo já cadastrado foi alterado."
+    );
+  }
+
+  async function saveSourceDefaults() {
+    if (!activeSource || !batchCollectionId) {
+      setError("Escolha uma coleção padrão para esta fonte.");
+      return;
+    }
+
+    clearMessages();
+    setSavingDefaults(true);
+
+    const { error: updateError } = await supabase
+      .from("watch_import_sources")
+      .update({
+        default_collection_id: batchCollectionId,
+        default_era_id: batchEraId || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", activeSource.id);
+
+    if (updateError) {
+      setError(updateError.message);
+    } else {
+      setSources((current) =>
+        current.map((source) =>
+          source.id === activeSource.id
+            ? {
+                ...source,
+                default_collection_id: batchCollectionId,
+                default_era_id: batchEraId || null,
+              }
+            : source
+        )
+      );
+      setSuccess("Classificação padrão da playlist atualizada.");
+    }
+
+    setSavingDefaults(false);
+  }
+
+  async function scanSource(source: ImportSource) {
+    clearMessages();
+    setActiveSourceId(source.id);
+    setBatchCollectionId(source.default_collection_id);
+    setBatchEraId(source.default_era_id ?? "");
+    setCandidates([]);
+    setSelectedIds([]);
+    setNextPageToken(null);
+    setTotalResults(null);
+    setSearch("");
+    setLoadingPage(true);
+
+    try {
+      const response = await fetch(
+        `/api/admin/import/playlist?sourceId=${encodeURIComponent(source.id)}`,
+        { cache: "no-store" }
+      );
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Não foi possível consultar a playlist.");
+      }
+
+      setCandidates(result.items ?? []);
+      setNextPageToken(result.nextPageToken ?? null);
+      setTotalResults(result.totalResults ?? null);
+      setSuccess("Playlist consultada. Os resultados são exibidos ao vivo do YouTube.");
+    } catch (scanError) {
+      setError(
+        scanError instanceof Error
+          ? scanError.message
+          : "Erro inesperado ao consultar a playlist."
+      );
+    } finally {
+      setLoadingPage(false);
+    }
+  }
+
+  async function loadMore() {
+    if (!activeSource || !nextPageToken) return;
+
+    clearMessages();
+    setLoadingMore(true);
+
+    try {
+      const params = new URLSearchParams({
+        sourceId: activeSource.id,
+        pageToken: nextPageToken,
+      });
+      const response = await fetch(
+        `/api/admin/import/playlist?${params.toString()}`,
+        { cache: "no-store" }
+      );
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Não foi possível carregar a próxima página.");
+      }
+
+      setCandidates((current) => [
+        ...current,
+        ...(result.items ?? []),
+      ]);
+      setNextPageToken(result.nextPageToken ?? null);
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Erro inesperado ao carregar mais vídeos."
+      );
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
+  function toggleCandidate(videoId: string) {
+    setSelectedIds((current) =>
+      current.includes(videoId)
+        ? current.filter((id) => id !== videoId)
+        : [...current, videoId]
+    );
+  }
+
+  function toggleAllVisible() {
+    const visibleIds = availableCandidates.map((candidate) => candidate.videoId);
+    const everyVisibleSelected =
+      visibleIds.length > 0 &&
+      visibleIds.every((id) => selectedIds.includes(id));
+
+    setSelectedIds((current) =>
+      everyVisibleSelected
+        ? current.filter((id) => !visibleIds.includes(id))
+        : Array.from(new Set([...current, ...visibleIds]))
+    );
+  }
+
+  function toggleMember(memberId: string) {
+    setBatchMemberIds((current) =>
+      current.includes(memberId)
+        ? current.filter((id) => id !== memberId)
+        : [...current, memberId]
+    );
+  }
+
+  async function importSelected() {
+    if (!activeSource || selectedIds.length === 0) return;
+
+    if (!refreshConfigured) {
+      setError(
+        "Configure SUPABASE_SERVICE_ROLE_KEY e CRON_SECRET na Vercel antes de importar. Eles mantêm os metadados do YouTube atualizados."
+      );
+      return;
+    }
+
+    if (!batchCollectionId) {
+      setError("Escolha a coleção para este lote.");
+      return;
+    }
+
+    if (selectedIds.length > 20) {
+      setError("Importe no máximo 20 vídeos por lote.");
+      return;
+    }
+
+    clearMessages();
+    setImporting(true);
+
+    try {
+      const response = await fetch("/api/admin/import/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceId: activeSource.id,
+          videoIds: selectedIds,
+          collectionId: batchCollectionId,
+          eraId: batchEraId || null,
+          memberIds: batchMemberIds,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Não foi possível importar os vídeos.");
+      }
+
+      const imported = new Set<string>(result.imported ?? []);
+
+      setCandidates((current) =>
+        current.map((candidate) =>
+          imported.has(candidate.videoId)
+            ? { ...candidate, alreadyRegistered: true }
+            : candidate
+        )
+      );
+      setSelectedIds([]);
+
+      const summary = [
+        `${result.importedCount ?? 0} importado(s) como rascunho`,
+        result.duplicates?.length
+          ? `${result.duplicates.length} duplicado(s)`
+          : "",
+        result.unavailable?.length
+          ? `${result.unavailable.length} indisponível(is)`
+          : "",
+        result.failed?.length
+          ? `${result.failed.length} com erro`
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      setImportSummary(summary);
+
+      if (result.failed?.length) {
+        setError(
+          result.failed
+            .slice(0, 3)
+            .map((item: { videoId: string; reason: string }) => `${item.videoId}: ${item.reason}`)
+            .join(" | ")
+        );
+      } else {
+        setSuccess("Lote importado. Os vídeos estão em rascunho e ainda não aparecem publicamente.");
+      }
+    } catch (importError) {
+      setError(
+        importError instanceof Error
+          ? importError.message
+          : "Erro inesperado ao importar o lote."
+      );
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  const defaultCollection = sources
+    .flatMap((source) => collections.filter((collection) => collection.id === source.default_collection_id))
+    .at(0);
+
+  return (
+    <div className="space-y-9">
+      <section className="grid gap-4 sm:grid-cols-3">
+        {[
+          { label: "PLAYLIST SOURCES", value: sources.length },
+          { label: "ACTIVE SOURCES", value: sources.filter((source) => source.is_active).length },
+          { label: "VIDEOS IN CURRENT REVIEW", value: candidates.length },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="rounded-xl border border-white/10 bg-white/[0.03] p-5"
+          >
+            <p className="text-[10px] font-bold tracking-widest text-zinc-500">
+              {item.label}
+            </p>
+            <p className="mt-3 text-3xl font-black">{item.value}</p>
+          </div>
+        ))}
+      </section>
+
+      {!apiConfigured && (
+        <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-5">
+          <p className="font-bold text-amber-200">YouTube API ainda não configurada.</p>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">
+            Adicione YOUTUBE_API_KEY ao ambiente do servidor para consultar playlists públicas. A chave não deve ser enviada pelo navegador nem publicada no GitHub.
+          </p>
+        </div>
+      )}
+
+      {apiConfigured && !refreshConfigured && (
+        <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-5">
+          <p className="font-bold text-amber-200">Importação aguardando a configuração de atualização.</p>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">
+            A consulta de playlists está disponível. Para aprovar vídeos, configure também SUPABASE_SERVICE_ROLE_KEY e CRON_SECRET na Vercel. O importador só libera o cadastro depois que a atualização periódica dos metadados estiver preparada.
+          </p>
+        </div>
+      )}
+
+      {error && (
+        <div role="alert" className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div role="status" className="rounded-lg border border-green-500/20 bg-green-500/10 p-4 text-sm text-green-300">
+          {success}
+        </div>
+      )}
+
+      {importSummary && (
+        <div className="rounded-lg border border-purple-400/20 bg-purple-400/5 p-4 text-sm text-purple-200">
+          {importSummary}
+        </div>
+      )}
+
+      <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+        <div className="border-b border-white/10 pb-5">
+          <p className="text-xs font-bold tracking-[0.25em] text-purple-400">
+            YOUTUBE SOURCES
+          </p>
+          <h2 className="mt-3 text-2xl font-black">Add a playlist source.</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-500">
+            Cadastre playlists públicas oficiais e defina uma classificação padrão para facilitar a revisão dos lotes.
+          </p>
+        </div>
+
+        <form onSubmit={addSource} className="mt-6 grid gap-4 md:grid-cols-2">
+          <div>
+            <label htmlFor="source-name" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+              SOURCE NAME *
+            </label>
+            <input
+              id="source-name"
+              required
+              maxLength={80}
+              value={sourceName}
+              onChange={(event) => setSourceName(event.target.value)}
+              placeholder="Example: BABYMONSTER — DRIP playlist"
+              className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="playlist-url" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+              YOUTUBE PLAYLIST URL *
+            </label>
+            <input
+              id="playlist-url"
+              required
+              value={playlistUrl}
+              onChange={(event) => setPlaylistUrl(event.target.value)}
+              placeholder="https://www.youtube.com/playlist?list=..."
+              className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="source-default-collection" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+              DEFAULT COLLECTION *
+            </label>
+            <select
+              id="source-default-collection"
+              required
+              value={newCollectionId}
+              onChange={(event) => setNewCollectionId(event.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
+            >
+              <option value="">Choose a collection</option>
+              {collections.map((collection) => (
+                <option key={collection.id} value={collection.id}>
+                  {collection.title} · {collection.category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="source-default-era" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+              DEFAULT ERA (OPTIONAL)
+            </label>
+            <select
+              id="source-default-era"
+              value={newEraId}
+              onChange={(event) => setNewEraId(event.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
+            >
+              <option value="">No default era</option>
+              {eras.filter((era) => era.is_active).map((era) => (
+                <option key={era.id} value={era.id}>{era.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
+            <p className="text-xs leading-5 text-zinc-600">
+              A coleção e a Era são sugestões configuradas por você. Cada lote pode ser revisado e ajustado antes da importação.
+            </p>
+            <button
+              type="submit"
+              disabled={savingSource || !apiConfigured}
+              className="rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {savingSource ? "SAVING..." : "ADD PLAYLIST SOURCE +"}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section className="space-y-5">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold tracking-[0.25em] text-purple-400">REGISTERED SOURCES</p>
+            <h2 className="mt-2 text-2xl font-black">Playlist library.</h2>
+            <p className="mt-2 text-sm text-zinc-500">Escolha uma fonte ativa para buscar os próximos vídeos.</p>
+          </div>
+          <span className="text-xs text-zinc-600">{sources.length} SOURCE(S)</span>
+        </div>
+
+        {sources.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-white/15 px-6 py-14 text-center">
+            <p className="text-lg font-bold">Nenhuma playlist cadastrada.</p>
+            <p className="mt-2 text-sm text-zinc-500">Comece adicionando uma playlist pública do canal oficial.</p>
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {sources.map((source) => {
+              const sourceCollection = collections.find((item) => item.id === source.default_collection_id);
+              const sourceEra = eras.find((item) => item.id === source.default_era_id);
+
+              return (
+                <div
+                  key={source.id}
+                  className={`rounded-xl border p-5 transition ${
+                    activeSourceId === source.id
+                      ? "border-purple-400/40 bg-purple-400/[0.06]"
+                      : "border-white/10 bg-white/[0.02]"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-black">{source.name}</p>
+                        <span className={`rounded-full px-2.5 py-1 text-[9px] font-bold tracking-wider ${
+                          source.is_active ? "bg-green-500/10 text-green-400" : "bg-zinc-500/10 text-zinc-500"
+                        }`}>
+                          {source.is_active ? "ACTIVE" : "INACTIVE"}
+                        </span>
+                      </div>
+                      <p className="mt-2 break-all text-xs text-zinc-500">Playlist ID: {source.playlist_id}</p>
+                      <p className="mt-2 text-xs text-zinc-500">
+                        Default: {sourceCollection?.title ?? "Collection not found"}
+                        {sourceEra ? ` · ${sourceEra.name}` : ""}
+                      </p>
+                      {source.last_scanned_at && (
+                        <p className="mt-2 text-[10px] text-zinc-600">
+                          Last scanned: {formatDate(source.last_scanned_at)}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href={source.playlist_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 hover:text-white"
+                      >
+                        OPEN YOUTUBE ↗
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => void toggleSource(source)}
+                        className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 hover:text-white"
+                      >
+                        {source.is_active ? "DEACTIVATE" : "ACTIVATE"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!source.is_active || !apiConfigured || loadingPage}
+                        onClick={() => void scanSource(source)}
+                        className="rounded-lg bg-white px-4 py-2 text-[10px] font-black text-black hover:bg-purple-200 disabled:opacity-40"
+                      >
+                        {loadingPage && activeSourceId === source.id ? "SCANNING..." : "SCAN PLAYLIST"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {activeSource && (
+        <section className="space-y-5">
+          <div className="border-b border-white/10 pb-5">
+            <p className="text-xs font-bold tracking-[0.25em] text-purple-400">IMPORT REVIEW</p>
+            <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-black">{activeSource.name}</h2>
+                <p className="mt-2 text-sm text-zinc-500">Resultados temporários consultados diretamente no YouTube.</p>
+              </div>
+              <span className="text-xs text-zinc-500">
+                {totalResults !== null ? `${totalResults} ITEMS IN PLAYLIST` : ""}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-5 md:grid-cols-2">
+            <div>
+              <label htmlFor="batch-collection" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+                COLLECTION FOR THIS BATCH *
+              </label>
+              <select
+                id="batch-collection"
+                value={batchCollectionId}
+                onChange={(event) => setBatchCollectionId(event.target.value)}
+                className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
+              >
+                <option value="">Choose a collection</option>
+                {collections.map((collection) => (
+                  <option key={collection.id} value={collection.id}>
+                    {collection.title} · {collection.category}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="batch-era" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
+                ERA FOR THIS BATCH
+              </label>
+              <select
+                id="batch-era"
+                value={batchEraId}
+                onChange={(event) => setBatchEraId(event.target.value)}
+                className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
+              >
+                <option value="">No era</option>
+                {eras.filter((era) => era.is_active).map((era) => (
+                  <option key={era.id} value={era.id}>{era.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="md:col-span-2">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-bold tracking-widest text-zinc-400">MEMBERS IN THIS BATCH (OPTIONAL)</p>
+                <span className="text-[10px] text-zinc-600">{batchMemberIds.length} SELECTED</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {members.map((member) => {
+                  const checked = batchMemberIds.includes(member.id);
+
+                  return (
+                    <label
+                      key={member.id}
+                      className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-2 text-xs transition ${
+                        checked
+                          ? "border-purple-400/50 bg-purple-500/15 text-white"
+                          : "border-white/10 bg-black/20 text-zinc-500 hover:text-white"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleMember(member.id)}
+                        className="accent-purple-500"
+                      />
+                      {member.name}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 md:col-span-2">
+              <button
+                type="button"
+                onClick={saveSourceDefaults}
+                disabled={savingDefaults || !batchCollectionId}
+                className="rounded-lg border border-white/10 px-4 py-3 text-[10px] font-bold text-zinc-300 hover:border-purple-400/40 disabled:opacity-40"
+              >
+                {savingDefaults ? "SAVING..." : "SAVE AS PLAYLIST DEFAULT"}
+              </button>
+              <p className="text-[10px] text-zinc-600">All selected videos will be created as drafts.</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold tracking-widest text-zinc-400">
+                {candidates.length} LOADED · {importedCount} ALREADY REGISTERED
+              </p>
+            </div>
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Filter loaded videos..."
+              className="w-full max-w-xs rounded-lg border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-400"
+            />
+          </div>
+
+          {candidates.length === 0 && !loadingPage ? (
+            <div className="rounded-xl border border-dashed border-white/15 p-12 text-center">
+              <p className="font-bold">Nenhum vídeo carregado nesta consulta.</p>
+              <p className="mt-2 text-sm text-zinc-500">Use Scan Playlist para consultar os itens desta fonte.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredCandidates.map((candidate) => (
+                <label
+                  key={candidate.videoId}
+                  className={`flex flex-col gap-4 rounded-xl border p-4 transition sm:flex-row sm:items-center ${
+                    candidate.alreadyRegistered
+                      ? "border-white/5 bg-white/[0.01] opacity-60"
+                      : selectedIds.includes(candidate.videoId)
+                        ? "border-purple-400/40 bg-purple-500/[0.06]"
+                        : "border-white/10 bg-white/[0.02] hover:border-white/20"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(candidate.videoId)}
+                    disabled={candidate.alreadyRegistered}
+                    onChange={() => toggleCandidate(candidate.videoId)}
+                    className="h-4 w-4 shrink-0 accent-purple-500"
+                  />
+                  <img
+                    src={candidate.thumbnailUrl}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-video w-full rounded-lg object-cover sm:w-40"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold text-white">{candidate.title}</span>
+                      {candidate.alreadyRegistered && (
+                        <span className="rounded-full bg-green-500/10 px-2 py-1 text-[9px] font-bold text-green-400">
+                          ALREADY IN ARCHIVE
+                        </span>
+                      )}
+                    </span>
+                    <span className="mt-2 block text-xs text-zinc-500">
+                      {candidate.channelTitle} · Playlist position {candidate.position + 1}
+                    </span>
+                    <span className="mt-1 block text-xs text-zinc-600">
+                      Added to playlist: {formatDate(candidate.playlistAddedAt)}
+                    </span>
+                    <span className="mt-3 inline-block text-[10px] font-bold text-purple-300">
+                      YOUTUBE · ORIGINAL VIDEO
+                    </span>
+                  </span>
+                  <a
+                    href={candidate.youtubeUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(event) => event.stopPropagation()}
+                    className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 hover:text-white"
+                  >
+                    OPEN ↗
+                  </a>
+                </label>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={toggleAllVisible}
+              disabled={availableCandidates.length === 0}
+              className="text-xs font-bold text-zinc-400 hover:text-white disabled:opacity-40"
+            >
+              SELECT / DESELECT VISIBLE
+            </button>
+
+            {nextPageToken && (
+              <button
+                type="button"
+                onClick={() => void loadMore()}
+                disabled={loadingMore}
+                className="rounded-lg border border-white/10 px-5 py-3 text-xs font-bold text-zinc-300 hover:border-purple-400/40 disabled:opacity-50"
+              >
+                {loadingMore ? "LOADING..." : "LOAD NEXT 50"}
+              </button>
+            )}
+          </div>
+
+          <div className="sticky bottom-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-purple-400/20 bg-[#101017]/95 p-4 shadow-2xl backdrop-blur">
+            <div>
+              <p className="font-black">{selectedCount} VIDEO(S) SELECTED</p>
+              <p className="mt-1 text-[10px] text-zinc-500">
+                Importação em lote · rascunhos · revisão manual antes da publicação
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void importSelected()}
+              disabled={
+                importing ||
+                selectedCount === 0 ||
+                selectedCount > 20 ||
+                !batchCollectionId ||
+                !refreshConfigured
+              }
+              className="rounded-lg bg-purple-500 px-5 py-3 text-xs font-black text-white transition hover:bg-purple-400 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {importing ? "IMPORTING..." : "IMPORT SELECTED AS DRAFTS →"}
+            </button>
+          </div>
+        </section>
+      )}
+
+      <section className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
+        <p className="text-xs font-bold tracking-widest text-purple-300">IMPORTANT</p>
+        <p className="mt-2 text-sm leading-6 text-zinc-500">
+          A fila de candidatos é carregada ao vivo e não fica salva como uma cópia da playlist. A importação aprovada consulta os metadados atuais do vídeo e cria um rascunho no arquivo. A classificação padrão é definida manualmente por playlist; nenhum vídeo será publicado ou classificado por IA automaticamente.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-4 text-xs font-bold">
+          <Link href="/admin/videos" className="text-purple-300 hover:text-purple-200">OPEN VIDEO MANAGER →</Link>
+          <Link href="/admin/eras" className="text-purple-300 hover:text-purple-200">MANAGE ERAS →</Link>
+        </div>
+      </section>
+    </div>
+  );
+}

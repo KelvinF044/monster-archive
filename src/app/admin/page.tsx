@@ -155,7 +155,7 @@ export default async function AdminDashboard() {
             </span>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
@@ -191,6 +191,25 @@ export default async function AdminDashboard() {
                 className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
               >
                 MANAGE ERAS →
+              </Link>
+
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+
+              <p className="text-lg font-black">
+                Content Import Center
+              </p>
+
+              <p className="mt-3 text-sm leading-6 text-zinc-500">
+                Discover videos from YouTube playlists, review duplicates and import selected batches as drafts.
+              </p>
+
+              <Link
+                href="/admin/import"
+                className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
+              >
+                OPEN IMPORT CENTER →
               </Link>
 
             </div>

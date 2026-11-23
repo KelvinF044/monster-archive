@@ -40,6 +40,13 @@ const navigation: NavItem[] = [
     match: (pathname) => pathname === "/admin/videos/new",
   },
   {
+    href: "/admin/import",
+    label: "Content Import Center",
+    compactLabel: "I",
+    description: "Discover and review YouTube playlist videos",
+    match: (pathname) => pathname.startsWith("/admin/import"),
+  },
+  {
     href: "/admin/eras",
     label: "Era Management",
     compactLabel: "E",
