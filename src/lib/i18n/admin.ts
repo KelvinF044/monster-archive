@@ -386,6 +386,20 @@ const ptBR: Record<string, string> = {
   "No videos found.": "Nenhum vídeo encontrado.",
   "(inactive)": "(inativa)",
   "The collection and era are suggested defaults that you can configure. Each batch can be reviewed and adjusted before import.": "A coleção e a Era são sugestões configuradas por você. Cada lote pode ser revisado e ajustado antes da importação."
+  ...{
+  "COLLECTION": "COLEÇÃO",
+  "MONSTER ARCHIVE / CONTENT": "MONSTER ARCHIVE / CONTEÚDO",
+  "ADMINISTRATOR ACCESS": "ACESSO DE ADMINISTRADOR",
+  "REGISTERED VIDEOS": "VÍDEOS CADASTRADOS",
+  "MANAGE VIDEOS →": "GERENCIAR VÍDEOS →",
+  "Content management": "Gerenciamento de conteúdo",
+  "ADD NEW VIDEO": "ADICIONAR VÍDEO",
+  "VIEW WEBSITE ↗": "VER SITE ↗",
+  "REGISTERED CONTENT": "CONTEÚDO CADASTRADO",
+  "SEARCH AND FILTERS": "BUSCA E FILTROS",
+  "SIGN OUT ↗": "SAIR ↗",
+  "Loading...": "Carregando..."
+},
 };
 
 export function translateAdminText(locale: Locale, source: string): string {

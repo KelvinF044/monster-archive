@@ -351,7 +351,7 @@ async function AdminVideosContent({
         <div className="flex flex-wrap items-center justify-between gap-5 border-b border-white/10 pb-8">
           <div>
             <p className="text-xs font-bold tracking-[0.3em] text-purple-400">
-              MONSTER ARCHIVE / CONTENT
+              <AdminText>MONSTER ARCHIVE / CONTENT</AdminText>
             </p>
 
             <h1 className="mt-3 text-4xl font-black">

@@ -73,7 +73,7 @@ export default async function AdminDashboard() {
 
           <div>
             <p className="text-xs font-bold tracking-[0.3em] text-purple-400">
-              MONSTER ARCHIVE / ADMIN
+              <AdminText>MONSTER ARCHIVE / ADMIN</AdminText>
             </p>
 
             <h1 className="mt-3 text-4xl font-black">

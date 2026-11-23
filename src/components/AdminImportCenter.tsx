@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/client";
 import { useAdminText } from "@/components/useAdminText";
+import { useAdminLocale } from "@/components/AdminLocaleProvider";
 
 type Collection = {
   id: string;
@@ -80,14 +81,14 @@ function parsePlaylistId(value: string): string | null {
   }
 }
 
-function formatDate(value: string | null) {
+function formatDate(value: string | null, locale: "en" | "pt-BR") {
   if (!value) return "—";
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) return "—";
 
-  return new Intl.DateTimeFormat("pt-BR", {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "pt-BR", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -104,6 +105,7 @@ export default function AdminImportCenter({
 }: Props) {
   const supabase = createClient();
   const t = useAdminText();
+  const { locale } = useAdminLocale();
 
   const [sources, setSources] = useState(initialSources);
   const [sourceName, setSourceName] = useState("");
@@ -688,7 +690,7 @@ export default function AdminImportCenter({
                       </p>
                       {source.last_scanned_at && (
                         <p className="mt-2 text-[10px] text-zinc-600">
-                          {t("Last scanned:")} {formatDate(source.last_scanned_at)}
+                          {t("Last scanned:")} {formatDate(source.last_scanned_at, locale)}
                         </p>
                       )}
                     </div>
@@ -879,7 +881,7 @@ export default function AdminImportCenter({
                       {candidate.channelTitle} · {t("Playlist position")} {candidate.position + 1}
                     </span>
                     <span className="mt-1 block text-xs text-zinc-600">
-                      {t("Added to playlist:")} {formatDate(candidate.playlistAddedAt)}
+                      {t("Added to playlist:")} {formatDate(candidate.playlistAddedAt, locale)}
                     </span>
                     <span className="mt-3 inline-block text-[10px] font-bold text-purple-300">
                       {t("YOUTUBE · ORIGINAL VIDEO")}
