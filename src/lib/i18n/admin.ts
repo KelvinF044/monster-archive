@@ -379,6 +379,7 @@ const ptBR: Record<string, string> = {
   "MONSTER ARCHIVE / CONTENT / NEW": "MONSTER ARCHIVE / CONTEÚDO / NOVO",
   "MONSTER ARCHIVE / CONTENT / EDIT": "MONSTER ARCHIVE / CONTEÚDO / EDIÇÃO"
 },
+  "Select one or more collections for this video.": "Selecione uma ou mais coleções para este vídeo.",
 };
 
 export function translateAdminText(locale: Locale, source: string): string {
