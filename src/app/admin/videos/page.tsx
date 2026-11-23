@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
 import AdminText from "@/components/AdminText";
 import AdminLocalizedInput from "@/components/AdminLocalizedInput";
+import AdminVideoBulkList from "@/components/AdminVideoBulkList";
 
 type SearchParams = {
   q?: string | string[];
@@ -558,64 +559,10 @@ async function AdminVideosContent({
               </p>
             </div>
           ) : videos.length > 0 ? (
-            <div className="space-y-3">
-              {videos.map((video) => (
-                <article
-                  key={video.id}
-                  className="flex flex-wrap items-center justify-between gap-5 rounded-xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-purple-400/30"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="break-words font-bold">
-                      {video.title}
-                    </p>
-
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs text-zinc-500">
-                      <span>
-                        {video.published_at || <AdminText>Date not registered</AdminText>}
-                      </span>
-
-                      <span>{video.source_name}</span>
-
-                      {video.era && (
-                        <span className="font-bold text-purple-300">
-                          <AdminText>ERA:</AdminText> {video.era}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span
-                      className={`rounded-full px-3 py-2 text-[10px] font-bold uppercase ${
-                        video.status === "published"
-                          ? "bg-green-500/10 text-green-400"
-                          : video.status === "draft"
-                            ? "bg-yellow-500/10 text-yellow-400"
-                            : "bg-zinc-500/10 text-zinc-400"
-                      }`}
-                    >
-                      {video.status === "published" ? <AdminText>Published</AdminText> : video.status === "draft" ? <AdminText>Draft</AdminText> : video.status}
-                    </span>
-
-                    <a
-                      href={video.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-bold text-purple-400 transition hover:text-purple-300"
-                    >
-                      <AdminText>SOURCE ↗</AdminText>
-                    </a>
-
-                    <Link
-                      href={`/admin/videos/${video.id}/edit`}
-                      className="rounded-lg border border-purple-400/30 px-4 py-2 text-xs font-bold text-purple-300 transition hover:border-purple-400 hover:bg-purple-400/10"
-                    >
-                      <AdminText>EDIT</AdminText>
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
+            <AdminVideoBulkList
+              key={videos.map((video) => video.id).join(":")}
+              videos={videos}
+            />
           ) : (
             <div className="rounded-xl border border-white/10 bg-white/[0.03] px-6 py-20 text-center">
               <p className="text-xl font-black">
