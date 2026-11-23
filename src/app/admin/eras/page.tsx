@@ -4,9 +4,13 @@ import { connection } from "next/server";
 
 import AdminEraManager from "@/components/AdminEraManager";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/server";
+import { translateAdminText } from "@/lib/i18n/admin";
 
 export default async function AdminErasPage() {
   await connection();
+  const locale = await getLocale();
+  const t = (value: string) => translateAdminText(locale, value);
 
   const supabase = await createClient();
 
@@ -94,7 +98,7 @@ export default async function AdminErasPage() {
 
           <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-black">Era management.</h1>
+              <h1 className="text-4xl font-black">{t("Era management.")}</h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-500">
                 Maintain the central era catalog used to organize BABYMONSTER videos.
               </p>

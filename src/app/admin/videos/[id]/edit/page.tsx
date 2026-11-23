@@ -4,6 +4,8 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/server";
+import { translateAdminText } from "@/lib/i18n/admin";
 import AdminVideoForm from "@/components/AdminVideoForm";
 
 type PageProps = {
@@ -38,6 +40,8 @@ export default function EditVideoPage({ params }: PageProps) {
 
 async function EditVideoContent({ params }: PageProps) {
   await connection();
+  const locale = await getLocale();
+  const t = (value: string) => translateAdminText(locale, value);
 
   const { id } = await params;
 

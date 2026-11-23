@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/server";
+import { translateAdminText } from "@/lib/i18n/admin";
 import AdminVideoForm from "@/components/AdminVideoForm";
 import { Suspense } from "react";
 
@@ -34,6 +36,8 @@ function NewVideoLoading() {
 
 async function NewVideoContent() {
   await connection();
+  const locale = await getLocale();
+  const t = (value: string) => translateAdminText(locale, value);
 
   const supabase = await createClient();
 
@@ -133,9 +137,7 @@ async function NewVideoContent() {
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-500">
-            Register an audiovisual entry in the archive.
-            Complete the information and choose where the content
-            should appear.
+            {t("Register an audiovisual entry in the archive. Complete the information and choose where the content should appear.")}
           </p>
 
         </div>

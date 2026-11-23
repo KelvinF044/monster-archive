@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/server";
+import { translateAdminText } from "@/lib/i18n/admin";
 import { Suspense } from "react";
 
 type SearchParams = {
@@ -81,6 +83,8 @@ async function AdminVideosContent({
   searchParams,
 }: PageProps) {
   await connection();
+  const locale = await getLocale();
+  const t = (value: string) => translateAdminText(locale, value);
 
   const supabase = await createClient();
 
@@ -382,9 +386,9 @@ async function AdminVideosContent({
 
         <section className="mt-10 grid gap-4 sm:grid-cols-3">
           {[
-            { label: "TOTAL VIDEOS", value: total },
-            { label: "PUBLISHED", value: published },
-            { label: "DRAFTS", value: drafts },
+            { label: t("TOTAL VIDEOS"), value: total },
+            { label: t("PUBLISHED"), value: published },
+            { label: t("DRAFTS"), value: drafts },
           ].map((item) => (
             <div
               key={item.label}
@@ -432,7 +436,7 @@ async function AdminVideosContent({
                 name="q"
                 type="search"
                 defaultValue={searchText}
-                placeholder="Search by title, era or source..."
+                placeholder={t("Search by title, era or source...")}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-purple-400"
               />
             </div>
@@ -451,7 +455,7 @@ async function AdminVideosContent({
                 defaultValue={collectionFilter}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
               >
-                <option value="">All collections</option>
+                <option value="">{t("All collections")}</option>
 
                 {collections.map((collection) => (
                   <option
@@ -478,7 +482,7 @@ async function AdminVideosContent({
                 defaultValue={eraFilterId}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
               >
-                <option value="">All eras</option>
+                <option value="">{t("All eras")}</option>
 
                 {eras.map((era) => (
                   <option key={era.id} value={era.id}>
@@ -502,9 +506,9 @@ async function AdminVideosContent({
                 defaultValue={statusFilter}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
               >
-                <option value="">All statuses</option>
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
+                <option value="">{t("All statuses")}</option>
+                <option value="published">{t("Published")}</option>
+                <option value="draft">{t("Draft")}</option>
               </select>
             </div>
 
@@ -535,7 +539,7 @@ async function AdminVideosContent({
             </h2>
 
             <span className="text-xs text-zinc-500">
-              {filteredCount.toLocaleString("en-US")} MATCHING RECORDS
+              {filteredCount.toLocaleString("en-US")} {t("MATCHING RECORDS")}
             </span>
           </div>
 
@@ -570,7 +574,7 @@ async function AdminVideosContent({
 
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs text-zinc-500">
                       <span>
-                        {video.published_at || "Date not registered"}
+                        {video.published_at || t("Date not registered")}
                       </span>
 
                       <span>{video.source_name}</span>
@@ -593,7 +597,7 @@ async function AdminVideosContent({
                             : "bg-zinc-500/10 text-zinc-400"
                       }`}
                     >
-                      {video.status}
+                      {video.status === "published" ? t("Published") : video.status === "draft" ? t("Draft") : video.status}
                     </span>
 
                     <a
@@ -632,8 +636,7 @@ async function AdminVideosContent({
           {!listError && filteredCount > 0 && (
             <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6">
               <p className="text-xs text-zinc-500">
-                Showing {firstRecord.toLocaleString("en-US")}–{lastRecord.toLocaleString("en-US")} of{" "}
-                {filteredCount.toLocaleString("en-US")} videos
+                {t("Showing")} {firstRecord.toLocaleString("en-US")}–{lastRecord.toLocaleString("en-US")} {t("of")} {filteredCount.toLocaleString("en-US")} {t("videos")}
               </p>
 
               <div className="flex items-center gap-3">

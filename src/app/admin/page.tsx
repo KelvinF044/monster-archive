@@ -2,11 +2,15 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/server";
+import { translateAdminText } from "@/lib/i18n/admin";
 import AdminLogoutButton from "@/components/AdminLogoutButton";
 import { connection } from "next/server";
 
 export default async function AdminDashboard() {
   await connection();
+  const locale = await getLocale();
+  const t = (value: string) => translateAdminText(locale, value);
   const supabase = await createClient();
 
   // 1. Validate the authenticated user.
@@ -112,15 +116,15 @@ export default async function AdminDashboard() {
 
               {[
                 {
-                  label: "REGISTERED VIDEOS",
+                  label: t("REGISTERED VIDEOS"),
                   value: videosCount,
                 },
                 {
-                  label: "COLLECTIONS",
+                  label: t("COLLECTIONS"),
                   value: collectionsCount,
                 },
                 {
-                  label: "MEMBERS",
+                  label: t("MEMBERS"),
                   value: membersCount,
                 },
               ].map((item) => (
@@ -259,7 +263,7 @@ export default async function AdminDashboard() {
                     </p>
 
                     <p className="mt-2 text-xs text-zinc-500">
-                      {video.published_at || "Date not registered"}
+                      {video.published_at || t("Date not registered")}
                     </p>
                   </div>
 
@@ -272,7 +276,7 @@ export default async function AdminDashboard() {
                           : "bg-zinc-500/10 text-zinc-400"
                     }`}
                   >
-                    {video.status}
+                    {video.status === "published" ? t("Published") : video.status === "draft" ? t("Draft") : video.status}
                   </span>
 
                 </div>

@@ -4,9 +4,13 @@ import { connection } from "next/server";
 
 import AdminImportCenter from "@/components/AdminImportCenter";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/server";
+import { translateAdminText } from "@/lib/i18n/admin";
 
 export default async function AdminImportPage() {
   await connection();
+  const locale = await getLocale();
+  const t = (value: string) => translateAdminText(locale, value);
 
   const supabase = await createClient();
 
@@ -96,7 +100,7 @@ export default async function AdminImportPage() {
             MONSTER ARCHIVE / CONTENT / IMPORT
           </p>
 
-          <h1 className="mt-3 text-4xl font-black">Content Import Center.</h1>
+          <h1 className="mt-3 text-4xl font-black">{t("Content Import Center.")}</h1>
 
           <p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-500">
             Discover videos from public YouTube playlists, avoid duplicates and register reviewed batches as drafts in the archive.

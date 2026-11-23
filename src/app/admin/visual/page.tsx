@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/server";
+import { translateAdminText } from "@/lib/i18n/admin";
 import AdminVisualStudio from "@/components/AdminVisualStudio";
 
 export default function AdminVisualPage() {
@@ -25,6 +27,8 @@ export default function AdminVisualPage() {
 
 async function AdminVisualContent() {
   await connection();
+  const locale = await getLocale();
+  const t = (value: string) => translateAdminText(locale, value);
 
   const supabase = await createClient();
 
@@ -126,8 +130,8 @@ async function AdminVisualContent() {
       kind: "home" as const,
       assetKey: "home_hero",
       slug: "home-hero",
-      title: "Home Hero — DRIP Era",
-      description: "Main homepage photograph featuring the seven members.",
+      title: t("Home Hero — DRIP Era"),
+      description: t("Main homepage photograph featuring the seven members."),
       imageUrl: hero?.image_url ?? null,
       altText: hero?.alt_text ?? null,
       credit: hero?.image_credit ?? null,
@@ -140,7 +144,7 @@ async function AdminVisualContent() {
       id: member.id,
       slug: member.slug,
       title: member.name,
-      description: `Official individual photograph for ${member.name}.`,
+      description: `${t("Official individual photograph for")} ${member.name}.`,
       imageUrl: member.image_url,
       altText: member.image_alt,
       credit: member.image_credit,
@@ -153,7 +157,7 @@ async function AdminVisualContent() {
       id: collection.id,
       slug: collection.slug,
       title: collection.title,
-      description: `${collection.category} collection cover.`,
+      description: t(`${collection.category} collection cover.`),
       imageUrl: collection.cover_image_url,
       altText: collection.cover_image_alt,
       credit: collection.cover_image_credit,
@@ -166,7 +170,7 @@ async function AdminVisualContent() {
       id: video.id,
       slug: video.slug,
       title: video.title,
-      description: "Custom video thumbnail. YouTube thumbnail is used as fallback.",
+      description: t("Custom video thumbnail. YouTube thumbnail is used as fallback."),
       imageUrl: video.thumbnail_url,
       altText: video.thumbnail_alt,
       credit: video.thumbnail_credit,
