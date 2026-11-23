@@ -25,18 +25,8 @@ type YouTubeVideo = {
   };
 };
 
-function createSlug(value: string, videoId: string) {
-  const base = value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 75)
-    .replace(/-+$/g, "");
-
-  return `${base || "youtube-video"}-${videoId.slice(0, 6).toLowerCase()}`;
+function createSlug(videoId: string) {
+  return `yt-${videoId.toLowerCase()}`;
 }
 
 function youtubeErrorMessage(payload: unknown) {
@@ -258,7 +248,7 @@ export async function POST(request: NextRequest) {
     const { data: createdVideo, error: createError } = await admin.supabase
       .from("watch_videos")
       .insert({
-        slug: createSlug(title, video.id),
+        slug: createSlug(video.id),
         title: title.slice(0, 200),
         description: description || null,
         published_at: video.snippet?.publishedAt ?? null,

@@ -9,6 +9,8 @@ type VideoRow = {
   id: string;
   youtube_video_id: string;
   youtube_metadata_refreshed_at: string | null;
+  created_at: string;
+  metadata_source: "manual" | "youtube_api" | "unavailable";
 };
 
 type YouTubeVideo = {
@@ -17,6 +19,9 @@ type YouTubeVideo = {
     title?: string;
     description?: string;
     publishedAt?: string;
+  };
+  status?: {
+    privacyStatus?: "public" | "unlisted" | "private";
   };
 };
 
@@ -34,10 +39,6 @@ function createServiceClient() {
       persistSession: false,
     },
   });
-}
-
-function unavailableTitle(videoId: string) {
-  return `Unavailable YouTube video ${videoId.slice(0, 6)}`;
 }
 
 export async function GET(request: NextRequest) {
@@ -81,10 +82,15 @@ export async function GET(request: NextRequest) {
 
   const { data: staleRows, error: staleError } = await supabase
     .from("watch_videos")
-    .select("id, youtube_video_id, youtube_metadata_refreshed_at")
-    .eq("metadata_source", "youtube_api")
-    .lt("youtube_metadata_refreshed_at", refreshBefore.toISOString())
-    .order("youtube_metadata_refreshed_at", { ascending: true })
+    .select("id, youtube_video_id, youtube_metadata_refreshed_at, created_at, metadata_source")
+    .not("import_source_id", "is", null)
+    .or(
+      `youtube_metadata_refreshed_at.is.null,youtube_metadata_refreshed_at.lt.${refreshBefore.toISOString()}`
+    )
+    .order("youtube_metadata_refreshed_at", {
+      ascending: true,
+      nullsFirst: true,
+    })
     .limit(1000);
 
   if (staleError) {
@@ -107,7 +113,7 @@ export async function GET(request: NextRequest) {
   for (const batch of apiBatches) {
     const ids = batch.map((video) => video.youtube_video_id);
     const params = new URLSearchParams({
-      part: "snippet",
+      part: "snippet,status",
       id: ids.join(","),
       maxResults: "50",
       key: apiKey,
@@ -142,21 +148,38 @@ export async function GET(request: NextRequest) {
     for (const existing of batch) {
       const current = byId.get(existing.youtube_video_id);
 
-      if (!current?.snippet) {
+      if (
+        !current?.snippet ||
+        (current.status?.privacyStatus &&
+          !["public", "unlisted"].includes(current.status.privacyStatus))
+      ) {
         const removed = await removeImportedVideo(supabase, existing.id);
 
         if (removed) unavailableCount += 1;
         continue;
       }
 
+      const refreshedFields: {
+        youtube_metadata_refreshed_at: string;
+        title?: string;
+        description?: string | null;
+        published_at?: string | null;
+      } = {
+        youtube_metadata_refreshed_at: now.toISOString(),
+      };
+
+      // Do not overwrite title/description/date after an administrator
+      // has manually curated those fields. Availability is still checked.
+      if (existing.metadata_source === "youtube_api") {
+        refreshedFields.title = (current.snippet.title ?? "Untitled YouTube video").slice(0, 200);
+        refreshedFields.description =
+          (current.snippet.description ?? "").slice(0, 3000) || null;
+        refreshedFields.published_at = current.snippet.publishedAt ?? null;
+      }
+
       const { error } = await supabase
         .from("watch_videos")
-        .update({
-          title: (current.snippet.title ?? "Untitled YouTube video").slice(0, 200),
-          description: (current.snippet.description ?? "").slice(0, 3000) || null,
-          published_at: current.snippet.publishedAt ?? null,
-          youtube_metadata_refreshed_at: now.toISOString(),
-        })
+        .update(refreshedFields)
         .eq("id", existing.id);
 
       if (!error) refreshedCount += 1;
@@ -179,11 +202,14 @@ async function clearExpiredMetadata(
   expireBefore: Date
 ) {
   for (const video of videos) {
-    const refreshedAt = video.youtube_metadata_refreshed_at
+    const lastVerifiedAt = video.youtube_metadata_refreshed_at
       ? new Date(video.youtube_metadata_refreshed_at)
-      : null;
+      : new Date(video.created_at);
 
-    if (!refreshedAt || refreshedAt >= expireBefore) {
+    if (
+      Number.isNaN(lastVerifiedAt.getTime()) ||
+      lastVerifiedAt >= expireBefore
+    ) {
       continue;
     }
 
