@@ -628,7 +628,7 @@ export default function AdminImportCenter({
 
           <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
             <p className="text-xs leading-5 text-zinc-600">
-              {t("A coleção e a Era são sugestões configuradas por você. Cada lote pode ser revisado e ajustado antes da importação.")}
+              {t("The collection and era are suggested defaults that you can configure. Each batch can be reviewed and adjusted before import.")}
             </p>
             <button
               type="submit"

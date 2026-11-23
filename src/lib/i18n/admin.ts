@@ -456,6 +456,13 @@ const ptBR: Record<string, string> = {
   "Invalid email or password. Please check your details.": "E-mail ou senha inválidos. Confira seus dados.",
   "Unable to connect. Please try again.": "Não foi possível conectar. Tente novamente."
 },
+  ...{
+  "Unable to load videos": "Não foi possível carregar os vídeos",
+  "SOURCE ↗": "FONTE ↗",
+  "No videos found.": "Nenhum vídeo encontrado.",
+  "(inactive)": "(inativa)",
+  "The collection and era are suggested defaults that you can configure. Each batch can be reviewed and adjusted before import.": "A coleção e a Era são sugestões configuradas por você. Cada lote pode ser revisado e ajustado antes da importação."
+},
 };
 
 export function translateAdminText(locale: Locale, source: string): string {

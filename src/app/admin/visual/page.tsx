@@ -201,7 +201,7 @@ async function AdminVisualContent() {
             </Link>
 
             <p className="mt-7 text-xs font-bold tracking-[0.3em] text-purple-400">
-              <AdminText><AdminText>MONSTER ARCHIVE / DESIGN SYSTEM</AdminText></AdminText>
+              <AdminText>MONSTER ARCHIVE / DESIGN SYSTEM</AdminText>
             </p>
 
             <h1 className="mt-3 text-4xl font-black">

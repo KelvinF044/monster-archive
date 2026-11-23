@@ -171,7 +171,7 @@ async function EditVideoContent({ params }: PageProps) {
       <main className="min-h-[60vh] bg-[#08090d] px-6 py-20 text-white">
         <div className="mx-auto max-w-3xl rounded-xl border border-red-500/20 bg-white/[0.03] p-8">
           <h1 className="text-2xl font-black text-red-400">
-            <AdminText><AdminText>Unable to load video</AdminText> relationships</AdminText>
+            <AdminText>Unable to load video relationships</AdminText>
           </h1>
 
           <p className="mt-4 text-sm text-zinc-400">

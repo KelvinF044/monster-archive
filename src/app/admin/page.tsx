@@ -126,7 +126,7 @@ export default async function AdminDashboard() {
                 },
               ].map((item) => (
                 <div
-                  key=<AdminText>{item.label}</AdminText>
+                  key={item.label}
                   className="rounded-xl border border-white/10 bg-white/[0.03] p-6"
                 >
                   <p className="text-xs font-bold tracking-widest text-zinc-500">
