@@ -144,6 +144,9 @@ export type Dictionary = {
     cataloguedVideos: string;
     independentArchive: string;
     videoDetails: string;
+    sortLabel: string;
+    newestFirst: string;
+    oldestFirst: string;
 
     archiveGrowingTitle: string;
     noPublishedVideos: string;
@@ -392,6 +395,9 @@ export const messages: Record<Locale, Dictionary> = {
       cataloguedVideos: "CATALOGUED VIDEOS",
       independentArchive: "Independent fan archive",
       videoDetails: "WATCH DETAILS ↗",
+      sortLabel: "SORT BY PUBLICATION DATE",
+      newestFirst: "Newest first",
+      oldestFirst: "Oldest first",
 
       archiveGrowingTitle: "The archive is growing.",
       noPublishedVideos:
@@ -649,6 +655,9 @@ export const messages: Record<Locale, Dictionary> = {
       cataloguedVideos: "VÍDEOS CATALOGADOS",
       independentArchive: "Arquivo independente de fãs",
       videoDetails: "VER DETALHES ↗",
+      sortLabel: "ORDENAR POR DATA DE PUBLICAÇÃO",
+      newestFirst: "Mais recentes primeiro",
+      oldestFirst: "Mais antigos primeiro",
 
       archiveGrowingTitle: "O arquivo está crescendo.",
       noPublishedVideos:

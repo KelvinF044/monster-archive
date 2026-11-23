@@ -36,10 +36,14 @@ type Props = {
   collectionGradient: string;
   locale: Locale;
   allLabel: string;
-  noDescription: string;
   videoDetails: string;
   emptyEraMessage: string;
+  sortLabel: string;
+  newestFirst: string;
+  oldestFirst: string;
 };
+
+type SortOrder = "newest" | "oldest";
 
 function normalizeLegacyEra(value: string | null): string {
   return (value ?? "")
@@ -48,10 +52,7 @@ function normalizeLegacyEra(value: string | null): string {
     .toLocaleUpperCase("en-US");
 }
 
-function formatLocalizedDate(
-  value: string | null,
-  locale: Locale
-) {
+function formatLocalizedDate(value: string | null, locale: Locale) {
   if (!value) return "—";
 
   const date = new Date(value);
@@ -76,11 +77,14 @@ export default function WatchVideoGrid({
   collectionGradient,
   locale,
   allLabel,
-  noDescription,
   videoDetails,
   emptyEraMessage,
+  sortLabel,
+  newestFirst,
+  oldestFirst,
 }: Props) {
   const [activeEraId, setActiveEraId] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
 
   // Keep only catalog eras that are actually represented in this collection.
   // The catalog already arrives sorted by its configured display_order.
@@ -100,24 +104,64 @@ export default function WatchVideoGrid({
   );
 
   const filteredVideos = useMemo(() => {
-    if (!activeEraId) {
-      return videos;
-    }
+    const eraFilteredVideos = activeEraId
+      ? videos.filter((video) => video.era_id === activeEraId)
+      : videos;
 
-    return videos.filter(
-      (video) => video.era_id === activeEraId
-    );
-  }, [activeEraId, videos]);
+    return eraFilteredVideos
+      .map((video, index) => ({
+        video,
+        index,
+        timestamp: video.published_at
+          ? Date.parse(video.published_at)
+          : Number.NaN,
+      }))
+      .sort((a, b) => {
+        const aHasDate = Number.isFinite(a.timestamp);
+        const bHasDate = Number.isFinite(b.timestamp);
+
+        // Videos without a valid original publication date always stay last.
+        if (!aHasDate && !bHasDate) return a.index - b.index;
+        if (!aHasDate) return 1;
+        if (!bHasDate) return -1;
+
+        const difference = a.timestamp - b.timestamp;
+        if (difference === 0) return a.index - b.index;
+
+        return sortOrder === "newest" ? -difference : difference;
+      })
+      .map((item) => item.video);
+  }, [activeEraId, sortOrder, videos]);
 
   return (
     <div className="mt-10">
+      {/* SORT ORDER */}
+
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <label
+          htmlFor="watch-video-sort"
+          className="flex flex-wrap items-center gap-3 text-xs font-bold tracking-widest text-zinc-400"
+        >
+          <span>{sortLabel}</span>
+          <select
+            id="watch-video-sort"
+            value={sortOrder}
+            onChange={(event) =>
+              setSortOrder(event.target.value as SortOrder)
+            }
+            className="min-w-48 rounded-lg border border-white/10 bg-[#111217] px-4 py-3 text-xs font-semibold tracking-normal text-white outline-none transition focus:border-purple-400"
+          >
+            <option value="newest">{newestFirst}</option>
+            <option value="oldest">{oldestFirst}</option>
+          </select>
+        </label>
+      </div>
 
       {/* ERA FILTERS */}
 
       {availableEras.length > 0 && (
         <div className="mb-9">
           <div className="flex flex-wrap gap-2">
-
             <button
               type="button"
               onClick={() => setActiveEraId(null)}
@@ -146,7 +190,6 @@ export default function WatchVideoGrid({
                 {era.name}
               </button>
             ))}
-
           </div>
         </div>
       )}
@@ -155,7 +198,6 @@ export default function WatchVideoGrid({
 
       {filteredVideos.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-
           {filteredVideos.map((video) => {
             const eraName =
               (video.era_id ? eraNames.get(video.era_id) : null) ??
@@ -167,7 +209,6 @@ export default function WatchVideoGrid({
                 href={`/watch/${slug}/${video.slug}`}
                 className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] transition hover:-translate-y-1 hover:border-purple-400/50"
               >
-
                 <YouTubeThumbnail
                   videoId={video.youtube_video_id}
                   thumbnailUrl={video.thumbnail_url}
@@ -176,7 +217,6 @@ export default function WatchVideoGrid({
                 />
 
                 <div className="p-5">
-
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-[10px] font-bold tracking-widest text-purple-400">
                       {formatLocalizedDate(video.published_at, locale)}
@@ -193,25 +233,17 @@ export default function WatchVideoGrid({
                     {video.title}
                   </h2>
 
-                  <p className="mt-3 text-sm leading-6 text-zinc-500">
-                    {video.description || noDescription}
-                  </p>
-
                   <div className="mt-5 border-t border-white/10 pt-4 text-xs font-bold text-purple-400">
                     {videoDetails}
                   </div>
-
                 </div>
               </Link>
             );
           })}
-
         </div>
       ) : (
         <div className="rounded-xl border border-white/10 bg-white/[0.03] px-6 py-16 text-center">
-          <p className="text-lg font-bold text-white">
-            {emptyEraMessage}
-          </p>
+          <p className="text-lg font-bold text-white">{emptyEraMessage}</p>
         </div>
       )}
 
@@ -219,7 +251,6 @@ export default function WatchVideoGrid({
         {String(filteredVideos.length).padStart(2, "0")}{" "}
         {filteredVideos.length === 1 ? "VIDEO" : "VIDEOS"}
       </p>
-
     </div>
   );
 }
