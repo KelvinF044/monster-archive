@@ -121,6 +121,7 @@ export type Dictionary = {
       behind: string;
       events: string;
       awards: string;
+      musicVideos: string;
     };
 
     categoryNames: Record<string, string>;
@@ -242,6 +243,12 @@ export const messages: Record<Locale, Dictionary> = {
         "Independent fan-made project. Not affiliated with YG Entertainment.",
 
       collectionContent: {
+        "music-videos": {
+          title: "Official Music Videos",
+          label: "OFFICIAL M/V",
+          description:
+            "Official BABYMONSTER music videos and official music video versions.",
+        },
         "pre-debut": {
           title: "Before the Debut",
           label: "THE BEGINNING",
@@ -341,6 +348,7 @@ export const messages: Record<Locale, Dictionary> = {
         behind: "Behind",
         events: "Events",
         awards: "Awards",
+        musicVideos: "MV",
       },
 
       categoryNames: {
@@ -350,6 +358,7 @@ export const messages: Record<Locale, Dictionary> = {
         Behind: "Behind",
         Events: "Events",
         Awards: "Awards",
+        MV: "Official Music Videos",
       },
 
       collectionHeaders: {
@@ -360,6 +369,7 @@ export const messages: Record<Locale, Dictionary> = {
         Behind: "BEHIND THE SCENES COLLECTIONS",
         Events: "EVENT COLLECTIONS",
         Awards: "AWARDS COLLECTIONS",
+        MV: "OFFICIAL MUSIC VIDEOS",
       },
 
       collectionSingular: "COLLECTION",
@@ -487,6 +497,12 @@ export const messages: Record<Locale, Dictionary> = {
         "Projeto independente feito por fãs. Sem afiliação com a YG Entertainment.",
 
       collectionContent: {
+        "music-videos": {
+          title: "Music Videos Oficiais",
+          label: "VIDEOCLIPES OFICIAIS",
+          description:
+            "Videoclipes oficiais do BABYMONSTER e suas versões oficiais.",
+        },
         "pre-debut": {
           title: "Antes da Estreia",
           label: "O COMEÇO",
@@ -587,6 +603,7 @@ export const messages: Record<Locale, Dictionary> = {
         behind: "Bastidores",
         events: "Eventos",
         awards: "Premiações",
+        musicVideos: "MV",
       },
 
       categoryNames: {
@@ -596,6 +613,7 @@ export const messages: Record<Locale, Dictionary> = {
         Behind: "Bastidores",
         Events: "Eventos",
         Awards: "Premiações",
+        MV: "Videoclipes Oficiais",
       },
 
       collectionHeaders: {
@@ -606,6 +624,7 @@ export const messages: Record<Locale, Dictionary> = {
         Behind: "COLEÇÕES DE BASTIDORES",
         Events: "COLEÇÕES DE EVENTOS",
         Awards: "COLEÇÕES DE PREMIAÇÕES",
+        MV: "COLEÇÃO DE MUSIC VIDEOS",
       },
 
       collectionSingular: "COLEÇÃO",

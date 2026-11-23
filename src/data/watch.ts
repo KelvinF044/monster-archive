@@ -1,7 +1,8 @@
 
 export const watchCategories = [
   "All",
-  "Pre-debut",
+  "MV",
+  "Pre-debut"
   "Stages",
   "Variety",
   "Behind",
@@ -10,6 +11,16 @@ export const watchCategories = [
 ] as const;
 
 export const watchCollections = [
+  {
+    slug: "music-videos",
+    number: "07",
+    title: "Official Music Videos",
+    label: "OFFICIAL M/V",
+    category: "MV",
+    description:
+      "Official BABYMONSTER music videos and official music video versions.",
+    gradient: "from-purple-950 via-fuchsia-900 to-black",
+  },
   {
     slug: "pre-debut",
     number: "01",

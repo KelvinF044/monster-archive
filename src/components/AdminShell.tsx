@@ -102,7 +102,7 @@ export default function AdminShell({
           <svg
             viewBox="0 0 24 24"
             className={`h-4 w-4 transition-transform duration-300 ${
-              collapsed ? "rotate-180" : ""
+              collapsed ? "" : "rotate-180"
             }`}
             fill="none"
             stroke="currentColor"

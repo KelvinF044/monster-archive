@@ -159,6 +159,7 @@ export default function SiteHeader() {
   ];
 
   const categoryFilterKeys = {
+    MV: "musicVideos",
     "Pre-debut": "preDebut",
     Stages: "stages",
     Variety: "variety",
