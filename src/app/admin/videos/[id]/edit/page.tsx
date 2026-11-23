@@ -83,7 +83,8 @@ async function EditVideoContent({ params }: PageProps) {
       source_name,
       status,
       is_featured,
-      era
+      era,
+      era_id
     `)
     .eq("id", id)
     .maybeSingle();
@@ -124,6 +125,7 @@ async function EditVideoContent({ params }: PageProps) {
     membersResult,
     collectionLinksResult,
     memberLinksResult,
+    erasResult,
   ] = await Promise.all([
     supabase
       .from("watch_collections")
@@ -146,13 +148,20 @@ async function EditVideoContent({ params }: PageProps) {
       .from("watch_video_members")
       .select("member_id")
       .eq("video_id", id),
+
+    supabase
+      .from("watch_eras")
+      .select("id, name, slug, display_order, is_active")
+      .order("display_order")
+      .order("name"),
   ]);
 
   const relationError =
     collectionsResult.error ||
     membersResult.error ||
     collectionLinksResult.error ||
-    memberLinksResult.error;
+    memberLinksResult.error ||
+    erasResult.error;
 
   if (relationError) {
     return (
@@ -194,6 +203,7 @@ async function EditVideoContent({ params }: PageProps) {
       : "draft" as const,
     is_featured: video.is_featured ?? false,
     era: video.era,
+    era_id: video.era_id,
     collectionIds: (collectionLinksResult.data ?? []).map(
       (item) => item.collection_id
     ),
@@ -236,6 +246,7 @@ async function EditVideoContent({ params }: PageProps) {
           <AdminVideoForm
             collections={collectionsResult.data ?? []}
             members={membersResult.data ?? []}
+            eras={erasResult.data ?? []}
             initialVideo={initialVideo}
           />
         </div>

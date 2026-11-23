@@ -59,23 +59,33 @@ async function NewVideoContent() {
     redirect("/admin/login?access=denied");
   }
 
-  // Load active collections and members
-  const [collectionsResult, membersResult] = await Promise.all([
-    supabase
-      .from("watch_collections")
-      .select("id, slug, title, category")
-      .eq("is_active", true)
-      .order("display_order"),
+  // Load active collections, members and eras.
+  const [collectionsResult, membersResult, erasResult] =
+    await Promise.all([
+      supabase
+        .from("watch_collections")
+        .select("id, slug, title, category")
+        .eq("is_active", true)
+        .order("display_order"),
 
-    supabase
-      .from("members")
-      .select("id, slug, name")
-      .eq("is_active", true)
-      .order("display_order"),
-  ]);
+      supabase
+        .from("members")
+        .select("id, slug, name")
+        .eq("is_active", true)
+        .order("display_order"),
+
+      supabase
+        .from("watch_eras")
+        .select("id, name, slug, display_order, is_active")
+        .eq("is_active", true)
+        .order("display_order")
+        .order("name"),
+    ]);
 
   const dataError =
-    collectionsResult.error || membersResult.error;
+    collectionsResult.error ||
+    membersResult.error ||
+    erasResult.error;
 
   if (dataError) {
     return (
@@ -135,6 +145,7 @@ async function NewVideoContent() {
           <AdminVideoForm
             collections={collectionsResult.data ?? []}
             members={membersResult.data ?? []}
+            eras={erasResult.data ?? []}
           />
 
         </div>

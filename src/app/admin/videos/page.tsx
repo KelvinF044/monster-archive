@@ -473,7 +473,7 @@ async function AdminVideosContent({
               <select
                 id="era-filter"
                 name="era"
-                defaultValue={eraFilter}
+                defaultValue={eraFilterId}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
               >
                 <option value="">All eras</option>

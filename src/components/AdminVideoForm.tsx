@@ -19,6 +19,14 @@ type Member = {
   name: string;
 };
 
+type Era = {
+  id: string;
+  name: string;
+  slug: string;
+  display_order: number;
+  is_active: boolean;
+};
+
 type VideoStatus = "draft" | "published";
 
 type InitialVideo = {
@@ -32,6 +40,7 @@ type InitialVideo = {
   status: VideoStatus;
   is_featured: boolean;
   era: string | null;
+  era_id: string | null;
   collectionIds: string[];
   memberIds: string[];
 };
@@ -39,15 +48,9 @@ type InitialVideo = {
 type Props = {
   collections: Collection[];
   members: Member[];
+  eras: Era[];
   initialVideo?: InitialVideo | null;
 };
-
-const suggestedEras = [
-  "BATTER UP",
-  "SHEESH",
-  "DRIP",
-  "WE GO UP",
-];
 
 function extractYouTubeId(value: string): string | null {
   const input = value.trim();
@@ -107,17 +110,10 @@ function createSlug(value: string): string {
     .replace(/-+$/g, "");
 }
 
-function normalizeEra(value: string): string | null {
-  const clean = value.trim().replace(/\s+/g, " ");
-
-  return clean
-    ? clean.toLocaleUpperCase("en-US")
-    : null;
-}
-
 export default function AdminVideoForm({
   collections,
   members,
+  eras,
   initialVideo = null,
 }: Props) {
   const router = useRouter();
@@ -146,9 +142,19 @@ export default function AdminVideoForm({
     initialVideo?.source_name ?? "BABYMONSTER Official YouTube"
   );
 
-  const [era, setEra] = useState(
-    initialVideo?.era ?? ""
-  );
+  const legacyEra = initialVideo?.era
+    ?.trim()
+    .replace(/\s+/g, " ")
+    .toLocaleUpperCase("en-US");
+
+  const initialEraId =
+    initialVideo?.era_id ??
+    eras.find(
+      (item) => item.name.toLocaleUpperCase("en-US") === legacyEra
+    )?.id ??
+    "";
+
+  const [selectedEraId, setSelectedEraId] = useState(initialEraId);
 
   const [selectedCollections, setSelectedCollections] =
     useState<string[]>(
@@ -194,9 +200,9 @@ export default function AdminVideoForm({
 
     const cleanTitle = title.trim();
     const cleanSource = sourceName.trim();
-    const cleanEra = normalizeEra(era);
-
     const slug = createSlug(cleanTitle);
+    const selectedEraRecord =
+      eras.find((item) => item.id === selectedEraId) ?? null;
     const youtubeId = extractYouTubeId(youtubeUrl);
 
     if (!cleanTitle || !slug) {
@@ -217,8 +223,17 @@ export default function AdminVideoForm({
       return;
     }
 
-    if (cleanEra && cleanEra.length > 60) {
-      setError("The era name cannot exceed 60 characters.");
+    if (selectedEraId && !selectedEraRecord) {
+      setError("The selected era is no longer available. Refresh and choose an active era.");
+      return;
+    }
+
+    if (
+      selectedEraRecord &&
+      !selectedEraRecord.is_active &&
+      selectedEraRecord.id !== initialEraId
+    ) {
+      setError("Inactive eras cannot be assigned to new videos.");
       return;
     }
 
@@ -249,7 +264,9 @@ export default function AdminVideoForm({
       source_url: `https://www.youtube.com/watch?v=${youtubeId}`,
       status,
       is_featured: isFeatured,
-      era: cleanEra,
+      // Keep the legacy text column synchronized during the transition.
+      era: selectedEraRecord?.name ?? null,
+      era_id: selectedEraRecord?.id ?? null,
     };
 
     try {
@@ -605,26 +622,37 @@ export default function AdminVideoForm({
               ERA (OPTIONAL)
             </label>
 
-            <input
+            <select
               id="video-era"
-              list="babymonster-eras"
-              maxLength={60}
-              value={era}
-              onChange={(event) => setEra(event.target.value)}
-              placeholder="Select or type an era..."
-              className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-purple-400"
-            />
+              value={selectedEraId}
+              onChange={(event) => setSelectedEraId(event.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-purple-400"
+            >
+              <option value="">No era / Not era-specific</option>
 
-            <datalist id="babymonster-eras">
-              {suggestedEras.map((item) => (
-                <option key={item} value={item} />
-              ))}
-            </datalist>
+              {eras
+                .filter(
+                  (item) =>
+                    item.is_active || item.id === selectedEraId
+                )
+                .map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                    {!item.is_active ? " — INACTIVE (CURRENT VIDEO)" : ""}
+                  </option>
+                ))}
+            </select>
 
             <p className="mt-2 text-xs leading-6 text-zinc-600">
-              Optional. Select a suggested era or type a new one.
-              Leave this field empty when the video does not belong
-              to a specific era.
+              Choose an era from the central catalog. New videos can only
+              be assigned to active eras. Manage the catalog in{" "}
+              <Link
+                href="/admin/eras"
+                className="font-bold text-purple-300 transition hover:text-purple-200"
+              >
+                Era Management
+              </Link>
+              .
             </p>
           </div>
 
