@@ -18,16 +18,16 @@ type NavItem = {
 const navigation: NavItem[] = [
   {
     href: "/admin",
-    label: t("Dashboard"),
+    label: "Dashboard",
     compactLabel: "D",
-    description: t("Archive overview"),
+    description: "Archive overview",
     match: (pathname) => pathname === "/admin",
   },
   {
     href: "/admin/videos",
-    label: t("Watch Videos"),
+    label: "Watch Videos",
     compactLabel: "W",
-    description: t("Browse and edit registered videos"),
+    description: "Browse and edit registered videos",
     match: (pathname) =>
       pathname === "/admin/videos" ||
       (pathname.startsWith("/admin/videos/") &&
@@ -35,30 +35,30 @@ const navigation: NavItem[] = [
   },
   {
     href: "/admin/videos/new",
-    label: t("Add New Video"),
+    label: "Add New Video",
     compactLabel: "+",
-    description: t("Register a new video"),
+    description: "Register a new video",
     match: (pathname) => pathname === "/admin/videos/new",
   },
   {
     href: "/admin/import",
-    label: t("Content Import Center"),
+    label: "Content Import Center",
     compactLabel: "I",
-    description: t("Discover and review YouTube playlist videos"),
+    description: "Discover and review YouTube playlist videos",
     match: (pathname) => pathname.startsWith("/admin/import"),
   },
   {
     href: "/admin/eras",
-    label: t("Era Management"),
+    label: "Era Management",
     compactLabel: "E",
-    description: t("Manage the central era catalog"),
+    description: "Manage the central era catalog",
     match: (pathname) => pathname.startsWith("/admin/eras"),
   },
   {
     href: "/admin/visual",
-    label: t("Visual Studio"),
+    label: "Visual Studio",
     compactLabel: "V",
-    description: t("Manage website images and visual assets"),
+    description: "Manage website images and visual assets",
     match: (pathname) => pathname.startsWith("/admin/visual"),
   },
 ];
