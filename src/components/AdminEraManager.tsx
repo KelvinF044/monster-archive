@@ -558,7 +558,7 @@ export default function AdminEraManager({ initialEras }: Props) {
                             disabled={isPending}
                             className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 transition hover:bg-white/5"
                           >
-                            CANCEL
+                            {t("CANCEL")}
                           </button>
                         </>
                       ) : (
@@ -569,7 +569,7 @@ export default function AdminEraManager({ initialEras }: Props) {
                             disabled={Boolean(pendingId) || saving}
                             className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-300 transition hover:border-purple-400/50 hover:text-white disabled:opacity-50"
                           >
-                            EDIT
+                            {t("EDIT")}
                           </button>
                           <button
                             type="button"
@@ -598,7 +598,7 @@ export default function AdminEraManager({ initialEras }: Props) {
             <div className="px-6 py-16 text-center">
               <p className="text-lg font-bold text-white">{t("No eras found.")}</p>
               <p className="mt-2 text-sm text-zinc-500">
-                Try another filter or create a new era.
+                {t("Try another filter or create a new era.")}
               </p>
             </div>
           )}
@@ -606,7 +606,7 @@ export default function AdminEraManager({ initialEras }: Props) {
       </section>
 
       <p className="text-xs leading-6 text-zinc-600">
-        Deactivating an era hides it from future selection. Existing video relationships are kept; no era or video is permanently deleted.
+        {t("Deactivating an era hides it from future selection. Existing video relationships are kept; no era or video is permanently deleted.")}
       </p>
     </div>
   );
