@@ -566,11 +566,11 @@ export default function AdminVideoForm({
 
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
         <h2 className="text-xl font-black">
-          Video information
+          {t("Video information")}
         </h2>
 
         <p className="mt-2 text-sm text-zinc-500">
-          Enter the basic details of the original video.
+          {t("Enter the basic details of the original video.")}
         </p>
 
         <div className="mt-7 space-y-6">
@@ -580,7 +580,7 @@ export default function AdminVideoForm({
               htmlFor="video-title"
               className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
             >
-              VIDEO TITLE *
+              {t("VIDEO TITLE *")}
             </label>
 
             <input
@@ -599,7 +599,7 @@ export default function AdminVideoForm({
               htmlFor="youtube-url"
               className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
             >
-              YOUTUBE URL *
+              {t("YOUTUBE URL *")}
             </label>
 
             <input
@@ -612,7 +612,7 @@ export default function AdminVideoForm({
             />
 
             <p className="mt-2 text-xs text-zinc-600">
-              Standard links, Shorts, youtu.be and embed links are supported.
+              {t("Standard links, Shorts, youtu.be and embed links are supported.")}
             </p>
           </div>
 
@@ -621,7 +621,7 @@ export default function AdminVideoForm({
               htmlFor="video-description"
               className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
             >
-              DESCRIPTION
+              {t("DESCRIPTION")}
             </label>
 
             <textarea
@@ -642,7 +642,7 @@ export default function AdminVideoForm({
               htmlFor="video-era"
               className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
             >
-              ERA (OPTIONAL)
+              {t("ERA (OPTIONAL)")}
             </label>
 
             <select
@@ -667,8 +667,7 @@ export default function AdminVideoForm({
             </select>
 
             <p className="mt-2 text-xs leading-6 text-zinc-600">
-              Choose an era from the central catalog. New videos can only
-              be assigned to active eras. Manage the catalog in{" "}
+              {t("Choose an era from the central catalog. New videos can only be assigned to active eras. Manage the catalog in")}{" "}
               <Link
                 href="/admin/eras"
                 className="font-bold text-purple-300 transition hover:text-purple-200"
@@ -686,7 +685,7 @@ export default function AdminVideoForm({
                 htmlFor="published-at"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
               >
-                PUBLICATION DATE
+                {t("PUBLICATION DATE")}
               </label>
 
               <input
@@ -703,7 +702,7 @@ export default function AdminVideoForm({
                 htmlFor="source-name"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
               >
-                ORIGINAL SOURCE *
+                {t("ORIGINAL SOURCE *")}
               </label>
 
               <input
@@ -725,11 +724,11 @@ export default function AdminVideoForm({
 
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
         <h2 className="text-xl font-black">
-          Collections *
+          {t("Collections *")}
         </h2>
 
         <p className="mt-2 text-sm text-zinc-500">
-          Select one or more collections for this video.
+          {t("Select one or more collections for this video.")}
         </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -773,11 +772,11 @@ export default function AdminVideoForm({
 
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
         <h2 className="text-xl font-black">
-          Participating members
+          {t("Participating members")}
         </h2>
 
         <p className="mt-2 text-sm text-zinc-500">
-          Select the members who appear in this content. This field is optional.
+          {t("Select the members who appear in this content. This field is optional.")}
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -815,7 +814,7 @@ export default function AdminVideoForm({
 
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
         <h2 className="text-xl font-black">
-          Publication settings
+          {t("Publication settings")}
         </h2>
 
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
@@ -825,7 +824,7 @@ export default function AdminVideoForm({
               htmlFor="video-status"
               className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
             >
-              VIDEO STATUS
+              {t("VIDEO STATUS")}
             </label>
 
             <select
@@ -837,11 +836,11 @@ export default function AdminVideoForm({
               className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
             >
               <option value="draft">
-                Draft — Not visible publicly
+                {t("Draft — Not visible publicly")}
               </option>
 
               <option value="published">
-                Published — Visible in WATCH
+                {t("Published — Visible in WATCH")}
               </option>
             </select>
           </div>
@@ -856,11 +855,11 @@ export default function AdminVideoForm({
 
             <span>
               <span className="block text-sm font-bold">
-                Featured content
+                {t("Featured content")}
               </span>
 
               <span className="mt-1 block text-xs text-zinc-500">
-                Mark this video as featured for future homepage sections.
+                {t("Mark this video as featured for future homepage sections.")}
               </span>
             </span>
           </label>
@@ -895,7 +894,7 @@ export default function AdminVideoForm({
           href="/admin/videos"
           className="rounded-lg border border-white/10 px-6 py-4 text-xs font-bold text-zinc-400 transition hover:text-white"
         >
-          CANCEL
+          {t("CANCEL")}
         </Link>
 
         <button
