@@ -24,7 +24,16 @@ type YouTubeVideo = {
 };
 
 function createSlug(videoId: string) {
-  return `yt-${videoId.toLowerCase()}`;
+  // Encode the original, case-sensitive YouTube ID as lowercase hex.
+  // YouTube IDs can contain underscores and are case-sensitive; hex keeps
+  // every character, avoids slug-check violations and prevents ID collisions.
+  const encodedId = Array.from(videoId)
+    .map((character) =>
+      character.charCodeAt(0).toString(16).padStart(2, "0")
+    )
+    .join("");
+
+  return `yt-${encodedId}`;
 }
 
 function youtubeErrorMessage(payload: unknown) {
