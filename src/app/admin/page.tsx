@@ -151,11 +151,11 @@ export default async function AdminDashboard() {
 
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-sm font-bold tracking-widest text-zinc-400">
-              CONTENT MANAGEMENT
+              {t("CONTENT MANAGEMENT")}
             </h2>
 
             <span className="text-xs text-purple-400">
-              ADMIN AREA
+              {t("ADMIN AREA")}
             </span>
           </div>
 
@@ -164,18 +164,18 @@ export default async function AdminDashboard() {
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
               <p className="text-lg font-black">
-                Watch Videos
+                {t("Watch Videos")}
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-500">
-                Register, edit, organize and publish BABYMONSTER videos.
+                {t("Register, edit, organize and publish BABYMONSTER videos.")}
               </p>
 
               <Link
                 href="/admin/videos"
                 className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
               >
-                MANAGE VIDEOS →
+                {t("MANAGE VIDEOS →")}
               </Link>
 
             </div>
@@ -183,18 +183,18 @@ export default async function AdminDashboard() {
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
               <p className="text-lg font-black">
-                Era Management
+                {t("Era Management")}
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-500">
-                Create, rename, reorder, activate and deactivate the eras used across the Watch archive.
+                {t("Create, rename, reorder, activate and deactivate the eras used across the Watch archive.")}
               </p>
 
               <Link
                 href="/admin/eras"
                 className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
               >
-                MANAGE ERAS →
+                {t("MANAGE ERAS →")}
               </Link>
 
             </div>
@@ -202,18 +202,18 @@ export default async function AdminDashboard() {
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
               <p className="text-lg font-black">
-                Content Import Center
+                {t("Content Import Center")}
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-500">
-                Discover videos from YouTube playlists, review duplicates and import selected batches as drafts.
+                {t("Discover videos from YouTube playlists, review duplicates and import selected batches as drafts.")}
               </p>
 
               <Link
                 href="/admin/import"
                 className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
               >
-                OPEN IMPORT CENTER →
+                {t("OPEN IMPORT CENTER →")}
               </Link>
 
             </div>
@@ -221,15 +221,15 @@ export default async function AdminDashboard() {
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
               <p className="text-lg font-black">
-                Collections & Members
+                {t("Collections & Members")}
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-500">
-                Manage the categories and relationships in the archive.
+                {t("Manage the categories and relationships in the archive.")}
               </p>
 
               <span className="mt-7 inline-block text-xs font-bold text-zinc-600">
-                EXPANSION COMING SOON
+                {t("EXPANSION COMING SOON")}
               </span>
 
             </div>
@@ -241,14 +241,14 @@ export default async function AdminDashboard() {
         <section className="mt-12">
 
           <h2 className="mb-5 text-sm font-bold tracking-widest text-zinc-400">
-            RECENTLY REGISTERED VIDEOS
+            {t("RECENTLY REGISTERED VIDEOS")}
           </h2>
 
           <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
 
             {recentError ? (
               <p className="p-5 text-sm text-red-400">
-                Unable to load recent videos.
+                {t("Unable to load recent videos.")}
               </p>
             ) : recentVideos && recentVideos.length > 0 ? (
 
@@ -284,7 +284,7 @@ export default async function AdminDashboard() {
 
             ) : (
               <p className="p-5 text-sm text-zinc-500">
-                No videos registered yet.
+                {t("No videos registered yet.")}
               </p>
             )}
 
@@ -293,7 +293,7 @@ export default async function AdminDashboard() {
         </section>
 
         <footer className="mt-16 border-t border-white/10 pt-7 text-xs text-zinc-600">
-          MONSTER ARCHIVE ADMIN · Restricted access
+          {t("MONSTER ARCHIVE ADMIN · Restricted access")}
         </footer>
 
       </div>
