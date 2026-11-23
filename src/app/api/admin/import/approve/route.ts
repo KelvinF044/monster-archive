@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { requireActiveAdmin } from "@/lib/admin/requireActiveAdmin";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 type RequestBody = {
   sourceId?: string;
