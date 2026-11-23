@@ -302,7 +302,7 @@ const ptBR: Record<string, string> = {
   "Content Import Center.": "Central de importação de conteúdo.",
   "Discover videos from public YouTube playlists, avoid duplicates and register reviewed batches as drafts in the archive.": "Encontre vídeos em playlists públicas do YouTube, evite duplicados e cadastre lotes revisados como rascunhos no arquivo.",
   "MONSTER ARCHIVE / ADMIN / WATCH": "MONSTER ARCHIVE / ADMIN / WATCH",
-  "OFFICIAL MUSIC VIDEO": "MUSIC VIDEO OFICIAL"
+  "OFFICIAL MUSIC VIDEO": "MUSIC VIDEO OFICIAL",
   ...{
   "YOUTUBE URL *": "LINK DO YOUTUBE *",
   "Standard links, Shorts, youtu.be and embed links are supported.": "Links padrão, Shorts, youtu.be e links de incorporação são aceitos.",
@@ -380,6 +380,26 @@ const ptBR: Record<string, string> = {
   "MONSTER ARCHIVE / CONTENT / EDIT": "MONSTER ARCHIVE / CONTEÚDO / EDIÇÃO"
 },
   "Select one or more collections for this video.": "Selecione uma ou mais coleções para este vídeo.",
+  ...{
+  "MONSTER ARCHIVE / ADMIN": "MONSTER ARCHIVE / ADMIN",
+  "MONSTER ARCHIVE / CONTENT": "MONSTER ARCHIVE / CONTEÚDO",
+  "Unable to load Visual Studio": "Não foi possível carregar o Estúdio visual",
+  "Update the video information, era, collections, participating members and publication settings.": "Atualize as informações do vídeo, a Era, as coleções, as integrantes participantes e as configurações de publicação.",
+  "VIDEO ID:": "ID DO VÍDEO:",
+  "ERA:": "ERA:",
+  "← PREVIOUS": "← ANTERIOR",
+  "NEXT →": "PRÓXIMO →",
+  "ERA NAME": "NOME DA ERA",
+  "LINKED VIDEOS": "VÍDEOS VINCULADOS",
+  "MEMBER": "INTEGRANTE",
+  "VIDEO": "VÍDEO",
+  "Collection cover image.": "Imagem de capa da coleção.",
+  "ADMIN WORKSPACE": "ÁREA ADMINISTRATIVA",
+  "WORKSPACE": "MENU PRINCIPAL",
+  "View public website": "Ver site público",
+  "Unable to load registration form": "Não foi possível carregar o formulário de cadastro",
+  "No videos registered yet.": "Nenhum vídeo cadastrado ainda."
+},
 };
 
 export function translateAdminText(locale: Locale, source: string): string {

@@ -137,7 +137,7 @@ export default function AdminShell({
                 MONSTER<span className="text-purple-400">.</span>
               </p>
               <p className="mt-2 text-[10px] font-bold tracking-[0.24em] text-zinc-500">
-                ADMIN WORKSPACE
+                {t("ADMIN WORKSPACE")}
               </p>
             </>
           )}
@@ -148,7 +148,7 @@ export default function AdminShell({
         }`}>
           {!collapsed && (
             <p className="mb-3 px-3 text-[10px] font-bold tracking-[0.2em] text-zinc-600">
-              WORKSPACE
+              {t("WORKSPACE")}
             </p>
           )}
 
@@ -159,7 +159,7 @@ export default function AdminShell({
               <Link
                 key={item.href}
                 href={item.href}
-                title={collapsed ? item.label : undefined}
+                title={collapsed ? t(item.label) : undefined}
                 aria-label={t(item.label)}
                 aria-current={active ? "page" : undefined}
                 onClick={() => {
@@ -215,7 +215,7 @@ export default function AdminShell({
               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] text-[10px]">
                 ↗
               </span>
-              View public website
+              {t("View public website")}
             </Link>
           )}
 
