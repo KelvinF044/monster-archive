@@ -376,7 +376,7 @@ const ptBR: Record<string, string> = {
   "Start by adding a public playlist from the official channel.": "Comece adicionando uma playlist pública do canal oficial.",
   "Temporary results fetched directly from YouTube.": "Resultados temporários consultados diretamente no YouTube.",
   "No videos loaded for this query.": "Nenhum vídeo carregado nesta consulta.",
-  "Use Scan Playlist to load items from this source.": "Use Scan Playlist para consultar os itens desta fonte.",
+  "Use Scan Playlist to load items from this source.": "Use Consultar Playlist para buscar os itens desta fonte.",
   "Batch import · drafts · manual review before publication.": "Importação em lote · rascunhos · revisão manual antes da publicação",
   "The candidate queue is loaded live and is not saved as a playlist copy. Approved imports fetch current video metadata and create drafts in the archive. Default classification is set manually per playlist; no video is auto-published or classified by AI.": "A fila de candidatos é carregada ao vivo e não fica salva como uma cópia da playlist. A importação aprovada consulta os metadados atuais do vídeo e cria um rascunho no arquivo. A classificação padrão é definida manualmente por playlist; nenhum vídeo será publicado ou classificado por IA automaticamente.",
   "Invalid email or password. Please check your details.": "E-mail ou senha inválidos. Confira seus dados.",
@@ -385,21 +385,10 @@ const ptBR: Record<string, string> = {
   "SOURCE ↗": "FONTE ↗",
   "No videos found.": "Nenhum vídeo encontrado.",
   "(inactive)": "(inativa)",
-  "The collection and era are suggested defaults that you can configure. Each batch can be reviewed and adjusted before import.": "A coleção e a Era são sugestões configuradas por você. Cada lote pode ser revisado e ajustado antes da importação."
-  ...{
-  "COLLECTION": "COLEÇÃO",
-  "MONSTER ARCHIVE / CONTENT": "MONSTER ARCHIVE / CONTEÚDO",
-  "ADMINISTRATOR ACCESS": "ACESSO DE ADMINISTRADOR",
-  "REGISTERED VIDEOS": "VÍDEOS CADASTRADOS",
-  "MANAGE VIDEOS →": "GERENCIAR VÍDEOS →",
+  "The collection and era are suggested defaults that you can configure. Each batch can be reviewed and adjusted before import.": "A coleção e a Era são sugestões configuradas por você. Cada lote pode ser revisado e ajustado antes da importação.",
   "Content management": "Gerenciamento de conteúdo",
-  "ADD NEW VIDEO": "ADICIONAR VÍDEO",
-  "VIEW WEBSITE ↗": "VER SITE ↗",
-  "REGISTERED CONTENT": "CONTEÚDO CADASTRADO",
-  "SEARCH AND FILTERS": "BUSCA E FILTROS",
-  "SIGN OUT ↗": "SAIR ↗",
+  "ADD NEW VIDEO": "+ ADICIONAR VÍDEO",
   "Loading...": "Carregando..."
-},
 };
 
 export function translateAdminText(locale: Locale, source: string): string {
