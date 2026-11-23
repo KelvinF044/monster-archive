@@ -78,7 +78,7 @@ export default async function AdminImportPage() {
             Confirm that migration 202611230005_content_import_center.sql has been applied in Supabase.
           </p>
           <Link href="/admin" className="mt-6 inline-block text-xs font-bold text-purple-300">
-            ← BACK TO DASHBOARD
+            {t("← BACK TO DASHBOARD")}
           </Link>
         </div>
       </main>
@@ -93,17 +93,17 @@ export default async function AdminImportPage() {
             href="/admin"
             className="text-xs font-bold text-zinc-500 transition hover:text-white"
           >
-            ← BACK TO DASHBOARD
+            {t("← BACK TO DASHBOARD")}
           </Link>
 
           <p className="mt-8 text-xs font-bold tracking-[0.3em] text-purple-400">
-            MONSTER ARCHIVE / CONTENT / IMPORT
+            {t("MONSTER ARCHIVE / CONTENT / IMPORT")}
           </p>
 
           <h1 className="mt-3 text-4xl font-black">{t("Content Import Center.")}</h1>
 
           <p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-500">
-            Discover videos from public YouTube playlists, avoid duplicates and register reviewed batches as drafts in the archive.
+            {t("Discover videos from public YouTube playlists, avoid duplicates and register reviewed batches as drafts in the archive.")}
           </p>
         </header>
 
