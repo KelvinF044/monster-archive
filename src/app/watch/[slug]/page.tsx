@@ -11,6 +11,7 @@ import { getDictionary } from "@/lib/i18n/server";
 import type { Locale } from "@/lib/i18n/config";
 
 import WatchVideoGrid, {
+  type WatchEra,
   type WatchVideo,
 } from "@/components/WatchVideoGrid";
 
@@ -150,6 +151,7 @@ async function CollectionContent({ params }: PageProps) {
   );
 
   let videos: WatchVideo[] = [];
+  let eras: WatchEra[] = [];
 
   if (videoIds.length > 0) {
     const {
@@ -158,7 +160,7 @@ async function CollectionContent({ params }: PageProps) {
     } = await supabase
       .from("watch_videos")
       .select(
-        "id, slug, title, description, published_at, youtube_video_id, source_name, source_url, thumbnail_url, thumbnail_alt, era"
+        "id, slug, title, description, published_at, youtube_video_id, source_name, source_url, thumbnail_url, thumbnail_alt, era, era_id"
       )
       .in("id", videoIds)
       .eq("status", "published");
@@ -191,6 +193,30 @@ async function CollectionContent({ params }: PageProps) {
         (orderMap.get(a.id) ?? 0) -
         (orderMap.get(b.id) ?? 0)
     );
+
+    const eraIds = Array.from(
+      new Set(
+        videos
+          .map((video) => video.era_id)
+          .filter((eraId): eraId is string => Boolean(eraId))
+      )
+    );
+
+    if (eraIds.length > 0) {
+      const { data: eraData, error: erasError } = await supabase
+        .from("watch_eras")
+        .select("id, name, slug, display_order, is_active")
+        .in("id", eraIds)
+        .order("display_order")
+        .order("name");
+
+      if (erasError) {
+        // Keep the video archive usable even if era filters cannot be loaded.
+        console.error("Error loading public Watch eras:", erasError.message);
+      } else {
+        eras = (eraData ?? []) as WatchEra[];
+      }
+    }
   }
 
   // 4. Retrieve localized collection content.
@@ -210,14 +236,6 @@ async function CollectionContent({ params }: PageProps) {
   const collectionGradient =
     gradients[collection.category] ||
     "from-zinc-800 to-black";
-
-  // Era filters are enabled only for the requested collections.
-  const showEraFilters = [
-    "Stages",
-    "Variety",
-    "Behind",
-    "Events",
-  ].includes(collection.category);
 
   const emptyEraMessage =
     locale === "pt-BR"
@@ -260,9 +278,9 @@ async function CollectionContent({ params }: PageProps) {
           <WatchVideoGrid
             slug={slug}
             videos={videos}
+            eras={eras}
             collectionGradient={collectionGradient}
             locale={locale as Locale}
-            showEraFilters={showEraFilters}
             allLabel={dictionary.home.filters.all}
             noDescription={videoCopy.noDescription}
             videoDetails={copy.videoDetails}
