@@ -118,7 +118,7 @@ function AssetCard({
             <span className="text-4xl text-white/20">✦</span>
 
             <span className="mt-3 text-[10px] font-bold tracking-widest text-white/50">
-              IMAGE NOT REGISTERED
+              {t("IMAGE NOT REGISTERED")}
             </span>
           </div>
         )}
@@ -146,7 +146,7 @@ function AssetCard({
 
         <div>
           <label className="mb-2 block text-[10px] font-bold tracking-widest text-zinc-400">
-            SELECT IMAGE
+            {t("SELECT IMAGE")}
           </label>
 
           <input
@@ -179,7 +179,7 @@ function AssetCard({
 
         <div>
           <label className="mb-2 block text-[10px] font-bold tracking-widest text-zinc-400">
-            ALTERNATIVE TEXT
+            {t("ALTERNATIVE TEXT")}
           </label>
 
           <input
@@ -195,7 +195,7 @@ function AssetCard({
 
         <div>
           <label className="mb-2 block text-[10px] font-bold tracking-widest text-zinc-400">
-            IMAGE CREDIT
+            {t("IMAGE CREDIT")}
           </label>
 
           <input
@@ -211,7 +211,7 @@ function AssetCard({
 
         <div>
           <label className="mb-2 block text-[10px] font-bold tracking-widest text-zinc-400">
-            ORIGINAL IMAGE SOURCE
+            {t("ORIGINAL IMAGE SOURCE")}
           </label>
 
           <input
