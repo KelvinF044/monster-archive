@@ -388,7 +388,22 @@ const ptBR: Record<string, string> = {
   "The collection and era are suggested defaults that you can configure. Each batch can be reviewed and adjusted before import.": "A coleção e a Era são sugestões configuradas por você. Cada lote pode ser revisado e ajustado antes da importação.",
   "Content management": "Gerenciamento de conteúdo",
   "ADD NEW VIDEO": "+ ADICIONAR VÍDEO",
-  "Loading...": "Carregando..."
+  "Loading...": "Carregando...",
+  "Select all draft videos on this page": "Selecionar todos os rascunhos desta página",
+  "drafts available on this page": "rascunhos disponíveis nesta página",
+  "PUBLISH SELECTED": "PUBLICAR SELECIONADOS",
+  "Select draft": "Selecionar rascunho",
+  "FINAL REVIEW": "REVISÃO FINAL",
+  "Confirm bulk publication": "Confirmar publicação em massa",
+  "You are about to publish the following selected drafts.": "Você está prestes a publicar os seguintes rascunhos selecionados.",
+  "videos selected": "vídeos selecionados",
+  "Only these videos will be published. Their collection, era and member assignments will remain unchanged.": "Somente estes vídeos serão publicados. As coleções, Eras e integrantes vinculadas serão mantidas.",
+  "CONFIRM PUBLISH": "CONFIRMAR PUBLICAÇÃO",
+  "PUBLISHING...": "PUBLICANDO...",
+  "Could not publish selected videos. Try again.": "Não foi possível publicar os vídeos selecionados. Tente novamente.",
+  "No videos were published. Refresh the list and try again.": "Nenhum vídeo foi publicado. Atualize a lista e tente novamente.",
+  "videos published successfully.": "vídeos publicados com sucesso.",
+  "were skipped because they were no longer drafts.": "foram ignorados porque não eram mais rascunhos."
 };
 
 export function translateAdminText(locale: Locale, source: string): string {
