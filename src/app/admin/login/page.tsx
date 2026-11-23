@@ -31,14 +31,14 @@ export default function AdminLoginPage() {
         });
 
       if (loginError) {
-        setError(t("E-mail ou senha inválidos. Confira seus dados."));
+        setError(t("Invalid email or password. Please check your details."));
         return;
       }
 
       router.replace("/admin");
       router.refresh();
     } catch {
-      setError(t("Não foi possível conectar. Tente novamente."));
+      setError(t("Unable to connect. Please try again."));
     } finally {
       setLoading(false);
     }
