@@ -4,6 +4,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/client";
+import { useAdminText } from "@/components/useAdminText";
 
 type Era = {
   id: string;
@@ -51,6 +52,7 @@ function getNextOrder(eras: Era[]) {
 
 export default function AdminEraManager({ initialEras }: Props) {
   const router = useRouter();
+  const t = useAdminText();
   const supabase = createClient();
 
   const [eras, setEras] = useState(() => sortEras(initialEras));
@@ -90,15 +92,15 @@ export default function AdminEraManager({ initialEras }: Props) {
     const order = Number(orderValue);
 
     if (!normalizedName) {
-      throw new Error("Enter an era name.");
+      throw new Error(t("Enter an era name."));
     }
 
     if (normalizedName.length > 60) {
-      throw new Error("The era name cannot exceed 60 characters.");
+      throw new Error(t("The era name cannot exceed 60 characters."));
     }
 
     if (!Number.isSafeInteger(order) || order < 0 || order > 99999) {
-      throw new Error("Display order must be a whole number between 0 and 99999.");
+      throw new Error(t("Display order must be a whole number between 0 and 99999."));
     }
 
     return { normalizedName, order };
@@ -116,7 +118,7 @@ export default function AdminEraManager({ initialEras }: Props) {
       setError(
         validationError instanceof Error
           ? validationError.message
-          : "Check the era information."
+          : t("Check the era information.")
       );
       return;
     }
@@ -124,7 +126,7 @@ export default function AdminEraManager({ initialEras }: Props) {
     const slug = createSlug(validated.normalizedName);
 
     if (!slug) {
-      setError("This name cannot be converted into a valid URL identifier.");
+      setError(t("This name cannot be converted into a valid URL identifier."));
       return;
     }
 
@@ -145,11 +147,11 @@ export default function AdminEraManager({ initialEras }: Props) {
 
       if (insertError) {
         if (insertError.code === "23505") {
-          throw new Error("An era with this name or URL identifier already exists.");
+          throw new Error(t("An era with this name or URL identifier already exists."));
         }
 
         if (insertError.code === "42501" || insertError.code === "PGRST301") {
-          throw new Error("You do not have permission to manage eras. Check the administrator access migration.");
+          throw new Error(t("You do not have permission to manage eras. Check the administrator access migration."));
         }
 
         throw new Error(insertError.message);
@@ -163,13 +165,13 @@ export default function AdminEraManager({ initialEras }: Props) {
       );
       setNewName("");
       setNewOrder(String(validated.order + 10));
-      setSuccess("Era created successfully.");
+      setSuccess(t("Era created successfully."));
       router.refresh();
     } catch (createError) {
       setError(
         createError instanceof Error
           ? createError.message
-          : "Unable to create this era."
+          : t("Unable to create this era.")
       );
     } finally {
       setSaving(false);
@@ -200,7 +202,7 @@ export default function AdminEraManager({ initialEras }: Props) {
       setError(
         validationError instanceof Error
           ? validationError.message
-          : "Check the era information."
+          : t("Check the era information.")
       );
       return;
     }
@@ -208,7 +210,7 @@ export default function AdminEraManager({ initialEras }: Props) {
     const slug = createSlug(validated.normalizedName);
 
     if (!slug) {
-      setError("This name cannot be converted into a valid URL identifier.");
+      setError(t("This name cannot be converted into a valid URL identifier."));
       return;
     }
 
@@ -229,11 +231,11 @@ export default function AdminEraManager({ initialEras }: Props) {
 
       if (updateError) {
         if (updateError.code === "23505") {
-          throw new Error("Another era already uses this name or URL identifier.");
+          throw new Error(t("Another era already uses this name or URL identifier."));
         }
 
         if (updateError.code === "42501") {
-          throw new Error("You do not have permission to edit this era.");
+          throw new Error(t("You do not have permission to edit this era."));
         }
 
         throw new Error(updateError.message);
@@ -249,13 +251,13 @@ export default function AdminEraManager({ initialEras }: Props) {
         )
       );
       cancelEditing();
-      setSuccess("Era updated successfully.");
+      setSuccess(t("Era updated successfully."));
       router.refresh();
     } catch (updateError) {
       setError(
         updateError instanceof Error
           ? updateError.message
-          : "Unable to update this era."
+          : t("Unable to update this era.")
       );
     } finally {
       setPendingId(null);
@@ -274,7 +276,7 @@ export default function AdminEraManager({ initialEras }: Props) {
 
       if (updateError) {
         if (updateError.code === "42501") {
-          throw new Error("You do not have permission to change this era.");
+          throw new Error(t("You do not have permission to change this era."));
         }
 
         throw new Error(updateError.message);
@@ -289,15 +291,15 @@ export default function AdminEraManager({ initialEras }: Props) {
       );
       setSuccess(
         era.is_active
-          ? "Era deactivated. Existing video links were preserved."
-          : "Era activated and available for future use."
+          ? t("Era deactivated. Existing video links were preserved.")
+          : t("Era activated and available for future use.")
       );
       router.refresh();
     } catch (toggleError) {
       setError(
         toggleError instanceof Error
           ? toggleError.message
-          : "Unable to change the era status."
+          : t("Unable to change the era status.")
       );
     } finally {
       setPendingId(null);
@@ -308,9 +310,9 @@ export default function AdminEraManager({ initialEras }: Props) {
     <div className="space-y-10">
       <section className="grid gap-4 sm:grid-cols-3">
         {[
-          { label: "TOTAL ERAS", value: eras.length },
-          { label: "ACTIVE", value: activeCount },
-          { label: "INACTIVE", value: inactiveCount },
+          { label: t("TOTAL ERAS"), value: eras.length },
+          { label: t("ACTIVE"), value: activeCount },
+          { label: t("INACTIVE"), value: inactiveCount },
         ].map((item) => (
           <div
             key={item.label}
@@ -347,7 +349,7 @@ export default function AdminEraManager({ initialEras }: Props) {
           <p className="text-xs font-bold tracking-[0.25em] text-purple-400">
             NEW ARCHIVE ERA
           </p>
-          <h2 className="mt-3 text-2xl font-black">Add an era.</h2>
+          <h2 className="mt-3 text-2xl font-black">{t("Add an era.")}</h2>
           <p className="mt-2 text-sm leading-6 text-zinc-500">
             Create a central entry that can be linked to videos throughout the archive.
           </p>
@@ -370,7 +372,7 @@ export default function AdminEraManager({ initialEras }: Props) {
               maxLength={60}
               value={newName}
               onChange={(event) => setNewName(event.target.value)}
-              placeholder="Example: FOREVER"
+              placeholder={t("Example: FOREVER")}
               className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-purple-400"
             />
           </div>
@@ -400,7 +402,7 @@ export default function AdminEraManager({ initialEras }: Props) {
             disabled={saving}
             className="rounded-lg bg-white px-6 py-3 text-xs font-black text-black transition hover:bg-purple-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {saving ? "SAVING..." : "ADD ERA +"}
+            {saving ? t("SAVING...") : t("ADD ERA +")}
           </button>
         </form>
       </section>
@@ -411,7 +413,7 @@ export default function AdminEraManager({ initialEras }: Props) {
             <p className="text-xs font-bold tracking-[0.25em] text-purple-400">
               CENTRAL CATALOG
             </p>
-            <h2 className="mt-2 text-2xl font-black">Manage eras.</h2>
+            <h2 className="mt-2 text-2xl font-black">{t("Manage eras.")}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
               Edit names and ordering, or deactivate eras that should no longer be available for new content.
             </p>
@@ -419,9 +421,9 @@ export default function AdminEraManager({ initialEras }: Props) {
 
           <div className="flex flex-wrap gap-2">
             {([
-              ["all", "ALL"],
-              ["active", "ACTIVE"],
-              ["inactive", "INACTIVE"],
+              ["all", t("ALL")],
+              ["active", t("ACTIVE")],
+              ["inactive", t("INACTIVE")],
             ] as const).map(([value, label]) => (
               <button
                 key={value}
@@ -442,11 +444,11 @@ export default function AdminEraManager({ initialEras }: Props) {
 
         <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
           <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_100px_110px_190px] gap-4 border-b border-white/10 bg-white/[0.03] px-5 py-4 text-[10px] font-bold tracking-widest text-zinc-500 lg:grid">
-            <span>ERA</span>
-            <span>SLUG</span>
-            <span>ORDER</span>
-            <span>VIDEOS</span>
-            <span className="text-right">ACTIONS</span>
+            <span>{t("ERA")}</span>
+            <span>{t("SLUG")}</span>
+            <span>{t("ORDER")}</span>
+            <span>{t("VIDEOS")}</span>
+            <span className="text-right">{t("ACTIONS")}</span>
           </div>
 
           {filteredEras.length > 0 ? (
@@ -490,7 +492,7 @@ export default function AdminEraManager({ initialEras }: Props) {
                                 : "bg-zinc-500/10 text-zinc-400"
                             }`}
                           >
-                            {era.is_active ? "ACTIVE" : "INACTIVE"}
+                            {era.is_active ? t("ACTIVE") : t("INACTIVE")}
                           </span>
                         </>
                       )}
@@ -548,7 +550,7 @@ export default function AdminEraManager({ initialEras }: Props) {
                             disabled={isPending}
                             className="rounded-lg bg-white px-3 py-2 text-[10px] font-black text-black transition hover:bg-purple-200 disabled:opacity-50"
                           >
-                            {isPending ? "SAVING" : "SAVE"}
+                            {isPending ? t("SAVING") : t("SAVE")}
                           </button>
                           <button
                             type="button"
@@ -582,8 +584,8 @@ export default function AdminEraManager({ initialEras }: Props) {
                             {isPending
                               ? "..."
                               : era.is_active
-                                ? "DEACTIVATE"
-                                : "ACTIVATE"}
+                                ? t("DEACTIVATE")
+                                : t("ACTIVATE")}
                           </button>
                         </>
                       )}
@@ -594,7 +596,7 @@ export default function AdminEraManager({ initialEras }: Props) {
             </div>
           ) : (
             <div className="px-6 py-16 text-center">
-              <p className="text-lg font-bold text-white">No eras found.</p>
+              <p className="text-lg font-bold text-white">{t("No eras found.")}</p>
               <p className="mt-2 text-sm text-zinc-500">
                 Try another filter or create a new era.
               </p>

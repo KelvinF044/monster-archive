@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useAdminText } from "@/components/useAdminText";
 
 type AssetKind = "home" | "member" | "collection" | "video";
 
@@ -43,6 +44,7 @@ function AssetCard({
     fields: AssetFields
   ) => Promise<void>;
 }) {
+  const t = useAdminText();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [altText, setAltText] = useState(target.altText ?? "");
@@ -66,7 +68,7 @@ function AssetCard({
 
   async function handleSave() {
     if (!file) {
-      setError("Choose an image before saving.");
+      setError(t("Choose an image before saving."));
       return;
     }
 
@@ -81,14 +83,14 @@ function AssetCard({
         sourceUrl,
       });
 
-      setMessage("Image saved successfully!");
+      setMessage(t("Image saved successfully!"));
       setFile(null);
       setPreview(null);
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Unable to save this image."
+          : t("Unable to save this image.")
       );
     } finally {
       setSaving(false);
@@ -184,7 +186,7 @@ function AssetCard({
             value={altText}
             onChange={(event) => setAltText(event.target.value)}
             maxLength={250}
-            placeholder="Describe the image..."
+            placeholder={t("Describe the image...")}
             className="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-3 text-xs text-white outline-none focus:border-purple-400"
           />
         </div>
@@ -200,7 +202,7 @@ function AssetCard({
             value={credit}
             onChange={(event) => setCredit(event.target.value)}
             maxLength={200}
-            placeholder="Photographer, agency or license..."
+            placeholder={t("Photographer, agency or license...")}
             className="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-3 text-xs text-white outline-none focus:border-purple-400"
           />
         </div>
@@ -250,7 +252,7 @@ function AssetCard({
           disabled={saving || !file}
           className="w-full rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {saving ? "UPLOADING IMAGE..." : "UPLOAD AND SAVE →"}
+          {saving ? t("UPLOADING IMAGE...") : t("UPLOAD AND SAVE →")}
         </button>
 
       </div>
@@ -260,6 +262,7 @@ function AssetCard({
 
 export default function AdminVisualStudio({ targets }: Props) {
   const router = useRouter();
+  const t = useAdminText();
 
   const [activeCategory, setActiveCategory] = useState<
     "all" | AssetKind
@@ -281,11 +284,11 @@ export default function AdminVisualStudio({ targets }: Props) {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      throw new Error("Only JPEG, PNG and WebP images are allowed.");
+      throw new Error(t("Only JPEG, PNG and WebP images are allowed."));
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      throw new Error("The image exceeds the 5 MB limit.");
+      throw new Error(t("The image exceeds the 5 MB limit."));
     }
 
     if (
@@ -293,7 +296,7 @@ export default function AdminVisualStudio({ targets }: Props) {
       typeof crypto.randomUUID !== "function"
     ) {
       throw new Error(
-        "Your browser does not support secure image uploads."
+        t("Your browser does not support secure image uploads.")
       );
     }
 
@@ -350,7 +353,7 @@ export default function AdminVisualStudio({ targets }: Props) {
 
       } else if (target.kind === "member") {
         if (!target.id) {
-          throw new Error("Member identifier is missing.");
+          throw new Error(t("Member identifier is missing."));
         }
 
         const { data, error } = await supabase
@@ -370,7 +373,7 @@ export default function AdminVisualStudio({ targets }: Props) {
 
       } else if (target.kind === "collection") {
         if (!target.id) {
-          throw new Error("Collection identifier is missing.");
+          throw new Error(t("Collection identifier is missing."));
         }
 
         const { data, error } = await supabase
@@ -390,7 +393,7 @@ export default function AdminVisualStudio({ targets }: Props) {
 
       } else if (target.kind === "video") {
         if (!target.id) {
-          throw new Error("Video identifier is missing.");
+          throw new Error(t("Video identifier is missing."));
         }
 
         const { data, error } = await supabase
@@ -417,7 +420,7 @@ export default function AdminVisualStudio({ targets }: Props) {
 
       if (!updated) {
         throw new Error(
-          "No record was updated. Check your administrator permissions and try again."
+          t("No record was updated. Check your administrator permissions and try again.")
         );
       }
 
@@ -441,11 +444,11 @@ export default function AdminVisualStudio({ targets }: Props) {
         );
 
   const categories = [
-    { value: "all", label: "ALL ASSETS" },
-    { value: "home", label: "HOME" },
-    { value: "member", label: "MEMBERS" },
-    { value: "collection", label: "COLLECTIONS" },
-    { value: "video", label: "VIDEOS" },
+    { value: "all", label: t("ALL ASSETS") },
+    { value: "home", label: t("HOME") },
+    { value: "member", label: t("MEMBERS") },
+    { value: "collection", label: t("COLLECTIONS") },
+    { value: "video", label: t("VIDEOS") },
   ] as const;
 
   return (

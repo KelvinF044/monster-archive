@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/client";
+import { useAdminText } from "@/components/useAdminText";
 
 type Collection = {
   id: string;
@@ -119,6 +120,7 @@ export default function AdminVideoForm({
   initialVideo = null,
 }: Props) {
   const router = useRouter();
+  const t = useAdminText();
 
   const isEditing = Boolean(initialVideo);
 
@@ -208,7 +210,7 @@ export default function AdminVideoForm({
     const youtubeId = extractYouTubeId(youtubeUrl);
 
     if (!cleanTitle || !slug) {
-      setError("Please enter a valid video title.");
+      setError(t("Please enter a valid video title."));
       return;
     }
 
@@ -216,17 +218,17 @@ export default function AdminVideoForm({
       !youtubeId ||
       !/^[A-Za-z0-9_-]{11}$/.test(youtubeId)
     ) {
-      setError("Invalid YouTube link. Check the video URL.");
+      setError(t("Invalid YouTube link. Check the video URL."));
       return;
     }
 
     if (!cleanSource) {
-      setError("Please enter the original video source.");
+      setError(t("Please enter the original video source."));
       return;
     }
 
     if (selectedEraId && !selectedEraRecord) {
-      setError("The selected era is no longer available. Refresh and choose an active era.");
+      setError(t("The selected era is no longer available. Refresh and choose an active era."));
       return;
     }
 
@@ -235,12 +237,12 @@ export default function AdminVideoForm({
       !selectedEraRecord.is_active &&
       selectedEraRecord.id !== initialEraId
     ) {
-      setError("Inactive eras cannot be assigned to new videos.");
+      setError(t("Inactive eras cannot be assigned to new videos."));
       return;
     }
 
     if (selectedCollections.length === 0) {
-      setError("Select at least one collection.");
+      setError(t("Select at least one collection."));
       return;
     }
 
@@ -248,7 +250,7 @@ export default function AdminVideoForm({
       publishedAt &&
       !/^\d{4}-\d{2}-\d{2}$/.test(publishedAt)
     ) {
-      setError("Please enter a valid publication date.");
+      setError(t("Please enter a valid publication date."));
       return;
     }
 
@@ -404,13 +406,13 @@ export default function AdminVideoForm({
 
           if (updateError.code === "23505") {
             throw new Error(
-              "Another video already uses this title or slug. Please choose a different title."
+              t("Another video already uses this title or slug. Please choose a different title.")
             );
           }
 
           if (updateError.code === "42501") {
             throw new Error(
-              "You are not authorized to edit videos. Please sign in with an active administrator account."
+              t("You are not authorized to edit videos. Please sign in with an active administrator account.")
             );
           }
 
@@ -457,7 +459,7 @@ export default function AdminVideoForm({
           );
         }
 
-        setSuccess("Video updated successfully!");
+        setSuccess(t("Video updated successfully!"));
 
         router.push("/admin/videos");
         router.refresh();
@@ -478,13 +480,13 @@ export default function AdminVideoForm({
       if (videoError) {
         if (videoError.code === "23505") {
           throw new Error(
-            "This video or its address is already registered. Check the title and YouTube link."
+            t("This video or its address is already registered. Check the title and YouTube link.")
           );
         }
 
         if (videoError.code === "42501") {
           throw new Error(
-            "You are not authorized to register videos. Please sign in with an active administrator account."
+            t("You are not authorized to register videos. Please sign in with an active administrator account.")
           );
         }
 
@@ -542,7 +544,7 @@ export default function AdminVideoForm({
         }
       }
 
-      setSuccess("Video registered successfully!");
+      setSuccess(t("Video registered successfully!"));
 
       router.push("/admin/videos");
       router.refresh();
@@ -550,7 +552,7 @@ export default function AdminVideoForm({
       setError(
         err instanceof Error
           ? err.message
-          : "An unexpected error occurred."
+          : t("An unexpected error occurred.")
       );
     } finally {
       setSaving(false);
@@ -587,7 +589,7 @@ export default function AdminVideoForm({
               maxLength={200}
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="Example: BABYMONSTER - SHEESH Performance"
+              placeholder={t("Example: BABYMONSTER - SHEESH Performance")}
               className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition focus:border-purple-400"
             />
           </div>
@@ -628,7 +630,7 @@ export default function AdminVideoForm({
               maxLength={3000}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Describe the video and provide additional context..."
+              placeholder={t("Describe the video and provide additional context...")}
               className="w-full resize-y rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition focus:border-purple-400"
             />
           </div>
@@ -649,7 +651,7 @@ export default function AdminVideoForm({
               onChange={(event) => setSelectedEraId(event.target.value)}
               className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-purple-400"
             >
-              <option value="">No era / Not era-specific</option>
+              <option value="">{t("No era / Not era-specific")}</option>
 
               {eras
                 .filter(
@@ -659,7 +661,7 @@ export default function AdminVideoForm({
                 .map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}
-                    {!item.is_active ? " — INACTIVE (CURRENT VIDEO)" : ""}
+                    {!item.is_active ? t(" — INACTIVE (CURRENT VIDEO)") : ""}
                   </option>
                 ))}
             </select>
@@ -671,7 +673,7 @@ export default function AdminVideoForm({
                 href="/admin/eras"
                 className="font-bold text-purple-300 transition hover:text-purple-200"
               >
-                Era Management
+                {t("Era Management")}
               </Link>
               .
             </p>
@@ -710,7 +712,7 @@ export default function AdminVideoForm({
                 maxLength={150}
                 value={sourceName}
                 onChange={(event) => setSourceName(event.target.value)}
-                placeholder="Original YouTube channel or broadcaster"
+                placeholder={t("Original YouTube channel or broadcaster")}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none focus:border-purple-400"
               />
             </div>
@@ -903,11 +905,11 @@ export default function AdminVideoForm({
         >
           {saving
             ? isEditing
-              ? "UPDATING VIDEO..."
-              : "SAVING VIDEO..."
+              ? t("UPDATING VIDEO...")
+              : t("SAVING VIDEO...")
             : isEditing
-              ? "UPDATE VIDEO →"
-              : "SAVE VIDEO →"}
+              ? t("UPDATE VIDEO →")
+              : t("SAVE VIDEO →")}
         </button>
       </div>
     </form>

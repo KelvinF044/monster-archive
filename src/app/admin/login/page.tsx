@@ -4,9 +4,11 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useAdminText } from "@/components/useAdminText";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const t = useAdminText();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,14 +31,14 @@ export default function AdminLoginPage() {
         });
 
       if (loginError) {
-        setError("E-mail ou senha inválidos. Confira seus dados.");
+        setError(t("E-mail ou senha inválidos. Confira seus dados."));
         return;
       }
 
       router.replace("/admin");
       router.refresh();
     } catch {
-      setError("Não foi possível conectar. Tente novamente.");
+      setError(t("Não foi possível conectar. Tente novamente."));
     } finally {
       setLoading(false);
     }
@@ -87,7 +89,7 @@ export default function AdminLoginPage() {
                 autoComplete="username"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="Your administrator email"
+                placeholder=t("Your administrator email")
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-purple-400"
               />
             </div>
@@ -107,7 +109,7 @@ export default function AdminLoginPage() {
                 autoComplete="current-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Your password"
+                placeholder=t("Your password")
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-purple-400"
               />
             </div>
@@ -128,7 +130,7 @@ export default function AdminLoginPage() {
             disabled={loading}
             className="mt-7 w-full rounded-lg bg-white px-5 py-4 text-sm font-black text-black transition hover:bg-purple-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "AUTHENTICATING..." : "SIGN IN"}
+            {loading ? t("AUTHENTICATING...") : t("SIGN IN")}
           </button>
 
           <p className="mt-6 text-center text-xs leading-6 text-zinc-600">

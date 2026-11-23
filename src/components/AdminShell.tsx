@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import AdminLogoutButton from "@/components/AdminLogoutButton";
+import { useAdminText } from "@/components/useAdminText";
 
 type NavItem = {
   href: string;
@@ -17,16 +18,16 @@ type NavItem = {
 const navigation: NavItem[] = [
   {
     href: "/admin",
-    label: "Dashboard",
+    label: t("Dashboard"),
     compactLabel: "D",
-    description: "Archive overview",
+    description: t("Archive overview"),
     match: (pathname) => pathname === "/admin",
   },
   {
     href: "/admin/videos",
-    label: "Watch Videos",
+    label: t("Watch Videos"),
     compactLabel: "W",
-    description: "Browse and edit registered videos",
+    description: t("Browse and edit registered videos"),
     match: (pathname) =>
       pathname === "/admin/videos" ||
       (pathname.startsWith("/admin/videos/") &&
@@ -34,30 +35,30 @@ const navigation: NavItem[] = [
   },
   {
     href: "/admin/videos/new",
-    label: "Add New Video",
+    label: t("Add New Video"),
     compactLabel: "+",
-    description: "Register a new video",
+    description: t("Register a new video"),
     match: (pathname) => pathname === "/admin/videos/new",
   },
   {
     href: "/admin/import",
-    label: "Content Import Center",
+    label: t("Content Import Center"),
     compactLabel: "I",
-    description: "Discover and review YouTube playlist videos",
+    description: t("Discover and review YouTube playlist videos"),
     match: (pathname) => pathname.startsWith("/admin/import"),
   },
   {
     href: "/admin/eras",
-    label: "Era Management",
+    label: t("Era Management"),
     compactLabel: "E",
-    description: "Manage the central era catalog",
+    description: t("Manage the central era catalog"),
     match: (pathname) => pathname.startsWith("/admin/eras"),
   },
   {
     href: "/admin/visual",
-    label: "Visual Studio",
+    label: t("Visual Studio"),
     compactLabel: "V",
-    description: "Manage website images and visual assets",
+    description: t("Manage website images and visual assets"),
     match: (pathname) => pathname.startsWith("/admin/visual"),
   },
 ];
@@ -68,6 +69,7 @@ export default function AdminShell({
   children: ReactNode;
 }) {
   const pathname = usePathname();
+  const t = useAdminText();
   const [collapsed, setCollapsed] = useState(false);
 
   // Keep the authentication screen focused and free of admin navigation.
@@ -86,14 +88,14 @@ export default function AdminShell({
       {!collapsed && (
         <button
           type="button"
-          aria-label="Close admin navigation"
+          aria-label={t("Close admin navigation")}
           onClick={() => setCollapsed(true)}
           className="fixed inset-x-0 bottom-0 top-20 z-40 bg-black/65 backdrop-blur-[2px] md:hidden"
         />
       )}
 
       <aside
-        aria-label="Admin navigation"
+        aria-label={t("Admin navigation")}
         className={`fixed right-0 top-20 z-[45] flex h-[calc(100dvh-5rem)] flex-col border-l border-white/10 bg-[#0d0e13] text-white shadow-2xl transition-[width] duration-300 ${
           collapsed ? "w-14" : "w-[min(84vw,276px)]"
         }`}
@@ -101,9 +103,9 @@ export default function AdminShell({
         <button
           type="button"
           onClick={() => setCollapsed((current) => !current)}
-          aria-label={collapsed ? "Expand admin navigation" : "Collapse admin navigation"}
+          aria-label={collapsed ? t("Expand admin navigation") : t("Collapse admin navigation")}
           aria-expanded={!collapsed}
-          title={collapsed ? "Expand navigation" : "Collapse navigation"}
+          title={collapsed ? t("Expand navigation") : t("Collapse navigation")}
           className="absolute -left-4 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-purple-400/40 bg-[#171820] text-purple-300 shadow-xl transition hover:border-purple-300 hover:bg-purple-500 hover:text-white"
         >
           <svg
@@ -158,7 +160,7 @@ export default function AdminShell({
                 key={item.href}
                 href={item.href}
                 title={collapsed ? item.label : undefined}
-                aria-label={item.label}
+                aria-label={t(item.label)}
                 aria-current={active ? "page" : undefined}
                 onClick={() => {
                   if (window.matchMedia("(max-width: 767px)").matches) {
@@ -186,10 +188,10 @@ export default function AdminShell({
                 {!collapsed && (
                   <span className="min-w-0 flex-1">
                     <span className="block text-xs font-bold">
-                      {item.label}
+                      {t(item.label)}
                     </span>
                     <span className="mt-1 block truncate text-[10px] text-zinc-600">
-                      {item.description}
+                      {t(item.description)}
                     </span>
                   </span>
                 )}

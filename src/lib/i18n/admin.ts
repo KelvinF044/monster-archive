@@ -303,6 +303,35 @@ const ptBR: Record<string, string> = {
   "Discover videos from public YouTube playlists, avoid duplicates and register reviewed batches as drafts in the archive.": "Encontre vídeos em playlists públicas do YouTube, evite duplicados e cadastre lotes revisados como rascunhos no arquivo.",
   "MONSTER ARCHIVE / ADMIN / WATCH": "MONSTER ARCHIVE / ADMIN / WATCH",
   "OFFICIAL MUSIC VIDEO": "MUSIC VIDEO OFICIAL"
+  ...{
+  "YOUTUBE URL *": "LINK DO YOUTUBE *",
+  "Standard links, Shorts, youtu.be and embed links are supported.": "Links padrão, Shorts, youtu.be e links de incorporação são aceitos.",
+  "Participating members": "Integrantes participantes",
+  "Select the members who appear in this content. This field is optional.": "Selecione as integrantes que aparecem neste conteúdo. Este campo é opcional.",
+  "Publication settings": "Configurações de publicação",
+  "Draft — Not visible publicly": "Rascunho — Não visível publicamente",
+  "Published — Visible in WATCH": "Publicado — Visível na WATCH",
+  "Featured content": "Conteúdo em destaque",
+  "Mark this video as featured for future homepage sections.": "Marque este vídeo como destaque para futuras seções da página inicial.",
+  "CANCEL": "CANCELAR",
+  "EDIT": "EDITAR",
+  "YOUTUBE SOURCES": "FONTES DO YOUTUBE",
+  "SOURCE NAME *": "NOME DA FONTE *",
+  "YOUTUBE PLAYLIST URL *": "LINK DA PLAYLIST DO YOUTUBE *",
+  "DEFAULT COLLECTION *": "COLEÇÃO PADRÃO *",
+  "DEFAULT ERA (OPTIONAL)": "ERA PADRÃO (OPCIONAL)",
+  "COLLECTION FOR THIS BATCH *": "COLEÇÃO DESTE LOTE *",
+  "ERA FOR THIS BATCH": "ERA DESTE LOTE",
+  "MEMBERS IN THIS BATCH (OPTIONAL)": "INTEGRANTES NESTE LOTE (OPCIONAL)",
+  "Playlist position": "Posição na playlist",
+  "LOADED": "CARREGADOS",
+  "ALREADY REGISTERED": "JÁ CADASTRADOS",
+  "ACTIVE SOURCE": "ATIVA",
+  "INACTIVE SOURCE": "INATIVA",
+  "VIDEO(S) SELECTED": "VÍDEO(S) SELECIONADO(S)",
+  "YOUTUBE · ORIGINAL VIDEO": "YOUTUBE · VÍDEO ORIGINAL",
+  "ITEMS IN PLAYLIST": "ITENS NA PLAYLIST"
+},
 };
 
 export function translateAdminText(locale: Locale, source: string): string {
