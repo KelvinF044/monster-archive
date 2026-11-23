@@ -155,7 +155,7 @@ export default async function AdminDashboard() {
             </span>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
@@ -172,6 +172,25 @@ export default async function AdminDashboard() {
                 className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
               >
                 MANAGE VIDEOS →
+              </Link>
+
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+
+              <p className="text-lg font-black">
+                Era Management
+              </p>
+
+              <p className="mt-3 text-sm leading-6 text-zinc-500">
+                Create, rename, reorder, activate and deactivate the eras used across the Watch archive.
+              </p>
+
+              <Link
+                href="/admin/eras"
+                className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
+              >
+                MANAGE ERAS →
               </Link>
 
             </div>
