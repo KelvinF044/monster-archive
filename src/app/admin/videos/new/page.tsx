@@ -125,15 +125,15 @@ async function NewVideoContent() {
             href="/admin/videos"
             className="text-xs font-bold text-zinc-500 transition hover:text-white"
           >
-            ← BACK TO VIDEO MANAGEMENT
+            {t("← BACK TO VIDEO MANAGEMENT")}
           </Link>
 
           <p className="mt-8 text-xs font-bold tracking-[0.3em] text-purple-400">
-            MONSTER ARCHIVE / CONTENT / NEW
+            {t("MONSTER ARCHIVE / CONTENT / NEW")}
           </p>
 
           <h1 className="mt-3 text-4xl font-black">
-            Add new video.
+            {t("Add new video.")}
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-500">
