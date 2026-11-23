@@ -276,10 +276,10 @@ export default function AdminVideoForm({
       description: cleanDescription,
       published_at: cleanPublishedAt,
       metadata_source: metadataSource,
+      // Keep the last API verification timestamp even when an admin
+      // edits the display text; the maintenance job still verifies availability.
       youtube_metadata_refreshed_at:
-        metadataSource === "youtube_api"
-          ? initialVideo?.youtube_metadata_refreshed_at ?? null
-          : null,
+        initialVideo?.youtube_metadata_refreshed_at ?? null,
       youtube_video_id: youtubeId,
       source_name: cleanSource,
       source_url: `https://www.youtube.com/watch?v=${youtubeId}`,
