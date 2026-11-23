@@ -41,6 +41,8 @@ type InitialVideo = {
   is_featured: boolean;
   era: string | null;
   era_id: string | null;
+  metadata_source: "manual" | "youtube_api" | "unavailable";
+  youtube_metadata_refreshed_at: string | null;
   collectionIds: string[];
   memberIds: string[];
 };
@@ -254,11 +256,30 @@ export default function AdminVideoForm({
 
     const supabase = createClient();
 
+    const cleanDescription = description.trim() || null;
+    const cleanPublishedAt = publishedAt || null;
+    const apiMetadataWasManuallyChanged =
+      Boolean(initialVideo) &&
+      (
+        cleanTitle !== initialVideo?.title ||
+        cleanDescription !== initialVideo?.description ||
+        cleanPublishedAt !== initialVideo?.published_at
+      );
+    const metadataSource =
+      apiMetadataWasManuallyChanged
+        ? "manual"
+        : initialVideo?.metadata_source ?? "manual";
+
     const videoPayload = {
       slug,
       title: cleanTitle,
-      description: description.trim() || null,
-      published_at: publishedAt || null,
+      description: cleanDescription,
+      published_at: cleanPublishedAt,
+      metadata_source: metadataSource,
+      youtube_metadata_refreshed_at:
+        metadataSource === "youtube_api"
+          ? initialVideo?.youtube_metadata_refreshed_at ?? null
+          : null,
       youtube_video_id: youtubeId,
       source_name: cleanSource,
       source_url: `https://www.youtube.com/watch?v=${youtubeId}`,

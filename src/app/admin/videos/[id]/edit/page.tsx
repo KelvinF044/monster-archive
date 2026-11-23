@@ -84,7 +84,9 @@ async function EditVideoContent({ params }: PageProps) {
       status,
       is_featured,
       era,
-      era_id
+      era_id,
+      metadata_source,
+      youtube_metadata_refreshed_at
     `)
     .eq("id", id)
     .maybeSingle();
@@ -204,6 +206,8 @@ async function EditVideoContent({ params }: PageProps) {
     is_featured: video.is_featured ?? false,
     era: video.era,
     era_id: video.era_id,
+    metadata_source: video.metadata_source ?? "manual",
+    youtube_metadata_refreshed_at: video.youtube_metadata_refreshed_at,
     collectionIds: (collectionLinksResult.data ?? []).map(
       (item) => item.collection_id
     ),

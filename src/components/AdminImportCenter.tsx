@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/client";
@@ -156,7 +156,7 @@ export default function AdminImportCenter({
     setImportSummary("");
   }
 
-  async function addSource(event: React.FormEvent<HTMLFormElement>) {
+  async function addSource(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     clearMessages();
 
@@ -490,10 +490,6 @@ export default function AdminImportCenter({
     }
   }
 
-  const defaultCollection = sources
-    .flatMap((source) => collections.filter((collection) => collection.id === source.default_collection_id))
-    .at(0);
-
   return (
     <div className="space-y-9">
       <section className="grid gap-4 sm:grid-cols-3">
@@ -634,7 +630,7 @@ export default function AdminImportCenter({
             </p>
             <button
               type="submit"
-              disabled={savingSource || !apiConfigured}
+              disabled={savingSource}
               className="rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {savingSource ? "SAVING..." : "ADD PLAYLIST SOURCE +"}
