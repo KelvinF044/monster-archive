@@ -157,11 +157,10 @@ async function AdminVideosContent({
       .order("display_order"),
 
     supabase
-      .from("watch_videos")
-      .select("era")
-      .not("era", "is", null)
-      .order("era")
-      .limit(5000),
+      .from("watch_eras")
+      .select("id, name, slug, display_order, is_active")
+      .order("display_order")
+      .order("name"),
 
     supabase
       .from("watch_videos")
@@ -189,13 +188,14 @@ async function AdminVideosContent({
 
   const collections = collectionsResult.data ?? [];
 
-  const eras = Array.from(
-    new Set(
-      (erasResult.data ?? [])
-        .map((item) => item.era?.trim())
-        .filter((item): item is string => Boolean(item))
-    )
-  ).sort((a, b) => a.localeCompare(b));
+  const eras = erasResult.data ?? [];
+  const selectedEra = eras.find(
+    (item) =>
+      item.id === eraFilter ||
+      item.name.toLocaleUpperCase("en-US") ===
+        eraFilter.toLocaleUpperCase("en-US")
+  );
+  const eraFilterId = selectedEra?.id ?? "";
 
   const selectedCollection = collections.find(
     (item) => item.id === requestedCollection
@@ -246,6 +246,7 @@ async function AdminVideosContent({
     source_url: string;
     created_at: string;
     era: string | null;
+    era_id: string | null;
   }> = [];
 
   let filteredCount = 0;
@@ -254,7 +255,7 @@ async function AdminVideosContent({
   const filters = {
     q: searchText,
     status: statusFilter,
-    era: eraFilter,
+    era: eraFilterId,
     collection: collectionFilter,
   };
 
@@ -275,7 +276,8 @@ async function AdminVideosContent({
             source_name,
             source_url,
             created_at,
-            era
+            era,
+            era_id
           `,
           { count: "exact" }
         )
@@ -285,8 +287,8 @@ async function AdminVideosContent({
         videoQuery = videoQuery.eq("status", statusFilter);
       }
 
-      if (eraFilter) {
-        videoQuery = videoQuery.eq("era", eraFilter);
+      if (eraFilterId) {
+        videoQuery = videoQuery.eq("era_id", eraFilterId);
       }
 
       if (safeSearch) {
@@ -479,8 +481,8 @@ async function AdminVideosContent({
                 <option value="">All eras</option>
 
                 {eras.map((era) => (
-                  <option key={era} value={era}>
-                    {era}
+                  <option key={era.id} value={era.id}>
+                    {era.name}{!era.is_active ? " (inactive)" : ""}
                   </option>
                 ))}
               </select>
