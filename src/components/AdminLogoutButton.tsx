@@ -1,11 +1,14 @@
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function AdminLogoutButton() {
+export default function AdminLogoutButton({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -29,9 +32,15 @@ export default function AdminLogoutButton() {
       type="button"
       onClick={handleLogout}
       disabled={loading}
-      className="rounded-lg border border-white/10 px-4 py-3 text-xs font-bold text-zinc-400 transition hover:border-red-400/40 hover:text-red-400 disabled:opacity-50"
+      aria-label="Sign out"
+      title={compact ? "Sign out" : undefined}
+      className={`rounded-lg border border-white/10 text-xs font-bold text-zinc-400 transition hover:border-red-400/40 hover:bg-red-400/5 hover:text-red-400 disabled:opacity-50 ${
+        compact
+          ? "flex h-10 w-10 items-center justify-center px-0"
+          : "w-full px-4 py-3 text-left"
+      }`}
     >
-      {loading ? "SIGNING OUT..." : "SIGN OUT ↗"}
+      {loading ? (compact ? "…" : "SIGNING OUT...") : compact ? "↗" : "SIGN OUT ↗"}
     </button>
   );
 }
