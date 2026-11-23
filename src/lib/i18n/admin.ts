@@ -400,6 +400,24 @@ const ptBR: Record<string, string> = {
   "Unable to load registration form": "Não foi possível carregar o formulário de cadastro",
   "No videos registered yet.": "Nenhum vídeo cadastrado ainda."
 },
+  ...{
+  "Create a central entry that can be linked to videos throughout the archive.": "Crie um registro central que poderá ser vinculado aos vídeos do arquivo.",
+  "Edit names and ordering, or deactivate eras that should no longer be available for new content.": "Edite nomes e ordem de exibição ou desative Eras que não devem mais receber novos conteúdos.",
+  "JPEG, PNG or WebP. Maximum 5 MB.": "JPEG, PNG ou WebP. Tamanho máximo de 5 MB.",
+  "No assets found in this category.": "Nenhum material encontrado nesta categoria.",
+  "OPEN VIDEO MANAGER →": "ABRIR GERENCIAMENTO DE VÍDEOS →",
+  "MANAGE ERAS →": "GERENCIAR ERAS →",
+  "NEW ARCHIVE ERA": "NOVA ERA DO ARQUIVO",
+  "DISPLAY ORDER": "ORDEM DE EXIBIÇÃO",
+  "CENTRAL CATALOG": "CATÁLOGO CENTRAL",
+  "ERA NAME *": "NOME DA ERA *",
+  "ERA NAME": "NOME DA ERA",
+  "SLUG": "IDENTIFICADOR",
+  "ORDER": "ORDEM",
+  "LINKED VIDEOS": "VÍDEOS VINCULADOS",
+  "SELECT / DESELECT VISIBLE": "SELECIONAR / DESMARCAR VISÍVEIS",
+  "IMPORTANT": "IMPORTANTE"
+},
 };
 
 export function translateAdminText(locale: Locale, source: string): string {

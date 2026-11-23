@@ -124,7 +124,7 @@ function AssetCard({
         )}
 
         <div className="absolute bottom-3 left-3 rounded-full border border-white/20 bg-black/60 px-3 py-2 text-[10px] font-bold tracking-widest text-white">
-          {target.kind.toUpperCase()}
+          {t(target.kind.toUpperCase())}
         </div>
       </div>
 
@@ -134,11 +134,11 @@ function AssetCard({
 
         <div>
           <h3 className="text-base font-black text-white">
-            {target.title}
+            {t(target.title)}
           </h3>
 
           <p className="mt-1 text-xs leading-5 text-zinc-500">
-            {target.description}
+            {target.kind === "member" ? `${t(target.description)} ${target.title}.` : t(target.description)}
           </p>
         </div>
 
@@ -171,7 +171,7 @@ function AssetCard({
           />
 
           <p className="mt-2 text-[10px] text-zinc-600">
-            JPEG, PNG or WebP. Maximum 5 MB.
+            {t("JPEG, PNG or WebP. Maximum 5 MB.")}
           </p>
         </div>
 
@@ -500,7 +500,7 @@ export default function AdminVisualStudio({ targets }: Props) {
 
       {visibleTargets.length === 0 && (
         <div className="rounded-xl border border-white/10 p-12 text-center text-sm text-zinc-500">
-          No assets found in this category.
+          {t("No assets found in this category.")}
         </div>
       )}
 
