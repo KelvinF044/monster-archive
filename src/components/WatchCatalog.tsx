@@ -42,7 +42,7 @@ function CollectionCover({
 
   const gradients: Record<string, string> = {
     MV: "from-purple-950 via-fuchsia-900 to-black",
-    "Pre-debut": "from-violet-950 via-purple-900 to-black"
+    "Pre-debut": "from-violet-950 via-purple-900 to-black",
     Stages: "from-red-950 via-rose-900 to-black",
     Variety: "from-blue-950 via-indigo-900 to-black",
     Behind: "from-emerald-950 via-teal-900 to-black",

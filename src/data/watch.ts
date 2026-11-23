@@ -2,7 +2,7 @@
 export const watchCategories = [
   "All",
   "MV",
-  "Pre-debut"
+  "Pre-debut",
   "Stages",
   "Variety",
   "Behind",
