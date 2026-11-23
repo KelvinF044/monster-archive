@@ -229,15 +229,15 @@ async function EditVideoContent({ params }: PageProps) {
             href="/admin/videos"
             className="text-xs font-bold text-zinc-500 transition hover:text-white"
           >
-            ← BACK TO VIDEO MANAGEMENT
+            {t("← BACK TO VIDEO MANAGEMENT")}
           </Link>
 
           <p className="mt-8 text-xs font-bold tracking-[0.3em] text-purple-400">
-            MONSTER ARCHIVE / CONTENT / EDIT
+            {t("MONSTER ARCHIVE / CONTENT / EDIT")}
           </p>
 
           <h1 className="mt-3 break-words text-4xl font-black">
-            Edit video.
+            {t("Edit video.")}
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-500">
