@@ -31,14 +31,14 @@ export default function AdminLoginPage() {
         });
 
       if (loginError) {
-        setError(t("E-mail ou senha inválidos. Confira seus dados."));
+        setError(t("Invalid email or password. Please check your details."));
         return;
       }
 
       router.replace("/admin");
       router.refresh();
     } catch {
-      setError(t("Não foi possível conectar. Tente novamente."));
+      setError(t("Unable to connect. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -55,15 +55,15 @@ export default function AdminLoginPage() {
           </p>
 
           <p className="mt-6 text-xs font-bold tracking-[0.3em] text-purple-400">
-            ADMINISTRATOR ACCESS
+            {t("ADMINISTRATOR ACCESS")}
           </p>
 
           <h1 className="mt-4 text-3xl font-black">
-            Welcome back.
+            {t("Welcome back.")}
           </h1>
 
           <p className="mt-3 text-sm text-zinc-500">
-            Sign in to manage the archive.
+            {t("Sign in to manage the archive.")}
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default function AdminLoginPage() {
                 htmlFor="admin-email"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
               >
-                EMAIL ADDRESS
+                {t("EMAIL ADDRESS")}
               </label>
 
               <input
@@ -89,7 +89,7 @@ export default function AdminLoginPage() {
                 autoComplete="username"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder=t("Your administrator email")
+                placeholder={t("Your administrator email")}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-purple-400"
               />
             </div>
@@ -99,7 +99,7 @@ export default function AdminLoginPage() {
                 htmlFor="admin-password"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
               >
-                PASSWORD
+                {t("PASSWORD")}
               </label>
 
               <input
@@ -109,7 +109,7 @@ export default function AdminLoginPage() {
                 autoComplete="current-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder=t("Your password")
+                placeholder={t("Your password")}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-purple-400"
               />
             </div>
@@ -134,7 +134,7 @@ export default function AdminLoginPage() {
           </button>
 
           <p className="mt-6 text-center text-xs leading-6 text-zinc-600">
-            Restricted access. Authorized administrators only.
+            {t("Restricted access. Authorized administrators only.")}
           </p>
 
         </form>

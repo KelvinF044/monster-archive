@@ -1,10 +1,7 @@
 "use client";
 
-import { useLanguage } from "@/components/LanguageProvider";
-import { translateAdminText } from "@/lib/i18n/admin";
+import { useAdminLocale } from "@/components/AdminLocaleProvider";
 
 export function useAdminText() {
-  const { locale } = useLanguage();
-
-  return (source: string) => translateAdminText(locale, source);
+  return useAdminLocale().t;
 }

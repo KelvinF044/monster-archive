@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/client";
 import { useAdminText } from "@/components/useAdminText";
+import { useAdminLocale } from "@/components/AdminLocaleProvider";
 
 type Collection = {
   id: string;
@@ -80,14 +81,14 @@ function parsePlaylistId(value: string): string | null {
   }
 }
 
-function formatDate(value: string | null) {
+function formatDate(value: string | null, locale: "en" | "pt-BR") {
   if (!value) return "—";
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) return "—";
 
-  return new Intl.DateTimeFormat("pt-BR", {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "pt-BR", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -104,6 +105,7 @@ export default function AdminImportCenter({
 }: Props) {
   const supabase = createClient();
   const t = useAdminText();
+  const { locale } = useAdminLocale();
 
   const [sources, setSources] = useState(initialSources);
   const [sourceName, setSourceName] = useState("");
@@ -167,17 +169,17 @@ export default function AdminImportCenter({
     const playlistId = parsePlaylistId(cleanUrl);
 
     if (!cleanName) {
-      setError(t("Informe um nome para identificar esta playlist."));
+      setError(t("Enter a name to identify this playlist."));
       return;
     }
 
     if (!playlistId) {
-      setError(t("Cole um link válido de playlist pública do YouTube."));
+      setError(t("Enter a valid public YouTube playlist URL."));
       return;
     }
 
     if (!newCollectionId) {
-      setError(t("Escolha a coleção padrão desta playlist."));
+      setError(t("Choose a default collection for this playlist."));
       return;
     }
 
@@ -201,8 +203,8 @@ export default function AdminImportCenter({
     if (insertError || !data) {
       setError(
         insertError?.code === "23505"
-          ? t("Esta playlist já está cadastrada.")
-          : insertError?.message ?? t("Não foi possível cadastrar a playlist.")
+          ? t("This playlist is already registered.")
+          : insertError?.message ?? t("Unable to register the playlist.")
       );
       setSavingSource(false);
       return;
@@ -217,7 +219,7 @@ export default function AdminImportCenter({
     setBatchEraId(data.default_era_id ?? "");
     setCandidates([]);
     setSelectedIds([]);
-    setSuccess(t("Playlist cadastrada. Agora você pode consultar os vídeos."));
+    setSuccess(t("Playlist registered. You can now scan its videos."));
     setSavingSource(false);
   }
 
@@ -254,14 +256,14 @@ export default function AdminImportCenter({
 
     setSuccess(
       nextActive
-        ? t("Fonte ativada.")
-        : t("Fonte desativada. Nenhum vídeo já cadastrado foi alterado.")
+        ? t("Source activated.")
+        : t("Source deactivated. Existing imported videos were not changed.")
     );
   }
 
   async function saveSourceDefaults() {
     if (!activeSource || !batchCollectionId) {
-      setError(t("Escolha uma coleção padrão para esta fonte."));
+      setError(t("Choose a default collection for this source."));
       return;
     }
 
@@ -291,7 +293,7 @@ export default function AdminImportCenter({
             : source
         )
       );
-      setSuccess(t("Classificação padrão da playlist atualizada."));
+      setSuccess(t("Playlist defaults updated."));
     }
 
     setSavingDefaults(false);
@@ -317,18 +319,18 @@ export default function AdminImportCenter({
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error ?? t("Não foi possível consultar a playlist."));
+        throw new Error(result.error ?? t("Unable to scan the playlist."));
       }
 
       setCandidates(result.items ?? []);
       setNextPageToken(result.nextPageToken ?? null);
       setTotalResults(result.totalResults ?? null);
-      setSuccess(t("Playlist consultada. Os resultados são exibidos ao vivo do YouTube."));
+      setSuccess(t("Playlist scanned. Results are loaded live from YouTube."));
     } catch (scanError) {
       setError(
         scanError instanceof Error
           ? scanError.message
-          : t("Erro inesperado ao consultar a playlist.")
+          : t("Unexpected error while scanning the playlist.")
       );
     } finally {
       setLoadingPage(false);
@@ -353,7 +355,7 @@ export default function AdminImportCenter({
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error ?? t("Não foi possível carregar a próxima página."));
+        throw new Error(result.error ?? t("Unable to load the next page."));
       }
 
       setCandidates((current) => [
@@ -365,7 +367,7 @@ export default function AdminImportCenter({
       setError(
         loadError instanceof Error
           ? loadError.message
-          : t("Erro inesperado ao carregar mais vídeos.")
+          : t("Unexpected error while loading more videos.")
       );
     } finally {
       setLoadingMore(false);
@@ -406,18 +408,18 @@ export default function AdminImportCenter({
 
     if (!refreshConfigured) {
       setError(
-        t("Configure SUPABASE_SERVICE_ROLE_KEY e CRON_SECRET na Vercel antes de importar. Eles mantêm os metadados do YouTube atualizados.")
+        t("Configure SUPABASE_SERVICE_ROLE_KEY and CRON_SECRET in Vercel before importing. They keep YouTube metadata updated.")
       );
       return;
     }
 
     if (!batchCollectionId) {
-      setError(t("Escolha a coleção para este lote."));
+      setError(t("Choose a collection for this batch."));
       return;
     }
 
     if (selectedIds.length > 20) {
-      setError(t("Importe no máximo 20 vídeos por lote."));
+      setError(t("Import a maximum of 20 videos per batch."));
       return;
     }
 
@@ -440,7 +442,7 @@ export default function AdminImportCenter({
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error ?? t("Não foi possível importar os vídeos."));
+        throw new Error(result.error ?? t("Unable to import videos."));
       }
 
       const imported = new Set<string>(result.imported ?? []);
@@ -479,13 +481,13 @@ export default function AdminImportCenter({
             .join(" | ")
         );
       } else {
-        setSuccess(t("Lote importado. Os vídeos estão em rascunho e ainda não aparecem publicamente."));
+        setSuccess(t("Batch imported. Videos are saved as drafts and are not publicly visible yet."));
       }
     } catch (importError) {
       setError(
         importError instanceof Error
           ? importError.message
-          : t("Erro inesperado ao importar o lote.")
+          : t("Unexpected error while importing the batch.")
       );
     } finally {
       setImporting(false);
@@ -514,18 +516,18 @@ export default function AdminImportCenter({
 
       {!apiConfigured && (
         <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-5">
-          <p className="font-bold text-amber-200">{t("YouTube API ainda não configurada.")}</p>
+          <p className="font-bold text-amber-200">{t("YouTube API not configured.")}</p>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Adicione YOUTUBE_API_KEY ao ambiente do servidor para consultar playlists públicas. A chave não deve ser enviada pelo navegador nem publicada no GitHub.
+            {t("Add YOUTUBE_API_KEY to the server environment to query public playlists. Never send the key to the browser or publish it to GitHub.")}
           </p>
         </div>
       )}
 
       {apiConfigured && !refreshConfigured && (
         <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-5">
-          <p className="font-bold text-amber-200">{t("Importação aguardando a configuração de atualização.")}</p>
+          <p className="font-bold text-amber-200">{t("Import is waiting for the metadata refresh configuration.")}</p>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            A consulta de playlists está disponível. Para aprovar vídeos, configure também SUPABASE_SERVICE_ROLE_KEY e CRON_SECRET na Vercel. O importador só libera o cadastro depois que a atualização periódica dos metadados estiver preparada.
+            {t("Playlist lookup is available. To approve videos, also configure SUPABASE_SERVICE_ROLE_KEY and CRON_SECRET in Vercel. The importer only enables registration after scheduled metadata refresh is configured.")}
           </p>
         </div>
       )}
@@ -551,18 +553,18 @@ export default function AdminImportCenter({
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
         <div className="border-b border-white/10 pb-5">
           <p className="text-xs font-bold tracking-[0.25em] text-purple-400">
-            YOUTUBE SOURCES
+            {t("YOUTUBE SOURCES")}
           </p>
           <h2 className="mt-3 text-2xl font-black">{t("Add a playlist source.")}</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-500">
-            Cadastre playlists públicas oficiais e defina uma classificação padrão para facilitar a revisão dos lotes.
+            {t("Register official public playlists and set a default classification to make batch review easier.")}
           </p>
         </div>
 
         <form onSubmit={addSource} className="mt-6 grid gap-4 md:grid-cols-2">
           <div>
             <label htmlFor="source-name" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-              SOURCE NAME *
+              {t("SOURCE NAME *")}
             </label>
             <input
               id="source-name"
@@ -577,7 +579,7 @@ export default function AdminImportCenter({
 
           <div>
             <label htmlFor="playlist-url" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-              YOUTUBE PLAYLIST URL *
+              {t("YOUTUBE PLAYLIST URL *")}
             </label>
             <input
               id="playlist-url"
@@ -591,7 +593,7 @@ export default function AdminImportCenter({
 
           <div>
             <label htmlFor="source-default-collection" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-              DEFAULT COLLECTION *
+              {t("DEFAULT COLLECTION *")}
             </label>
             <select
               id="source-default-collection"
@@ -611,7 +613,7 @@ export default function AdminImportCenter({
 
           <div>
             <label htmlFor="source-default-era" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-              DEFAULT ERA (OPTIONAL)
+              {t("DEFAULT ERA (OPTIONAL)")}
             </label>
             <select
               id="source-default-era"
@@ -628,7 +630,7 @@ export default function AdminImportCenter({
 
           <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
             <p className="text-xs leading-5 text-zinc-600">
-              A coleção e a Era são sugestões configuradas por você. Cada lote pode ser revisado e ajustado antes da importação.
+              {t("The collection and era are suggested defaults that you can configure. Each batch can be reviewed and adjusted before import.")}
             </p>
             <button
               type="submit"
@@ -646,15 +648,15 @@ export default function AdminImportCenter({
           <div>
             <p className="text-xs font-bold tracking-[0.25em] text-purple-400">{t("REGISTERED SOURCES")}</p>
             <h2 className="mt-2 text-2xl font-black">{t("Playlist library.")}</h2>
-            <p className="mt-2 text-sm text-zinc-500">{t("Escolha uma fonte ativa para buscar os próximos vídeos.")}</p>
+            <p className="mt-2 text-sm text-zinc-500">{t("Choose an active source to fetch the next videos.")}</p>
           </div>
-          <span className="text-xs text-zinc-600">{sources.length} SOURCE(S)</span>
+          <span className="text-xs text-zinc-600">{sources.length} {t("SOURCE(S)")}</span>
         </div>
 
         {sources.length === 0 ? (
           <div className="rounded-xl border border-dashed border-white/15 px-6 py-14 text-center">
-            <p className="text-lg font-bold">{t("Nenhuma playlist cadastrada.")}</p>
-            <p className="mt-2 text-sm text-zinc-500">{t("Comece adicionando uma playlist pública do canal oficial.")}</p>
+            <p className="text-lg font-bold">{t("No playlists registered.")}</p>
+            <p className="mt-2 text-sm text-zinc-500">{t("Start by adding a public playlist from the official channel.")}</p>
           </div>
         ) : (
           <div className="grid gap-3">
@@ -678,17 +680,17 @@ export default function AdminImportCenter({
                         <span className={`rounded-full px-2.5 py-1 text-[9px] font-bold tracking-wider ${
                           source.is_active ? "bg-green-500/10 text-green-400" : "bg-zinc-500/10 text-zinc-500"
                         }`}>
-                          {source.is_active ? t("ACTIVE") : t("INACTIVE")}
+                          {source.is_active ? t("ACTIVE SOURCE") : t("INACTIVE SOURCE")}
                         </span>
                       </div>
                       <p className="mt-2 break-all text-xs text-zinc-500">{t("Playlist ID:")} {source.playlist_id}</p>
                       <p className="mt-2 text-xs text-zinc-500">
-                        Default: {sourceCollection?.title ?? t("Collection not found")}
+                        {t("Default:")} {sourceCollection?.title ?? t("Collection not found")}
                         {sourceEra ? ` · ${sourceEra.name}` : ""}
                       </p>
                       {source.last_scanned_at && (
                         <p className="mt-2 text-[10px] text-zinc-600">
-                          {t("Last scanned:")} {formatDate(source.last_scanned_at)}
+                          {t("Last scanned:")} {formatDate(source.last_scanned_at, locale)}
                         </p>
                       )}
                     </div>
@@ -699,7 +701,7 @@ export default function AdminImportCenter({
                         rel="noreferrer"
                         className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 hover:text-white"
                       >
-                        OPEN YOUTUBE ↗
+                        {t("OPEN YOUTUBE ↗")}
                       </a>
                       <button
                         type="button"
@@ -732,7 +734,7 @@ export default function AdminImportCenter({
             <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-black">{activeSource.name}</h2>
-                <p className="mt-2 text-sm text-zinc-500">{t("Resultados temporários consultados diretamente no YouTube.")}</p>
+                <p className="mt-2 text-sm text-zinc-500">{t("Temporary results fetched directly from YouTube.")}</p>
               </div>
               <span className="text-xs text-zinc-500">
                 {totalResults !== null ? `${totalResults} ${t("ITEMS IN PLAYLIST")}` : ""}
@@ -743,7 +745,7 @@ export default function AdminImportCenter({
           <div className="grid gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-5 md:grid-cols-2">
             <div>
               <label htmlFor="batch-collection" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-                COLLECTION FOR THIS BATCH *
+                {t("COLLECTION FOR THIS BATCH *")}
               </label>
               <select
                 id="batch-collection"
@@ -762,7 +764,7 @@ export default function AdminImportCenter({
 
             <div>
               <label htmlFor="batch-era" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400">
-                ERA FOR THIS BATCH
+                {t("ERA FOR THIS BATCH")}
               </label>
               <select
                 id="batch-era"
@@ -780,7 +782,7 @@ export default function AdminImportCenter({
             <div className="md:col-span-2">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs font-bold tracking-widest text-zinc-400">{t("MEMBERS IN THIS BATCH (OPTIONAL)")}</p>
-                <span className="text-[10px] text-zinc-600">{batchMemberIds.length} SELECTED</span>
+                <span className="text-[10px] text-zinc-600">{batchMemberIds.length} {t("SELECTED")}</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {members.map((member) => {
@@ -830,15 +832,15 @@ export default function AdminImportCenter({
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder=t("Filter loaded videos...")
+              placeholder={t("Filter loaded videos...")}
               className="w-full max-w-xs rounded-lg border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white outline-none focus:border-purple-400"
             />
           </div>
 
           {candidates.length === 0 && !loadingPage ? (
             <div className="rounded-xl border border-dashed border-white/15 p-12 text-center">
-              <p className="font-bold">{t("Nenhum vídeo carregado nesta consulta.")}</p>
-              <p className="mt-2 text-sm text-zinc-500">{t("Use Scan Playlist para consultar os itens desta fonte.")}</p>
+              <p className="font-bold">{t("No videos loaded for this query.")}</p>
+              <p className="mt-2 text-sm text-zinc-500">{t("Use Scan Playlist to load items from this source.")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -871,7 +873,7 @@ export default function AdminImportCenter({
                       <span className="font-bold text-white">{candidate.title}</span>
                       {candidate.alreadyRegistered && (
                         <span className="rounded-full bg-green-500/10 px-2 py-1 text-[9px] font-bold text-green-400">
-                          ALREADY IN ARCHIVE
+                          {t("ALREADY IN ARCHIVE")}
                         </span>
                       )}
                     </span>
@@ -879,10 +881,10 @@ export default function AdminImportCenter({
                       {candidate.channelTitle} · {t("Playlist position")} {candidate.position + 1}
                     </span>
                     <span className="mt-1 block text-xs text-zinc-600">
-                      {t("Added to playlist:")} {formatDate(candidate.playlistAddedAt)}
+                      {t("Added to playlist:")} {formatDate(candidate.playlistAddedAt, locale)}
                     </span>
                     <span className="mt-3 inline-block text-[10px] font-bold text-purple-300">
-                      YOUTUBE · ORIGINAL VIDEO
+                      {t("YOUTUBE · ORIGINAL VIDEO")}
                     </span>
                   </span>
                   <a
@@ -892,7 +894,7 @@ export default function AdminImportCenter({
                     onClick={(event) => event.stopPropagation()}
                     className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 hover:text-white"
                   >
-                    OPEN ↗
+                    {t("OPEN ↗")}
                   </a>
                 </label>
               ))}
@@ -906,7 +908,7 @@ export default function AdminImportCenter({
               disabled={availableCandidates.length === 0}
               className="text-xs font-bold text-zinc-400 hover:text-white disabled:opacity-40"
             >
-              SELECT / DESELECT VISIBLE
+              {t("SELECT / DESELECT VISIBLE")}
             </button>
 
             {nextPageToken && (
@@ -925,7 +927,7 @@ export default function AdminImportCenter({
             <div>
               <p className="font-black">{selectedCount} {t("VIDEO(S) SELECTED")}</p>
               <p className="mt-1 text-[10px] text-zinc-500">
-                Importação em lote · rascunhos · revisão manual antes da publicação
+                {t("Batch import · drafts · manual review before publication.")}
               </p>
             </div>
             <button
@@ -949,11 +951,11 @@ export default function AdminImportCenter({
       <section className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
         <p className="text-xs font-bold tracking-widest text-purple-300">{t("IMPORTANT")}</p>
         <p className="mt-2 text-sm leading-6 text-zinc-500">
-          A fila de candidatos é carregada ao vivo e não fica salva como uma cópia da playlist. A importação aprovada consulta os metadados atuais do vídeo e cria um rascunho no arquivo. A classificação padrão é definida manualmente por playlist; nenhum vídeo será publicado ou classificado por IA automaticamente.
+          {t("The candidate queue is loaded live and is not saved as a playlist copy. Approved imports fetch current video metadata and create drafts in the archive. Default classification is set manually per playlist; no video is auto-published or classified by AI.")}
         </p>
         <div className="mt-4 flex flex-wrap gap-4 text-xs font-bold">
-          <Link href="/admin/videos" className="text-purple-300 hover:text-purple-200">OPEN VIDEO MANAGER →</Link>
-          <Link href="/admin/eras" className="text-purple-300 hover:text-purple-200">MANAGE ERAS →</Link>
+          <Link href="/admin/videos" className="text-purple-300 hover:text-purple-200">{t("OPEN VIDEO MANAGER →")}</Link>
+          <Link href="/admin/eras" className="text-purple-300 hover:text-purple-200">{t("MANAGE ERAS →")}</Link>
         </div>
       </section>
     </div>

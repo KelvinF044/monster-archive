@@ -2,15 +2,12 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getLocale } from "@/lib/i18n/server";
-import { translateAdminText } from "@/lib/i18n/admin";
 import AdminLogoutButton from "@/components/AdminLogoutButton";
 import { connection } from "next/server";
+import AdminText from "@/components/AdminText";
 
 export default async function AdminDashboard() {
   await connection();
-  const locale = await getLocale();
-  const t = (value: string) => translateAdminText(locale, value);
   const supabase = await createClient();
 
   // 1. Validate the authenticated user.
@@ -76,15 +73,15 @@ export default async function AdminDashboard() {
 
           <div>
             <p className="text-xs font-bold tracking-[0.3em] text-purple-400">
-              MONSTER ARCHIVE / ADMIN
+              <AdminText>MONSTER ARCHIVE / ADMIN</AdminText>
             </p>
 
             <h1 className="mt-3 text-4xl font-black">
-              Dashboard.
+              <AdminText>Dashboard.</AdminText>
             </h1>
 
             <p className="mt-3 text-sm text-zinc-500">
-              Manage your global fan archive.
+              <AdminText>Manage your global fan archive.</AdminText>
             </p>
           </div>
 
@@ -93,7 +90,7 @@ export default async function AdminDashboard() {
               href="/"
               className="rounded-lg border border-white/10 px-4 py-3 text-xs font-bold text-zinc-400 hover:text-white"
             >
-              VIEW WEBSITE ↗
+              <AdminText>VIEW WEBSITE ↗</AdminText>
             </Link>
 
             <AdminLogoutButton />
@@ -104,27 +101,27 @@ export default async function AdminDashboard() {
         <section className="mt-10">
 
           <h2 className="mb-5 text-sm font-bold tracking-widest text-zinc-400">
-            ARCHIVE OVERVIEW
+            <AdminText>ARCHIVE OVERVIEW</AdminText>
           </h2>
 
           {statsError ? (
             <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-5 text-sm text-red-400">
-              Unable to load dashboard statistics. Check database permissions.
+              <AdminText>Unable to load dashboard statistics. Check database permissions.</AdminText>
             </p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-3">
 
               {[
                 {
-                  label: t("REGISTERED VIDEOS"),
+                  label: "REGISTERED VIDEOS",
                   value: videosCount,
                 },
                 {
-                  label: t("COLLECTIONS"),
+                  label: "COLLECTIONS",
                   value: collectionsCount,
                 },
                 {
-                  label: t("MEMBERS"),
+                  label: "MEMBERS",
                   value: membersCount,
                 },
               ].map((item) => (
@@ -133,7 +130,7 @@ export default async function AdminDashboard() {
                   className="rounded-xl border border-white/10 bg-white/[0.03] p-6"
                 >
                   <p className="text-xs font-bold tracking-widest text-zinc-500">
-                    {item.label}
+                    <AdminText>{item.label}</AdminText>
                   </p>
 
                   <p className="mt-4 text-4xl font-black">
@@ -151,11 +148,11 @@ export default async function AdminDashboard() {
 
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-sm font-bold tracking-widest text-zinc-400">
-              CONTENT MANAGEMENT
+              <AdminText>CONTENT MANAGEMENT</AdminText>
             </h2>
 
             <span className="text-xs text-purple-400">
-              ADMIN AREA
+              <AdminText>ADMIN AREA</AdminText>
             </span>
           </div>
 
@@ -164,18 +161,18 @@ export default async function AdminDashboard() {
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
               <p className="text-lg font-black">
-                Watch Videos
+                <AdminText>Watch Videos</AdminText>
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-500">
-                Register, edit, organize and publish BABYMONSTER videos.
+                <AdminText>Register, edit, organize and publish BABYMONSTER videos.</AdminText>
               </p>
 
               <Link
                 href="/admin/videos"
                 className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
               >
-                MANAGE VIDEOS →
+                <AdminText>MANAGE VIDEOS →</AdminText>
               </Link>
 
             </div>
@@ -183,18 +180,18 @@ export default async function AdminDashboard() {
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
               <p className="text-lg font-black">
-                Era Management
+                <AdminText>Era Management</AdminText>
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-500">
-                Create, rename, reorder, activate and deactivate the eras used across the Watch archive.
+                <AdminText>Create, rename, reorder, activate and deactivate the eras used across the Watch archive.</AdminText>
               </p>
 
               <Link
                 href="/admin/eras"
                 className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
               >
-                MANAGE ERAS →
+                <AdminText>MANAGE ERAS →</AdminText>
               </Link>
 
             </div>
@@ -202,18 +199,18 @@ export default async function AdminDashboard() {
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
               <p className="text-lg font-black">
-                Content Import Center
+                <AdminText>Content Import Center</AdminText>
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-500">
-                Discover videos from YouTube playlists, review duplicates and import selected batches as drafts.
+                <AdminText>Discover videos from YouTube playlists, review duplicates and import selected batches as drafts.</AdminText>
               </p>
 
               <Link
                 href="/admin/import"
                 className="mt-7 inline-flex rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
               >
-                OPEN IMPORT CENTER →
+                <AdminText>OPEN IMPORT CENTER →</AdminText>
               </Link>
 
             </div>
@@ -221,15 +218,15 @@ export default async function AdminDashboard() {
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
 
               <p className="text-lg font-black">
-                Collections & Members
+                <AdminText>Collections & Members</AdminText>
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-500">
-                Manage the categories and relationships in the archive.
+                <AdminText>Manage the categories and relationships in the archive.</AdminText>
               </p>
 
               <span className="mt-7 inline-block text-xs font-bold text-zinc-600">
-                EXPANSION COMING SOON
+                <AdminText>EXPANSION COMING SOON</AdminText>
               </span>
 
             </div>
@@ -241,14 +238,14 @@ export default async function AdminDashboard() {
         <section className="mt-12">
 
           <h2 className="mb-5 text-sm font-bold tracking-widest text-zinc-400">
-            RECENTLY REGISTERED VIDEOS
+            <AdminText>RECENTLY REGISTERED VIDEOS</AdminText>
           </h2>
 
           <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
 
             {recentError ? (
               <p className="p-5 text-sm text-red-400">
-                Unable to load recent videos.
+                <AdminText>Unable to load recent videos.</AdminText>
               </p>
             ) : recentVideos && recentVideos.length > 0 ? (
 
@@ -263,7 +260,7 @@ export default async function AdminDashboard() {
                     </p>
 
                     <p className="mt-2 text-xs text-zinc-500">
-                      {video.published_at || t("Date not registered")}
+                      {video.published_at || <AdminText>Date not registered</AdminText>}
                     </p>
                   </div>
 
@@ -276,7 +273,7 @@ export default async function AdminDashboard() {
                           : "bg-zinc-500/10 text-zinc-400"
                     }`}
                   >
-                    {video.status === "published" ? t("Published") : video.status === "draft" ? t("Draft") : video.status}
+                    {video.status === "published" ? <AdminText>Published</AdminText> : video.status === "draft" ? <AdminText>Draft</AdminText> : video.status}
                   </span>
 
                 </div>
@@ -284,7 +281,7 @@ export default async function AdminDashboard() {
 
             ) : (
               <p className="p-5 text-sm text-zinc-500">
-                No videos registered yet.
+                <AdminText>No videos registered yet.</AdminText>
               </p>
             )}
 
@@ -293,7 +290,7 @@ export default async function AdminDashboard() {
         </section>
 
         <footer className="mt-16 border-t border-white/10 pt-7 text-xs text-zinc-600">
-          MONSTER ARCHIVE ADMIN · Restricted access
+          <AdminText>MONSTER ARCHIVE ADMIN · Restricted access</AdminText>
         </footer>
 
       </div>

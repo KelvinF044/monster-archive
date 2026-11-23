@@ -4,9 +4,8 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { createClient } from "@/lib/supabase/server";
-import { getLocale } from "@/lib/i18n/server";
-import { translateAdminText } from "@/lib/i18n/admin";
 import AdminVideoForm from "@/components/AdminVideoForm";
+import AdminText from "@/components/AdminText";
 
 type PageProps = {
   params: Promise<{
@@ -40,8 +39,6 @@ export default function EditVideoPage({ params }: PageProps) {
 
 async function EditVideoContent({ params }: PageProps) {
   await connection();
-  const locale = await getLocale();
-  const t = (value: string) => translateAdminText(locale, value);
 
   const { id } = await params;
 
@@ -100,7 +97,7 @@ async function EditVideoContent({ params }: PageProps) {
       <main className="min-h-[60vh] bg-[#08090d] px-6 py-20 text-white">
         <div className="mx-auto max-w-3xl rounded-xl border border-red-500/20 bg-white/[0.03] p-8">
           <h1 className="text-2xl font-black text-red-400">
-            Unable to load video
+            <AdminText>Unable to load video</AdminText>
           </h1>
 
           <p className="mt-4 text-sm text-zinc-400">
@@ -111,7 +108,7 @@ async function EditVideoContent({ params }: PageProps) {
             href="/admin/videos"
             className="mt-8 inline-block text-sm font-bold text-purple-400"
           >
-            ← BACK TO VIDEOS
+            <AdminText>← BACK TO VIDEOS</AdminText>
           </Link>
         </div>
       </main>
@@ -174,7 +171,7 @@ async function EditVideoContent({ params }: PageProps) {
       <main className="min-h-[60vh] bg-[#08090d] px-6 py-20 text-white">
         <div className="mx-auto max-w-3xl rounded-xl border border-red-500/20 bg-white/[0.03] p-8">
           <h1 className="text-2xl font-black text-red-400">
-            Unable to load video relationships
+            <AdminText>Unable to load video relationships</AdminText>
           </h1>
 
           <p className="mt-4 text-sm text-zinc-400">
@@ -185,7 +182,7 @@ async function EditVideoContent({ params }: PageProps) {
             href="/admin/videos"
             className="mt-8 inline-block text-sm font-bold text-purple-400"
           >
-            ← BACK TO VIDEOS
+            <AdminText>← BACK TO VIDEOS</AdminText>
           </Link>
         </div>
       </main>
@@ -229,24 +226,23 @@ async function EditVideoContent({ params }: PageProps) {
             href="/admin/videos"
             className="text-xs font-bold text-zinc-500 transition hover:text-white"
           >
-            ← BACK TO VIDEO MANAGEMENT
+            <AdminText>← BACK TO VIDEO MANAGEMENT</AdminText>
           </Link>
 
           <p className="mt-8 text-xs font-bold tracking-[0.3em] text-purple-400">
-            MONSTER ARCHIVE / CONTENT / EDIT
+            <AdminText>MONSTER ARCHIVE / CONTENT / EDIT</AdminText>
           </p>
 
           <h1 className="mt-3 break-words text-4xl font-black">
-            Edit video.
+            <AdminText>Edit video.</AdminText>
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-500">
-            Update the video information, era, collections,
-            participating members and publication settings.
+            <AdminText>Update the video information, era, collections, participating members and publication settings.</AdminText>
           </p>
 
           <p className="mt-4 break-all text-xs text-zinc-600">
-            VIDEO ID: {video.id}
+            <AdminText>VIDEO ID:</AdminText> {video.id}
           </p>
         </div>
 

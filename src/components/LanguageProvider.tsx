@@ -63,9 +63,10 @@ export default function LanguageProvider({
       // requisição ao servidor para atualizar o idioma.
       //
       // Nas outras páginas, mantemos o refresh porque
-      // elas ainda usam getDictionary() no servidor.
+      // elas ainda usam getDictionary() no servidor. O painel
+      // /admin usa o AdminLocaleProvider e atualiza em tempo real.
 
-      if (pathname !== "/") {
+      if (pathname !== "/" && !pathname.startsWith("/admin")) {
         router.refresh();
       }
     },

@@ -347,11 +347,11 @@ export default function AdminEraManager({ initialEras }: Props) {
       <section className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
         <div className="border-b border-white/10 pb-5">
           <p className="text-xs font-bold tracking-[0.25em] text-purple-400">
-            NEW ARCHIVE ERA
+            {t("NEW ARCHIVE ERA")}
           </p>
           <h2 className="mt-3 text-2xl font-black">{t("Add an era.")}</h2>
           <p className="mt-2 text-sm leading-6 text-zinc-500">
-            Create a central entry that can be linked to videos throughout the archive.
+            {t("Create a central entry that can be linked to videos throughout the archive.")}
           </p>
         </div>
 
@@ -364,7 +364,7 @@ export default function AdminEraManager({ initialEras }: Props) {
               htmlFor="new-era-name"
               className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
             >
-              ERA NAME *
+              {t("ERA NAME *")}
             </label>
             <input
               id="new-era-name"
@@ -382,7 +382,7 @@ export default function AdminEraManager({ initialEras }: Props) {
               htmlFor="new-era-order"
               className="mb-2 block text-xs font-bold tracking-widest text-zinc-400"
             >
-              DISPLAY ORDER
+              {t("DISPLAY ORDER")}
             </label>
             <input
               id="new-era-order"
@@ -411,11 +411,11 @@ export default function AdminEraManager({ initialEras }: Props) {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs font-bold tracking-[0.25em] text-purple-400">
-              CENTRAL CATALOG
+              {t("CENTRAL CATALOG")}
             </p>
             <h2 className="mt-2 text-2xl font-black">{t("Manage eras.")}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
-              Edit names and ordering, or deactivate eras that should no longer be available for new content.
+              {t("Edit names and ordering, or deactivate eras that should no longer be available for new content.")}
             </p>
           </div>
 
@@ -469,7 +469,7 @@ export default function AdminEraManager({ initialEras }: Props) {
                             htmlFor={`edit-era-name-${era.id}`}
                             className="mb-2 block text-[10px] font-bold tracking-widest text-zinc-500 lg:hidden"
                           >
-                            ERA NAME
+                            {t("ERA NAME")}
                           </label>
                           <input
                             id={`edit-era-name-${era.id}`}
@@ -500,7 +500,7 @@ export default function AdminEraManager({ initialEras }: Props) {
 
                     <div className="min-w-0">
                       <p className="mb-1 text-[10px] font-bold tracking-widest text-zinc-600 lg:hidden">
-                        SLUG
+                        {t("SLUG")}
                       </p>
                       <p className="truncate text-xs text-zinc-500">
                         {isEditing ? createSlug(editingName) : era.slug}
@@ -512,7 +512,7 @@ export default function AdminEraManager({ initialEras }: Props) {
                         htmlFor={`edit-era-order-${era.id}`}
                         className="mb-1 block text-[10px] font-bold tracking-widest text-zinc-600 lg:hidden"
                       >
-                        ORDER
+                        {t("ORDER")}
                       </label>
                       {isEditing ? (
                         <input
@@ -534,7 +534,7 @@ export default function AdminEraManager({ initialEras }: Props) {
 
                     <div>
                       <p className="mb-1 text-[10px] font-bold tracking-widest text-zinc-600 lg:hidden">
-                        LINKED VIDEOS
+                        {t("LINKED VIDEOS")}
                       </p>
                       <span className="text-sm tabular-nums text-zinc-300">
                         {era.video_count === null ? "—" : era.video_count}
@@ -558,7 +558,7 @@ export default function AdminEraManager({ initialEras }: Props) {
                             disabled={isPending}
                             className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 transition hover:bg-white/5"
                           >
-                            CANCEL
+                            {t("CANCEL")}
                           </button>
                         </>
                       ) : (
@@ -569,7 +569,7 @@ export default function AdminEraManager({ initialEras }: Props) {
                             disabled={Boolean(pendingId) || saving}
                             className="rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-300 transition hover:border-purple-400/50 hover:text-white disabled:opacity-50"
                           >
-                            EDIT
+                            {t("EDIT")}
                           </button>
                           <button
                             type="button"
@@ -598,7 +598,7 @@ export default function AdminEraManager({ initialEras }: Props) {
             <div className="px-6 py-16 text-center">
               <p className="text-lg font-bold text-white">{t("No eras found.")}</p>
               <p className="mt-2 text-sm text-zinc-500">
-                Try another filter or create a new era.
+                {t("Try another filter or create a new era.")}
               </p>
             </div>
           )}
@@ -606,7 +606,7 @@ export default function AdminEraManager({ initialEras }: Props) {
       </section>
 
       <p className="text-xs leading-6 text-zinc-600">
-        Deactivating an era hides it from future selection. Existing video relationships are kept; no era or video is permanently deleted.
+        {t("Deactivating an era hides it from future selection. Existing video relationships are kept; no era or video is permanently deleted.")}
       </p>
     </div>
   );

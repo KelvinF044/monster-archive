@@ -2,9 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getLocale } from "@/lib/i18n/server";
-import { translateAdminText } from "@/lib/i18n/admin";
 import { Suspense } from "react";
+import AdminText from "@/components/AdminText";
+import AdminLocalizedInput from "@/components/AdminLocalizedInput";
 
 type SearchParams = {
   q?: string | string[];
@@ -83,8 +83,6 @@ async function AdminVideosContent({
   searchParams,
 }: PageProps) {
   await connection();
-  const locale = await getLocale();
-  const t = (value: string) => translateAdminText(locale, value);
 
   const supabase = await createClient();
 
@@ -353,15 +351,15 @@ async function AdminVideosContent({
         <div className="flex flex-wrap items-center justify-between gap-5 border-b border-white/10 pb-8">
           <div>
             <p className="text-xs font-bold tracking-[0.3em] text-purple-400">
-              MONSTER ARCHIVE / CONTENT
+              <AdminText>MONSTER ARCHIVE / CONTENT</AdminText>
             </p>
 
             <h1 className="mt-3 text-4xl font-black">
-              Watch Videos.
+              <AdminText>Watch Videos.</AdminText>
             </h1>
 
             <p className="mt-3 text-sm text-zinc-500">
-              Manage your audiovisual archive.
+              <AdminText>Manage your audiovisual archive.</AdminText>
             </p>
           </div>
 
@@ -370,14 +368,14 @@ async function AdminVideosContent({
               href="/admin"
               className="rounded-lg border border-white/10 px-5 py-3 text-xs font-bold text-zinc-400 transition hover:text-white"
             >
-              ← DASHBOARD
+              <AdminText>← DASHBOARD</AdminText>
             </Link>
 
             <Link
               href="/admin/videos/new"
               className="rounded-lg bg-white px-5 py-3 text-xs font-black text-black transition hover:bg-purple-200"
             >
-              + ADD NEW VIDEO
+              <AdminText>+ ADD NEW VIDEO</AdminText>
             </Link>
           </div>
         </div>
@@ -386,16 +384,16 @@ async function AdminVideosContent({
 
         <section className="mt-10 grid gap-4 sm:grid-cols-3">
           {[
-            { label: t("TOTAL VIDEOS"), value: total },
-            { label: t("PUBLISHED"), value: published },
-            { label: t("DRAFTS"), value: drafts },
+            { label: "TOTAL VIDEOS", value: total },
+            { label: "PUBLISHED", value: published },
+            { label: "DRAFTS", value: drafts },
           ].map((item) => (
             <div
               key={item.label}
               className="rounded-xl border border-white/10 bg-white/[0.03] p-6"
             >
               <p className="text-xs font-bold tracking-widest text-zinc-500">
-                {item.label}
+                <AdminText>{item.label}</AdminText>
               </p>
 
               <p className="mt-4 text-4xl font-black">
@@ -410,11 +408,11 @@ async function AdminVideosContent({
         <section className="mt-12 rounded-xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
           <div className="mb-5">
             <h2 className="text-sm font-bold tracking-widest text-zinc-300">
-              SEARCH AND FILTERS
+              <AdminText>SEARCH AND FILTERS</AdminText>
             </h2>
 
             <p className="mt-2 text-xs leading-6 text-zinc-500">
-              Search by video title, era or original source.
+              <AdminText>Search by video title, era or original source.</AdminText>
             </p>
           </div>
 
@@ -428,15 +426,15 @@ async function AdminVideosContent({
                 htmlFor="video-search"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-500"
               >
-                SEARCH VIDEOS
+                <AdminText>SEARCH VIDEOS</AdminText>
               </label>
 
-              <input
+              <AdminLocalizedInput
                 id="video-search"
                 name="q"
                 type="search"
                 defaultValue={searchText}
-                placeholder={t("Search by title, era or source...")}
+                placeholder="Search by title, era or source..."
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-purple-400"
               />
             </div>
@@ -446,7 +444,7 @@ async function AdminVideosContent({
                 htmlFor="collection-filter"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-500"
               >
-                COLLECTION
+                <AdminText>COLLECTION</AdminText>
               </label>
 
               <select
@@ -455,7 +453,7 @@ async function AdminVideosContent({
                 defaultValue={collectionFilter}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
               >
-                <option value="">{t("All collections")}</option>
+                <option value=""><AdminText>All collections</AdminText></option>
 
                 {collections.map((collection) => (
                   <option
@@ -473,7 +471,7 @@ async function AdminVideosContent({
                 htmlFor="era-filter"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-500"
               >
-                ERA
+                <AdminText>ERA</AdminText>
               </label>
 
               <select
@@ -482,11 +480,11 @@ async function AdminVideosContent({
                 defaultValue={eraFilterId}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
               >
-                <option value="">{t("All eras")}</option>
+                <option value=""><AdminText>All eras</AdminText></option>
 
                 {eras.map((era) => (
                   <option key={era.id} value={era.id}>
-                    {era.name}{!era.is_active ? " (inactive)" : ""}
+                    {era.name}{!era.is_active && <AdminText> (inactive)</AdminText>}
                   </option>
                 ))}
               </select>
@@ -497,7 +495,7 @@ async function AdminVideosContent({
                 htmlFor="status-filter"
                 className="mb-2 block text-xs font-bold tracking-widest text-zinc-500"
               >
-                STATUS
+                <AdminText>STATUS</AdminText>
               </label>
 
               <select
@@ -506,9 +504,9 @@ async function AdminVideosContent({
                 defaultValue={statusFilter}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
               >
-                <option value="">{t("All statuses")}</option>
-                <option value="published">{t("Published")}</option>
-                <option value="draft">{t("Draft")}</option>
+                <option value=""><AdminText>All statuses</AdminText></option>
+                <option value="published"><AdminText>Published</AdminText></option>
+                <option value="draft"><AdminText>Draft</AdminText></option>
               </select>
             </div>
 
@@ -517,14 +515,14 @@ async function AdminVideosContent({
                 type="submit"
                 className="rounded-lg bg-white px-6 py-3 text-xs font-black text-black transition hover:bg-purple-200"
               >
-                APPLY FILTERS →
+                <AdminText>APPLY FILTERS →</AdminText>
               </button>
 
               <Link
                 href="/admin/videos"
                 className="rounded-lg border border-white/10 px-6 py-3 text-xs font-bold text-zinc-400 transition hover:text-white"
               >
-                CLEAR FILTERS
+                <AdminText>CLEAR FILTERS</AdminText>
               </Link>
             </div>
           </form>
@@ -535,25 +533,24 @@ async function AdminVideosContent({
         <section className="mt-12">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-bold tracking-widest text-zinc-400">
-              REGISTERED CONTENT
+              <AdminText>REGISTERED CONTENT</AdminText>
             </h2>
 
             <span className="text-xs text-zinc-500">
-              {filteredCount.toLocaleString("en-US")} {t("MATCHING RECORDS")}
+              {filteredCount.toLocaleString("en-US")} <AdminText>MATCHING RECORDS</AdminText>
             </span>
           </div>
 
           {collectionsResult.error || erasResult.error ? (
             <div className="mb-5 rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-5 text-sm text-yellow-300">
-              Some filter options could not be loaded. Refresh the page
-              or check the database connection.
+              <AdminText>Some filter options could not be loaded. Refresh the page or check the database connection.</AdminText>
             </div>
           ) : null}
 
           {listError ? (
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-6">
               <p className="font-bold text-red-400">
-                Unable to load videos
+                <AdminText>Unable to load videos</AdminText>
               </p>
 
               <p className="mt-3 text-sm text-zinc-400">
@@ -574,14 +571,14 @@ async function AdminVideosContent({
 
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs text-zinc-500">
                       <span>
-                        {video.published_at || t("Date not registered")}
+                        {video.published_at || <AdminText>Date not registered</AdminText>}
                       </span>
 
                       <span>{video.source_name}</span>
 
                       {video.era && (
                         <span className="font-bold text-purple-300">
-                          ERA: {video.era}
+                          <AdminText>ERA:</AdminText> {video.era}
                         </span>
                       )}
                     </div>
@@ -597,7 +594,7 @@ async function AdminVideosContent({
                             : "bg-zinc-500/10 text-zinc-400"
                       }`}
                     >
-                      {video.status === "published" ? t("Published") : video.status === "draft" ? t("Draft") : video.status}
+                      {video.status === "published" ? <AdminText>Published</AdminText> : video.status === "draft" ? <AdminText>Draft</AdminText> : video.status}
                     </span>
 
                     <a
@@ -606,14 +603,14 @@ async function AdminVideosContent({
                       rel="noopener noreferrer"
                       className="text-xs font-bold text-purple-400 transition hover:text-purple-300"
                     >
-                      SOURCE ↗
+                      <AdminText>SOURCE ↗</AdminText>
                     </a>
 
                     <Link
                       href={`/admin/videos/${video.id}/edit`}
                       className="rounded-lg border border-purple-400/30 px-4 py-2 text-xs font-bold text-purple-300 transition hover:border-purple-400 hover:bg-purple-400/10"
                     >
-                      EDIT
+                      <AdminText>EDIT</AdminText>
                     </Link>
                   </div>
                 </article>
@@ -622,11 +619,11 @@ async function AdminVideosContent({
           ) : (
             <div className="rounded-xl border border-white/10 bg-white/[0.03] px-6 py-20 text-center">
               <p className="text-xl font-black">
-                No videos found.
+                <AdminText>No videos found.</AdminText>
               </p>
 
               <p className="mt-3 text-sm text-zinc-500">
-                Try another search or clear the filters.
+                <AdminText>Try another search or clear the filters.</AdminText>
               </p>
             </div>
           )}
@@ -636,7 +633,7 @@ async function AdminVideosContent({
           {!listError && filteredCount > 0 && (
             <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6">
               <p className="text-xs text-zinc-500">
-                {t("Showing")} {firstRecord.toLocaleString("en-US")}–{lastRecord.toLocaleString("en-US")} {t("of")} {filteredCount.toLocaleString("en-US")} {t("videos")}
+                <AdminText>Showing</AdminText> {firstRecord.toLocaleString("en-US")}–{lastRecord.toLocaleString("en-US")} <AdminText>of</AdminText> {filteredCount.toLocaleString("en-US")} <AdminText>videos</AdminText>
               </p>
 
               <div className="flex items-center gap-3">
@@ -645,11 +642,11 @@ async function AdminVideosContent({
                     href={buildPageUrl(currentPage - 1, filters)}
                     className="rounded-lg border border-white/10 px-4 py-2 text-xs font-bold text-zinc-300 transition hover:border-purple-400/50 hover:text-white"
                   >
-                    ← PREVIOUS
+                    <AdminText>← PREVIOUS</AdminText>
                   </Link>
                 ) : (
                   <span className="rounded-lg border border-white/5 px-4 py-2 text-xs font-bold text-zinc-700">
-                    ← PREVIOUS
+                    <AdminText>← PREVIOUS</AdminText>
                   </span>
                 )}
 
@@ -662,11 +659,11 @@ async function AdminVideosContent({
                     href={buildPageUrl(currentPage + 1, filters)}
                     className="rounded-lg border border-white/10 px-4 py-2 text-xs font-bold text-zinc-300 transition hover:border-purple-400/50 hover:text-white"
                   >
-                    NEXT →
+                    <AdminText>NEXT →</AdminText>
                   </Link>
                 ) : (
                   <span className="rounded-lg border border-white/5 px-4 py-2 text-xs font-bold text-zinc-700">
-                    NEXT →
+                    <AdminText>NEXT →</AdminText>
                   </span>
                 )}
               </div>
