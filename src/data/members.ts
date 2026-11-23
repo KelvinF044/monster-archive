@@ -1,5 +1,9 @@
-
 type LocaleKey = "en" | "pt-BR";
+
+type BioSource = {
+  label: string;
+  url: string;
+};
 
 type LocalizedBio = {
   intro: string;
@@ -11,10 +15,7 @@ type LocalizedBio = {
   offStage: string;
   highlightsTitle: string;
   highlights: string[];
-  sources: {
-    label: string;
-    url: string;
-  }[];
+  sources: BioSource[];
 };
 
 type Member = {
@@ -27,764 +28,828 @@ type Member = {
   bio: Record<LocaleKey, LocalizedBio>;
 };
 
-const officialYG =
-  "https://ygfamily.com/en/artists/babymonster/profile";
+type LocalizedSource = Record<LocaleKey, BioSource>;
 
-const cnnInterview =
-  "https://www.cnnbrasil.com.br/pop/rumo-ao-grammy-grupo-de-k-pop-babymonster-quer-conquistar-o-mundo/";
+function makeSource(
+  enLabel: string,
+  ptLabel: string,
+  url: string
+): LocalizedSource {
+  return {
+    en: {
+      label: enLabel,
+      url,
+    },
+    "pt-BR": {
+      label: ptLabel,
+      url,
+    },
+  };
+}
 
-const sweetyInterview =
-  "https://www.sweetyhigh.com/read/babymonster-deserve-interview";
+function makeSources(
+  ...items: LocalizedSource[]
+): Record<LocaleKey, BioSource[]> {
+  return {
+    en: items.map((item) => item.en),
+    "pt-BR": items.map((item) => item["pt-BR"]),
+  };
+}
 
-const vogueInterview =
-  "https://www.voguehk.com/en/article/fashion/babymonster-cover-interview/";
+// ======================================================
+// SHARED SOURCES
+// ======================================================
 
-const joongAngArticle =
-  "https://www.koreajoongangdaily.com/entertainment/one-gone-one-renamed-six-members-of-babymonster-gear-up-for-debut/10115947";
+const officialYG = makeSource(
+  "YG Entertainment — Official Profile",
+  "YG Entertainment — Perfil oficial",
+  "https://ygfamily.com/en/artists/babymonster/profile"
+);
+
+const cnnInterview = makeSource(
+  "CNN Brasil — Interview with all seven members",
+  "CNN Brasil — Entrevista com as sete integrantes",
+  "https://www.cnnbrasil.com.br/pop/rumo-ao-grammy-grupo-de-k-pop-babymonster-quer-conquistar-o-mundo/"
+);
+
+const vogueInterview = makeSource(
+  "Vogue Hong Kong — BABYMONSTER Interview",
+  "Vogue Hong Kong — Entrevista com BABYMONSTER",
+  "https://www.voguehk.com/en/article/fashion/babymonster-cover-interview/"
+);
+
+const kprofilesOverview = makeSource(
+  "KProfiles — Member profiles and fan reference",
+  "KProfiles — Perfis das integrantes e referência de fãs",
+  "https://kprofiles.com/babymonster-members-profile/"
+);
+
+const ygSelectCredits = makeSource(
+  "YG SELECT — Official DRIP Album Credits",
+  "YG SELECT — Créditos oficiais do álbum DRIP",
+  "https://en.ygselect.com/board/focus/read.html?board_no=20&no=506657"
+);
+
+const ghostCredits = makeSource(
+  "BABYMONSTER — Official GHOST Audio Credits",
+  "BABYMONSTER — Créditos oficiais de GHOST",
+  "https://www.youtube.com/watch?v=y3FgAAgMR2A"
+);
+
+// ======================================================
+// RUKA SOURCES
+// ======================================================
+
+const rukaSoompi = makeSource(
+  "Soompi — Introducing RUKA",
+  "Soompi — Apresentação de RUKA",
+  "https://www.soompi.com/article/1565867wpp/watch-ygs-new-girl-group-babymonster-introduces-member-ruka-with-audition-footage-interview-with-yang-hyun-suk-and-more"
+);
+
+const rukaKJD = makeSource(
+  "Korea JoongAng Daily — Who is RUKA?",
+  "Korea JoongAng Daily — Quem é RUKA?",
+  "https://www.koreajoongangdaily.com/entertainment/who-is-ruka/12768173"
+);
+
+const rukaKprofiles = makeSource(
+  "KProfiles — RUKA Profile and Facts",
+  "KProfiles — Perfil e curiosidades sobre RUKA",
+  "https://kprofiles.com/ruka-babymonster-profile-and-facts/"
+);
+
+const elleInterview = makeSource(
+  "ELLE Singapore — BABYMONSTER Digital Cover",
+  "ELLE Singapore — Entrevista BABYMONSTER",
+  "https://elle.com.sg/life-culture/babymonster-digital-cover-november-2024/"
+);
+
+const rukaSources = makeSources(
+  officialYG,
+  rukaSoompi,
+  rukaKJD,
+  cnnInterview,
+  elleInterview,
+  ygSelectCredits,
+  ghostCredits,
+  rukaKprofiles
+);
+
+// ======================================================
+// ASA SOURCES
+// ======================================================
+
+const asaYG = makeSource(
+  "YG LIFE — ASA: Multi-talented ACE",
+  "YG LIFE — ASA: Artista multitalentosa",
+  "https://yg-life.com/archives/181569?lang=en"
+);
+
+const asaSoompi = makeSource(
+  "Soompi — Introducing ASA",
+  "Soompi — Apresentação de ASA",
+  "https://www.soompi.com/article/1567292wpp/watch-ygs-new-girl-group-babymonster-spotlights-japanese-member-asa-in-new-introduction-video"
+);
+
+const asaKprofiles = makeSource(
+  "KProfiles — ASA Profile and Facts",
+  "KProfiles — Perfil e curiosidades sobre ASA",
+  "https://kprofiles.com/asa-babymonster-profile-and-facts/"
+);
+
+const batterUpCredits = makeSource(
+  "YG LIFE — BATTER UP Official Credits",
+  "YG LIFE — Créditos oficiais de BATTER UP",
+  "https://yg-life.com/archives/185946?lang=en"
+);
+
+const asaInterview = makeSource(
+  "Woody World — BABYMONSTER In-depth Interview",
+  "Woody World — Entrevista aprofundada com BABYMONSTER",
+  "https://woodyworld.co/en/babymonster-opens-up-in-depth-for-the-first-time-who-is-the-best-at-shopping/"
+);
+
+const asaSources = makeSources(
+  officialYG,
+  asaYG,
+  asaSoompi,
+  cnnInterview,
+  batterUpCredits,
+  ygSelectCredits,
+  ghostCredits,
+  asaInterview,
+  asaKprofiles
+);
+
+// ======================================================
+// PHARITA SOURCES
+// ======================================================
+
+const pharitaSBS = makeSource(
+  "SBS Star — PHARITA's YG Journey",
+  "SBS Star — Trajetória de PHARITA na YG",
+  "https://news.sbs.co.kr/amp/news.amp?news_id=N1007083236"
+);
+
+const pharitaKprofiles = makeSource(
+  "KProfiles — PHARITA Profile and Facts",
+  "KProfiles — Perfil e curiosidades sobre PHARITA",
+  "https://kprofiles.com/pharita-babymonster-profile/"
+);
+
+const pharitaSources = makeSources(
+  officialYG,
+  pharitaSBS,
+  cnnInterview,
+  vogueInterview,
+  pharitaKprofiles,
+  kprofilesOverview
+);
+
+// ======================================================
+// AHYEON SOURCES
+// ======================================================
+
+const ahyeonSoompi = makeSource(
+  "Soompi — Introducing AHYEON",
+  "Soompi — Apresentação de AHYEON",
+  "https://www.soompi.com/article/1568925wpp/watch-ygs-new-girl-group-babymonster-introduces-15-year-old-member-ahyeon-with-footage-from-audition-and-trainee-days"
+);
+
+const ahyeonReturn = makeSource(
+  "YG Entertainment — AHYEON's Return Announcement",
+  "YG Entertainment — Comunicado sobre o retorno de AHYEON",
+  "https://ygfamily.com/en/news/report/5717"
+);
+
+const ahyeonHanlim = makeSource(
+  "SBS Star — AHYEON at Hanlim Arts School",
+  "SBS Star — AHYEON na Hanlim Arts School",
+  "https://news.sbs.co.kr/news/endPagePrintPopup.do?news_id=N1007101101"
+);
+
+const ahyeonKprofiles = makeSource(
+  "KProfiles — AHYEON Profile and Facts",
+  "KProfiles — Perfil e curiosidades sobre AHYEON",
+  "https://kprofiles.com/ahyeon-babymonster-profile/"
+);
+
+const ahyeonSources = makeSources(
+  officialYG,
+  ahyeonSoompi,
+  ahyeonReturn,
+  ahyeonHanlim,
+  cnnInterview,
+  vogueInterview,
+  ahyeonKprofiles
+);
+
+// ======================================================
+// RAMI SOURCES
+// ======================================================
+
+const ramiSBS = makeSource(
+  "SBS Star — RAMI's Childhood and Family Story",
+  "SBS Star — Infância e história familiar de RAMI",
+  "https://news.sbs.co.kr/amp/news.amp?news_id=N1007868749"
+);
+
+const ramiKprofiles = makeSource(
+  "KProfiles — RAMI Profile and Facts",
+  "KProfiles — Perfil e curiosidades sobre RAMI",
+  "https://kprofiles.com/rami-babymonster-profile/"
+);
+
+const joongAngRami = makeSource(
+  "Korea JoongAng Daily — BABYMONSTER's Name Changes",
+  "Korea JoongAng Daily — Mudanças de nomes no BABYMONSTER",
+  "https://www.koreajoongangdaily.com/entertainment/one-gone-one-renamed-six-members-of-babymonster-gear-up-for-debut/10115947"
+);
+
+const ramiSources = makeSources(
+  officialYG,
+  ramiSBS,
+  cnnInterview,
+  joongAngRami,
+  ramiKprofiles,
+  kprofilesOverview
+);
+
+// ======================================================
+// RORA SOURCES
+// ======================================================
+
+const roraSoompi = makeSource(
+  "Soompi — Introducing RORA",
+  "Soompi — Apresentação de RORA",
+  "https://www.soompi.com/article/1566840wpp/watch-ygs-new-girl-group-babymonster-introduces-14-year-old-member-rora-with-footage-from-audition-and-trainee-days"
+);
+
+const roraKprofiles = makeSource(
+  "KProfiles — RORA Profile and Facts",
+  "KProfiles — Perfil e curiosidades sobre RORA",
+  "https://kprofiles.com/rora-babymonster-profile/"
+);
+
+const roraSources = makeSources(
+  officialYG,
+  roraSoompi,
+  cnnInterview,
+  elleInterview,
+  roraKprofiles,
+  kprofilesOverview
+);
+
+// ======================================================
+// CHIQUITA SOURCES
+// ======================================================
+
+const chiquitaSoompi = makeSource(
+  "Soompi — Introducing CHIQUITA",
+  "Soompi — Apresentação de CHIQUITA",
+  "https://www.soompi.com/article/1568154wpp/watch-ygs-new-girl-group-babymonster-introduces-13-year-old-chiquita-from-thailand-with-glimpse-of-her-trainee-days"
+);
+
+const chiquitaYG = makeSource(
+  "YG LIFE — CHIQUITA: The Fearless Youngest Trainee",
+  "YG LIFE — CHIQUITA: A trainee mais jovem e destemida",
+  "https://yg-life.com/archives/181628?lang=en"
+);
+
+const chiquitaKprofiles = makeSource(
+  "KProfiles — CHIQUITA Profile and Facts",
+  "KProfiles — Perfil e curiosidades sobre CHIQUITA",
+  "https://kprofiles.com/chiquita-babymonster-profile-and-facts/"
+);
+
+const chiquitaSources = makeSources(
+  officialYG,
+  chiquitaYG,
+  chiquitaSoompi,
+  cnnInterview,
+  vogueInterview,
+  chiquitaKprofiles
+);
+
+// ======================================================
+// MEMBERS
+// ======================================================
 
 export const members = [
+  // ====================================================
+  // RUKA
+  // ====================================================
+
   {
     slug: "ruka",
     name: "RUKA",
     number: "01",
     birthday: "2002-03-20",
+
     nationality: {
       en: "Japanese",
       "pt-BR": "Japonesa",
     },
+
     gradient: "from-purple-950 via-violet-900 to-black",
 
     bio: {
       en: {
         intro:
-          "RUKA is BABYMONSTER's Japanese member and one of its most experienced performers. Her connection with dance began in childhood, and her artistic journey later expanded into singing and rap.",
+          "RUKA is BABYMONSTER's eldest member and one of its most experienced performers. Born in Yamaguchi, Japan, she developed a strong connection with hip-hop dance during childhood. Her artistic path later expanded into rap, vocals and songwriting.",
 
-        earlyInterestTitle: "A passion for dance",
+        earlyInterestTitle: "A dancer since childhood",
         earlyInterest:
-          "RUKA shared that she began learning dance during elementary school and developed a love for performing on stage from an early age. Hip-hop and dance remain important parts of her artistic identity.",
+          "RUKA has said that she started learning dance during her first year of elementary school. Hip-hop quickly became one of her greatest passions, and performing on stage became an important part of her identity. Her early introduction to YG also revealed how much her family's support, especially her mother's encouragement, meant to her during the long journey toward debut.",
 
-        ygJourneyTitle: "Her journey at YG",
+        ygJourneyTitle: "Five years of preparation at YG",
         ygJourney:
-          "YG's introduction video included footage from RUKA's audition in 2018. Korea JoongAng Daily reported that she trained with YG Entertainment for approximately five years before debut. During that period, she also developed her singing and rap skills.",
+          "Footage from RUKA's YG audition dates back to 2018. According to Korea JoongAng Daily, she trained at YG Entertainment for approximately five years, the longest training period among the members. RUKA explained that singing and rap were skills she developed after becoming a trainee, allowing her to express herself beyond dance.",
 
-        offStageTitle: "Beyond the stage",
+        offStageTitle: "Hip-hop, friendship and everyday life",
         offStage:
-          "Despite her powerful stage presence, RUKA describes herself as playful off stage. She enjoys sharing funny memes and photos with the other members and making them laugh. She has also mentioned enjoying movies and TV dramas during her free time.",
+          "RUKA has described hip-hop as a way to express her charisma and personality. Outside performances, she enjoys Pilates and spending time with the other members. Interviews and member profiles also describe her playful side, including her habit of sharing funny moments and making the other girls laugh.",
 
-        highlightsTitle: "Career highlights",
+        highlightsTitle: "Artistic achievements",
         highlights: [
-          "Her YG audition footage dates back to 2018.",
-          "Completed approximately five years of training before debut.",
-          "Selected as one of the seven final members through Last Evaluation.",
-          "Made her official seven-member debut with BABYMONS7ER on April 1, 2024.",
+          "Has official lyricist credits on BABYMONSTER's 'Love In My Heart', 'Woke Up In Tokyo' and 'Ghost'.",
+          "Shares the unit track 'Woke Up In Tokyo' with ASA, featuring their Japanese and English rap styles.",
+          "Completed approximately five years of YG training before the group's official seven-member debut.",
+          "Her early hip-hop dance experience became a foundation for her role as one of the group's main rap performers.",
         ],
 
-        sources: [
-          {
-            label: "YG Official Profile",
-            url: officialYG,
-          },
-          {
-            label: "Soompi - Introducing RUKA",
-            url: "https://www.soompi.com/article/1565867wpp/watch-ygs-new-girl-group-babymonster-introduces-member-ruka-with-audition-footage-interview-with-yang-hyun-suk-and-more",
-          },
-          {
-            label: "CNN Brasil Interview",
-            url: cnnInterview,
-          },
-          {
-            label: "Sweety High Interview",
-            url: sweetyInterview,
-          },
-        ],
+        sources: rukaSources.en,
       },
 
       "pt-BR": {
         intro:
-          "RUKA é a integrante japonesa do BABYMONSTER e uma das artistas com maior experiência em apresentações. Sua conexão com a dança começou na infância, e sua trajetória artística posteriormente se expandiu para o canto e o rap.",
+          "RUKA é a integrante mais velha do BABYMONSTER e uma das artistas com maior experiência em apresentações. Nascida em Yamaguchi, no Japão, desenvolveu uma forte conexão com a dança hip-hop ainda na infância. Sua trajetória artística posteriormente se expandiu para o rap, o canto e a composição de letras.",
 
-        earlyInterestTitle: "Uma paixão pela dança",
+        earlyInterestTitle: "Uma dançarina desde a infância",
         earlyInterest:
-          "RUKA contou que começou a aprender dança ainda durante o ensino fundamental e desenvolveu desde cedo o amor por se apresentar nos palcos. O hip-hop e a dança continuam sendo partes importantes de sua identidade artística.",
+          "RUKA contou que começou a aprender dança durante o primeiro ano do ensino fundamental. O hip-hop rapidamente se tornou uma de suas maiores paixões, e se apresentar nos palcos passou a fazer parte de sua identidade. Seu primeiro vídeo de apresentação na YG também revelou o quanto o apoio da família, especialmente o incentivo de sua mãe, significou durante a longa trajetória até o debut.",
 
-        ygJourneyTitle: "Sua trajetória na YG",
+        ygJourneyTitle: "Cinco anos de preparação na YG",
         ygJourney:
-          "O vídeo de apresentação da YG inclui imagens da audição de RUKA em 2018. O Korea JoongAng Daily informou que ela treinou na YG Entertainment por aproximadamente cinco anos antes do debut. Durante esse período, também desenvolveu suas habilidades de canto e rap.",
+          "As imagens de sua audição na YG remontam a 2018. Segundo o Korea JoongAng Daily, RUKA treinou na YG Entertainment por aproximadamente cinco anos, o período mais longo entre as integrantes. Ela explicou que o canto e o rap foram habilidades desenvolvidas depois de se tornar trainee, permitindo que expressasse sua personalidade para além da dança.",
 
-        offStageTitle: "Além dos palcos",
+        offStageTitle: "Hip-hop, amizade e vida cotidiana",
         offStage:
-          "Apesar de sua presença marcante nos palcos, RUKA se descreve como brincalhona fora deles. Ela gosta de compartilhar memes e fotos engraçadas com as outras integrantes e fazê-las rir. Também já comentou que gosta de assistir a filmes e dramas em seu tempo livre.",
+          "RUKA já descreveu o hip-hop como uma forma de expressar seu carisma e sua personalidade. Fora das apresentações, gosta de praticar Pilates e passar tempo com as outras integrantes. Entrevistas e perfis também mostram seu lado brincalhão, incluindo o hábito de compartilhar momentos engraçados e fazer as outras meninas rirem.",
 
-        highlightsTitle: "Destaques da carreira",
+        highlightsTitle: "Conquistas artísticas",
         highlights: [
-          "Imagens de sua audição na YG, realizada em 2018, foram utilizadas em seu vídeo de apresentação.",
-          "Concluiu aproximadamente cinco anos de treinamento antes do debut.",
-          "Foi selecionada como uma das sete integrantes finais através do Last Evaluation.",
-          "Fez sua estreia oficial com sete integrantes no álbum BABYMONS7ER, em 1º de abril de 2024.",
+          "Possui créditos oficiais como letrista em 'Love In My Heart', 'Woke Up In Tokyo' e 'Ghost', do BABYMONSTER.",
+          "Divide com ASA a faixa unitária 'Woke Up In Tokyo', que explora os estilos de rap das duas integrantes em japonês e inglês.",
+          "Concluiu aproximadamente cinco anos de treinamento na YG antes da estreia oficial do grupo com sete integrantes.",
+          "Sua experiência com dança hip-hop desde a infância se tornou uma das bases de sua atuação como rapper e performer do grupo.",
         ],
 
-        sources: [
-          {
-            label: "Perfil oficial da YG",
-            url: officialYG,
-          },
-          {
-            label: "Soompi - Apresentação de RUKA",
-            url: "https://www.soompi.com/article/1565867wpp/watch-ygs-new-girl-group-babymonster-introduces-member-ruka-with-audition-footage-interview-with-yang-hyun-suk-and-more",
-          },
-          {
-            label: "Entrevista à CNN Brasil",
-            url: cnnInterview,
-          },
-          {
-            label: "Entrevista à Sweety High",
-            url: sweetyInterview,
-          },
-        ],
+        sources: rukaSources["pt-BR"],
       },
     },
   },
+
+  // ====================================================
+  // PHARITA
+  // ====================================================
 
   {
     slug: "pharita",
     name: "PHARITA",
     number: "02",
     birthday: "2005-08-26",
+
     nationality: {
       en: "Thai",
       "pt-BR": "Tailandesa",
     },
+
     gradient: "from-pink-950 via-rose-900 to-black",
 
     bio: {
       en: {
         intro:
-          "PHARITA is BABYMONSTER's Thai member. Her journey to YG Entertainment began with a global audition, driven by her dream of becoming an artist and her admiration for the performers who inspired her.",
+          "PHARITA is BABYMONSTER's Thai vocalist, born in Bangkok. Before joining YG Entertainment, she had already experienced modeling and public competitions in Thailand. Her journey combines an international background, a dream of performing and a strong admiration for YG artists.",
 
-        earlyInterestTitle: "Inspired by music",
+        earlyInterestTitle: "A childhood connected to the arts",
         earlyInterest:
-          "PHARITA shared that she and fellow members RORA and CHIQUITA loved music from a young age. Watching YG artists perform helped inspire their dream of becoming artists themselves. She has also named BLACKPINK's LISA as an important role model.",
+          "Born in Bangkok, Thailand, PHARITA participated in child modeling and competitions before beginning her path in K-pop. Public member profiles also record her studies at Ruamrudee International School. She has shared that music was part of her life from an early age, and that watching YG artists helped her imagine becoming a performer herself.",
 
-        ygJourneyTitle: "From Thailand to YG",
+        ygJourneyTitle: "From a global audition to Seoul",
         ygJourney:
-          "According to SBS, PHARITA joined YG Entertainment through a global audition in 2020. The audition was reported to have 1,226 applicants for each available trainee spot. She moved from Thailand to Korea to pursue her dream of becoming a YG artist and performing on stage.",
+          "PHARITA joined YG Entertainment through a global audition in 2020. SBS reported that the selection was extremely competitive, with approximately 1,226 applicants for each available trainee spot. She moved from Thailand to Korea to pursue her dream, and has spoken openly about how challenging training could be while trying to find enjoyable moments in her daily routine.",
 
-        offStageTitle: "Beyond the stage",
+        offStageTitle: "Curiosity, walks and inspiration",
         offStage:
-          "PHARITA enjoys going on long walks, exploring new places and shopping with the other members. She has described these simple moments together as a fun way to discover new things and create memories.",
+          "PHARITA has mentioned enjoying long walks, discovering new places and going shopping with the other members. She speaks Thai and English and has continued developing her Korean. BLACKPINK's LISA is one of her most important role models, especially because of the confidence and stage presence she brings to performances.",
 
-        highlightsTitle: "Career highlights",
+        highlightsTitle: "Career and personal milestones",
         highlights: [
-          "Joined YG Entertainment through a global audition in 2020.",
-          "Was selected for BABYMONSTER after the Last Evaluation process.",
-          "Showcased her singing and dancing abilities during the group's pre-debut evaluation content.",
-          "Made her official seven-member debut with BABYMONS7ER on April 1, 2024.",
+          "Entered YG Entertainment through a highly competitive global audition in 2020.",
+          "Moved from Thailand to Korea while still young to pursue her goal of becoming an artist.",
+          "Identified LISA of BLACKPINK as an important role model and inspiration for her stage ambitions.",
+          "In a 2026 interview, chose the lyric 'I'm getting stronger' from 'DREAM' as a line that reflects her own personal growth.",
         ],
 
-        sources: [
-          {
-            label: "YG Official Profile",
-            url: officialYG,
-          },
-          {
-            label: "SBS Star - PHARITA's YG Journey",
-            url: "https://news.sbs.co.kr/amp/news.amp?news_id=N1007083236",
-          },
-          {
-            label: "CNN Brasil Interview",
-            url: cnnInterview,
-          },
-          {
-            label: "Vogue Hong Kong Interview",
-            url: vogueInterview,
-          },
-          {
-            label: "Sweety High Interview",
-            url: sweetyInterview,
-          },
-        ],
+        sources: pharitaSources.en,
       },
 
       "pt-BR": {
         intro:
-          "PHARITA é a integrante tailandesa do BABYMONSTER. Sua trajetória até a YG Entertainment começou através de uma audição global, motivada pelo sonho de se tornar artista e pela admiração por artistas que a inspiraram.",
+          "PHARITA é a vocalista tailandesa do BABYMONSTER, nascida em Bangkok. Antes de entrar na YG Entertainment, já havia tido experiências com modelagem e concursos em seu país. Sua trajetória reúne uma formação internacional, o sonho de se apresentar nos palcos e uma grande admiração pelos artistas da YG.",
 
-        earlyInterestTitle: "Inspirada pela música",
+        earlyInterestTitle: "Uma infância ligada às artes",
         earlyInterest:
-          "PHARITA contou que ela e as integrantes RORA e CHIQUITA amavam música desde pequenas. Assistir às apresentações de artistas da YG ajudou a inspirar o sonho de também se tornarem artistas. Ela também já apontou LISA, do BLACKPINK, como uma importante referência.",
+          "Nascida em Bangkok, na Tailândia, PHARITA participou de atividades de modelagem infantil e concursos antes de iniciar sua trajetória no K-pop. Perfis públicos das integrantes também registram seus estudos na Ruamrudee International School. Ela contou que a música fazia parte de sua vida desde pequena e que assistir aos artistas da YG a ajudou a imaginar que também poderia se tornar uma performer.",
 
-        ygJourneyTitle: "Da Tailândia até a YG",
+        ygJourneyTitle: "De uma audição global até Seul",
         ygJourney:
-          "Segundo a SBS, PHARITA entrou na YG Entertainment através de uma audição global em 2020. A seleção foi divulgada como tendo 1.226 candidatos por vaga disponível para trainee. Ela saiu da Tailândia e foi para a Coreia em busca do sonho de se tornar uma artista da YG e se apresentar nos palcos.",
+          "PHARITA entrou na YG Entertainment através de uma audição global em 2020. A SBS informou que a seleção foi extremamente concorrida, com aproximadamente 1.226 candidatos para cada vaga disponível de trainee. Ela saiu da Tailândia e foi para a Coreia ainda jovem para perseguir seu sonho, e já comentou sobre os desafios do treinamento e a importância de encontrar momentos divertidos na rotina.",
 
-        offStageTitle: "Além dos palcos",
+        offStageTitle: "Curiosidade, passeios e inspiração",
         offStage:
-          "PHARITA gosta de fazer longas caminhadas, conhecer lugares novos e sair para fazer compras com as outras integrantes. Ela descreveu esses momentos simples juntas como uma maneira divertida de descobrir coisas novas e criar lembranças.",
+          "PHARITA já comentou que gosta de fazer caminhadas, conhecer lugares novos e sair para fazer compras com as outras integrantes. Ela fala tailandês e inglês e continuou desenvolvendo seu coreano. LISA, do BLACKPINK, é uma de suas principais referências, especialmente pela confiança e presença de palco que demonstra em suas apresentações.",
 
-        highlightsTitle: "Destaques da carreira",
+        highlightsTitle: "Trajetória e conquistas pessoais",
         highlights: [
-          "Entrou na YG Entertainment através de uma audição global em 2020.",
-          "Foi selecionada para o BABYMONSTER após o processo do Last Evaluation.",
-          "Demonstrou suas habilidades de canto e dança nos conteúdos de avaliação pré-debut do grupo.",
-          "Fez sua estreia oficial com sete integrantes no álbum BABYMONS7ER, em 1º de abril de 2024.",
+          "Entrou na YG Entertainment através de uma audição global altamente concorrida em 2020.",
+          "Mudou-se da Tailândia para a Coreia ainda jovem para perseguir o objetivo de se tornar artista.",
+          "Apontou LISA, do BLACKPINK, como uma de suas principais referências e inspirações para sua carreira nos palcos.",
+          "Em uma entrevista de 2026, escolheu o verso 'I'm getting stronger', da música 'DREAM', como uma frase que representa seu próprio crescimento.",
         ],
 
-        sources: [
-          {
-            label: "Perfil oficial da YG",
-            url: officialYG,
-          },
-          {
-            label: "SBS Star - Trajetória de PHARITA",
-            url: "https://news.sbs.co.kr/amp/news.amp?news_id=N1007083236",
-          },
-          {
-            label: "Entrevista à CNN Brasil",
-            url: cnnInterview,
-          },
-          {
-            label: "Entrevista à Vogue Hong Kong",
-            url: vogueInterview,
-          },
-          {
-            label: "Entrevista à Sweety High",
-            url: sweetyInterview,
-          },
-        ],
+        sources: pharitaSources["pt-BR"],
       },
     },
   },
+
+  // ====================================================
+  // ASA
+  // ====================================================
 
   {
     slug: "asa",
     name: "ASA",
     number: "03",
     birthday: "2006-04-17",
+
     nationality: {
       en: "Japanese",
       "pt-BR": "Japonesa",
     },
+
     gradient: "from-blue-950 via-indigo-900 to-black",
 
     bio: {
       en: {
         intro:
-          "ASA is the Japanese rapper and performer of BABYMONSTER. Her interest in music grew through dance, and she has described the moment she realized that becoming an artist was the path she wanted to follow.",
+          "ASA is BABYMONSTER's Japanese rapper, dancer and songwriter. Born in Tokyo, she developed an early interest in performance and later became one of the group's most recognized creative contributors. Her combination of rap, dance and songwriting gives her a distinctive place in the group.",
 
-        earlyInterestTitle: "Discovering her path",
+        earlyInterestTitle: "From musical theater to dance",
         earlyInterest:
-          "ASA shared that she began attending a dance school during her first year of high school. Through music and dance, she discovered how much joy performing brought her and began dreaming of becoming an artist.",
+          "ASA was born in Tokyo and public member profiles describe her as the youngest of three sisters, with two older sisters. Her early artistic experiences included participation in the LADYBIRD Green Musical in Japan. She later said that attending a dance school during her first year of high school helped her discover how much she loved music and performing.",
 
-        ygJourneyTitle: "Her journey at YG",
+        ygJourneyTitle: "A determined trainee with a curious mind",
         ygJourney:
-          "After deciding that becoming an artist was her path, ASA continued developing her skills through her training and pre-debut preparation at YG Entertainment. Her exact joining date has not been clearly confirmed in the official profile, so this archive focuses on the journey she has personally described.",
+          "ASA pursued a YG audition because she was attracted to the company's hip-hop style and was determined to become a K-pop artist. YG's introduction highlighted her habit of asking many questions during training. Dance trainer LEEJUNG praised her attitude, explaining that her curiosity helped her understand details quickly and develop strong musical and performance skills.",
 
-        offStageTitle: "Beyond the stage",
+        offStageTitle: "Writing, producing and staying connected",
         offStage:
-          "ASA enjoys cooking in her free time. She has shared that she likes trying new recipes, preparing different dishes and sharing what she makes with the other members.",
+          "ASA has shared that she enjoys writing lyrics and creating music in her free time. This interest has become an important part of her identity beyond performing. During interviews, she has also talked about calling her parents when she feels homesick, showing how important her family connection remains while living and working in Korea.",
 
-        highlightsTitle: "Career highlights",
+        highlightsTitle: "A growing role in music creation",
         highlights: [
-          "Developed her passion for music and performance through dance school.",
-          "Became one of BABYMONSTER's Japanese members and a notable rap performer.",
-          "Shared the SHEESH rap section with RUKA and AHYEON, a combination she said she would like to explore further.",
-          "Made her official seven-member debut with BABYMONS7ER on April 1, 2024.",
+          "Co-wrote the lyrics and co-composed BABYMONSTER's debut digital single 'BATTER UP', released in November 2023.",
+          "Has official lyricist credits on 'Love In My Heart', 'Woke Up In Tokyo' and 'Ghost'.",
+          "Performed 'Look Alive' in her individual YG introduction video, giving fans an early showcase of her rap ability.",
+          "Shares 'Woke Up In Tokyo' with RUKA, a unit track that highlights both members' rap styles and Japanese-language wordplay.",
         ],
 
-        sources: [
-          {
-            label: "YG Official Profile",
-            url: officialYG,
-          },
-          {
-            label: "CNN Brasil Interview",
-            url: cnnInterview,
-          },
-          {
-            label: "Sweety High Interview",
-            url: sweetyInterview,
-          },
-          {
-            label: "Vogue Hong Kong Interview",
-            url: vogueInterview,
-          },
-        ],
+        sources: asaSources.en,
       },
 
       "pt-BR": {
         intro:
-          "ASA é a rapper e performer japonesa do BABYMONSTER. Seu interesse pela música cresceu através da dança, e ela já contou sobre o momento em que percebeu que se tornar artista era o caminho que desejava seguir.",
+          "ASA é a rapper, dançarina e compositora japonesa do BABYMONSTER. Nascida em Tóquio, desenvolveu desde cedo o interesse por apresentações artísticas e posteriormente se tornou uma das integrantes com maior participação criativa na música do grupo. Sua combinação de rap, dança e composição dá a ela uma identidade própria dentro do BABYMONSTER.",
 
-        earlyInterestTitle: "Descobrindo seu caminho",
+        earlyInterestTitle: "Do teatro musical à dança",
         earlyInterest:
-          "ASA contou que começou a frequentar uma escola de dança durante o primeiro ano do ensino médio. Através da música e da dança, descobriu o quanto gostava de se apresentar e começou a sonhar em se tornar artista.",
+          "ASA nasceu em Tóquio e perfis públicos das integrantes a descrevem como a caçula de três irmãs, com duas irmãs mais velhas. Suas primeiras experiências artísticas incluem a participação no musical japonês LADYBIRD Green Musical. Mais tarde, ela contou que frequentar uma escola de dança durante o primeiro ano do ensino médio foi importante para descobrir o quanto gostava de música e de se apresentar.",
 
-        ygJourneyTitle: "Sua trajetória na YG",
+        ygJourneyTitle: "Uma trainee determinada e curiosa",
         ygJourney:
-          "Depois de decidir que se tornar artista era seu caminho, ASA continuou desenvolvendo suas habilidades durante o treinamento e a preparação pré-debut na YG Entertainment. A data exata de sua entrada não está claramente confirmada no perfil oficial, por isso este arquivo prioriza a trajetória que ela própria compartilhou.",
+          "ASA buscou uma audição na YG porque se identificava com o estilo hip-hop da empresa e estava determinada a se tornar uma artista de K-pop. No vídeo de apresentação da YG, foi destacado seu hábito de fazer muitas perguntas durante os treinamentos. A professora de dança LEEJUNG elogiou sua atitude e explicou que sua curiosidade ajudava a compreender rapidamente os detalhes e a desenvolver suas habilidades musicais e de performance.",
 
-        offStageTitle: "Além dos palcos",
+        offStageTitle: "Composição, produção e conexão familiar",
         offStage:
-          "ASA gosta de cozinhar em seu tempo livre. Ela contou que gosta de experimentar receitas, preparar pratos diferentes e compartilhar o que faz com as outras integrantes.",
+          "ASA já compartilhou que gosta de escrever letras e criar músicas em seu tempo livre. Esse interesse se tornou uma parte importante de sua identidade para além das apresentações. Durante entrevistas, também comentou que costuma ligar para os pais quando sente saudade de casa, demonstrando como a conexão com sua família continua importante enquanto vive e trabalha na Coreia.",
 
-        highlightsTitle: "Destaques da carreira",
+        highlightsTitle: "Uma participação crescente na criação musical",
         highlights: [
-          "Desenvolveu sua paixão pela música e pelas apresentações através da escola de dança.",
-          "Tornou-se uma das integrantes japonesas do BABYMONSTER e uma das principais representantes do rap no grupo.",
-          "Dividiu a parte de rap de SHEESH com RUKA e AHYEON, combinação que ela disse ter vontade de explorar ainda mais.",
-          "Fez sua estreia oficial com sete integrantes no álbum BABYMONS7ER, em 1º de abril de 2024.",
+          "Coescreveu a letra e participou da composição musical do single de estreia do BABYMONSTER, 'BATTER UP', lançado em novembro de 2023.",
+          "Possui créditos oficiais como letrista em 'Love In My Heart', 'Woke Up In Tokyo' e 'Ghost'.",
+          "Apresentou 'Look Alive' em seu vídeo individual de apresentação na YG, mostrando ao público suas habilidades de rap.",
+          "Divide com RUKA a faixa 'Woke Up In Tokyo', que destaca os estilos de rap das duas integrantes e jogos de palavras em japonês.",
         ],
 
-        sources: [
-          {
-            label: "Perfil oficial da YG",
-            url: officialYG,
-          },
-          {
-            label: "Entrevista à CNN Brasil",
-            url: cnnInterview,
-          },
-          {
-            label: "Entrevista à Sweety High",
-            url: sweetyInterview,
-          },
-          {
-            label: "Entrevista à Vogue Hong Kong",
-            url: vogueInterview,
-          },
-        ],
+        sources: asaSources["pt-BR"],
       },
     },
   },
+
+  // ====================================================
+  // AHYEON
+  // ====================================================
 
   {
     slug: "ahyeon",
     name: "AHYEON",
     number: "04",
     birthday: "2007-04-11",
+
     nationality: {
       en: "South Korean",
       "pt-BR": "Sul-coreana",
     },
+
     gradient: "from-red-950 via-red-900 to-black",
 
     bio: {
       en: {
         intro:
-          "AHYEON is a South Korean member of BABYMONSTER, known for her versatile performance style. Music and dance have been part of her life since childhood, and her return completed the group's seven-member lineup before its official first EP debut.",
+          "AHYEON is a South Korean member of BABYMONSTER known for her versatility as a singer, rapper and dancer. Born in Chuncheon, she developed a connection with music from childhood and became one of the group's most recognizable performers through her expressive stage presence.",
 
-        earlyInterestTitle: "Music since childhood",
+        earlyInterestTitle: "Music has always been part of her life",
         earlyInterest:
-          "AHYEON shared that she has enjoyed music and dancing since she was very young. Whenever music started playing, she naturally wanted to move. She has described herself as curious and someone who enjoys trying new things.",
+          "AHYEON has said that she loved music and dancing from a very young age. Whenever a song started playing, she naturally wanted to move. Public member profiles identify Chuncheon, South Korea, as her birthplace and mention that she has a younger brother. Her interest in music continued through her school years and performing activities.",
 
-        ygJourneyTitle: "Her path to the seven-member lineup",
+        ygJourneyTitle: "Audition, training and the seven-member lineup",
         ygJourney:
-          "AHYEON took part in the group's pre-debut journey and the Last Evaluation project. On January 25, 2024, YG Entertainment officially announced her return to BABYMONSTER activities and confirmed that she would participate in recording the group's first mini-album.",
+          "YG's official introduction video included footage from AHYEON's audition and trainee period. She participated in the group's pre-debut journey and Last Evaluation. After a period away from activities, YG officially announced her return on January 25, 2024, confirming that she would participate in recording the group's first mini-album and complete the seven-member lineup.",
 
-        offStageTitle: "Beyond the stage",
+        offStageTitle: "Curiosity and musical exploration",
         offStage:
-          "AHYEON describes herself as a curious person who likes exploring new interests. She has also expressed a desire to experiment with more musical styles, including Latin pop, because of its rhythm and expressive energy.",
+          "AHYEON describes herself as curious and interested in trying different things. She has expressed a desire to explore musical styles beyond the genres she already performs. In a 2026 interview, she also said that she would enjoy preparing covers in different languages, showing her interest in connecting with fans through music.",
 
-        highlightsTitle: "Career highlights",
+        highlightsTitle: "Versatility on stage",
         highlights: [
-          "Selected as one of the seven members through the Last Evaluation project.",
-          "Her return to group activities was officially announced by YG on January 25, 2024.",
-          "Participated in BABYMONSTER's first mini-album with the complete seven-member lineup.",
-          "Made her official seven-member debut with BABYMONS7ER on April 1, 2024.",
+          "Recognized for combining singing, rap and dance in her performances, making her one of the group's most versatile stage performers.",
+          "YG specifically highlighted the rap sections performed by AHYEON, ASA and RUKA in 'SHEESH'.",
+          "Her return was officially announced by YG on January 25, 2024, confirming her participation in the first mini-album.",
+          "Her inclusion completed the seven-member lineup that debuted with 'BABYMONS7ER' in April 2024.",
         ],
 
-        sources: [
-          {
-            label: "YG Official Profile",
-            url: officialYG,
-          },
-          {
-            label: "YG - AHYEON's Return Announcement",
-            url: "https://ygfamily.com/en/news/report/5717",
-          },
-          {
-            label: "CNN Brasil Interview",
-            url: cnnInterview,
-          },
-          {
-            label: "Sweety High Interview",
-            url: sweetyInterview,
-          },
-          {
-            label: "Vogue Hong Kong Interview",
-            url: vogueInterview,
-          },
-        ],
+        sources: ahyeonSources.en,
       },
 
       "pt-BR": {
         intro:
-          "AHYEON é uma integrante sul-coreana do BABYMONSTER, conhecida por seu estilo versátil de performance. A música e a dança fazem parte de sua vida desde a infância, e seu retorno completou a formação de sete integrantes antes do lançamento oficial do primeiro EP do grupo.",
+          "AHYEON é uma integrante sul-coreana do BABYMONSTER, conhecida por sua versatilidade como cantora, rapper e dançarina. Nascida em Chuncheon, desenvolveu uma conexão com a música desde a infância e se tornou uma das performers mais reconhecidas do grupo por sua presença expressiva nos palcos.",
 
-        earlyInterestTitle: "Música desde a infância",
+        earlyInterestTitle: "A música sempre fez parte de sua vida",
         earlyInterest:
-          "AHYEON contou que gosta de música e dança desde muito pequena. Sempre que uma música começava a tocar, ela naturalmente sentia vontade de se movimentar. Ela se descreve como uma pessoa curiosa e que gosta de experimentar coisas novas.",
+          "AHYEON contou que gosta de música e dança desde muito pequena. Sempre que uma música começava a tocar, naturalmente sentia vontade de se movimentar. Perfis públicos das integrantes identificam Chuncheon, na Coreia do Sul, como sua cidade natal e mencionam que ela tem um irmão mais novo. Seu interesse pela música continuou durante os anos escolares e as experiências com apresentações.",
 
-        ygJourneyTitle: "Seu caminho até a formação de sete integrantes",
+        ygJourneyTitle: "Audição, treinamento e formação de sete integrantes",
         ygJourney:
-          "AHYEON participou da trajetória pré-debut do grupo e do projeto Last Evaluation. Em 25 de janeiro de 2024, a YG Entertainment anunciou oficialmente seu retorno às atividades do BABYMONSTER e confirmou sua participação nas gravações do primeiro miniálbum do grupo.",
+          "O vídeo oficial de apresentação da YG inclui imagens da audição e do período de treinamento de AHYEON. Ela participou da trajetória pré-debut do grupo e do Last Evaluation. Depois de um período afastada das atividades, a YG anunciou oficialmente seu retorno em 25 de janeiro de 2024, confirmando sua participação nas gravações do primeiro miniálbum e completando a formação de sete integrantes.",
 
-        offStageTitle: "Além dos palcos",
+        offStageTitle: "Curiosidade e exploração musical",
         offStage:
-          "AHYEON se descreve como uma pessoa curiosa, que gosta de explorar novos interesses. Ela também já demonstrou vontade de experimentar outros estilos musicais, incluindo o pop latino, por conta de seu ritmo e de sua energia expressiva.",
+          "AHYEON se descreve como uma pessoa curiosa e interessada em experimentar coisas diferentes. Ela já demonstrou vontade de explorar estilos musicais além daqueles que costuma apresentar. Em uma entrevista de 2026, também comentou que gostaria de preparar covers em diferentes idiomas, mostrando seu interesse em se conectar com os fãs através da música.",
 
-        highlightsTitle: "Destaques da carreira",
+        highlightsTitle: "Versatilidade nos palcos",
         highlights: [
-          "Selecionada como uma das sete integrantes através do projeto Last Evaluation.",
-          "Seu retorno às atividades do grupo foi anunciado oficialmente pela YG em 25 de janeiro de 2024.",
-          "Participou do primeiro miniálbum do BABYMONSTER com a formação completa de sete integrantes.",
-          "Fez sua estreia oficial com sete integrantes no álbum BABYMONS7ER, em 1º de abril de 2024.",
+          "Reconhecida por combinar canto, rap e dança em suas apresentações, sendo uma das performers mais versáteis do grupo.",
+          "A YG destacou especificamente as partes de rap interpretadas por AHYEON, ASA e RUKA em 'SHEESH'.",
+          "Seu retorno foi anunciado oficialmente pela YG em 25 de janeiro de 2024, confirmando sua participação no primeiro miniálbum.",
+          "Sua inclusão completou a formação de sete integrantes que estreou com 'BABYMONS7ER' em abril de 2024.",
         ],
 
-        sources: [
-          {
-            label: "Perfil oficial da YG",
-            url: officialYG,
-          },
-          {
-            label: "YG - Comunicado sobre o retorno de AHYEON",
-            url: "https://ygfamily.com/en/news/report/5717",
-          },
-          {
-            label: "Entrevista à CNN Brasil",
-            url: cnnInterview,
-          },
-          {
-            label: "Entrevista à Sweety High",
-            url: sweetyInterview,
-          },
-          {
-            label: "Entrevista à Vogue Hong Kong",
-            url: vogueInterview,
-          },
-        ],
+        sources: ahyeonSources["pt-BR"],
       },
     },
   },
+
+  // ====================================================
+  // RAMI
+  // ====================================================
 
   {
     slug: "rami",
     name: "RAMI",
     number: "05",
     birthday: "2007-10-17",
+
     nationality: {
       en: "South Korean",
       "pt-BR": "Sul-coreana",
     },
+
     gradient: "from-emerald-950 via-teal-900 to-black",
 
     bio: {
       en: {
         intro:
-          "RAMI is a South Korean member of BABYMONSTER. Formerly introduced as HARAM, she developed her dream of becoming an artist during her time at YG, where she discovered singing and dancing.",
+          "RAMI is a South Korean vocalist of BABYMONSTER, first introduced to the public under the name HARAM. Her story began in front of the cameras long before her K-pop debut, and her development as a singer and dancer took shape during her years at YG Entertainment.",
 
-        earlyInterestTitle: "Discovering her voice",
+        earlyInterestTitle: "A childhood in front of the cameras",
         earlyInterest:
-          "RAMI explained that she began learning to sing and dance after joining YG Entertainment. As she continued developing those skills, she became increasingly certain that she wanted to become an artist.",
+          "RAMI revealed that she began working as a child model at just two years old and continued until she was around twelve. Her entry into the entertainment industry happened naturally during this period. In an interview with SBS, she also shared that her mother had nearly debuted in a girl group and had participated in a pre-debut team, making music and performance part of her family's story.",
 
         ygJourneyTitle: "From HARAM to RAMI",
         ygJourney:
-          "Before debut, she was introduced to the public as HARAM. In 2023, YG explained through Korea JoongAng Daily that the name RAMI came from a nickname used by the other members. The company also associated the name with meanings such as love, happiness and the first light of a lamp.",
+          "RAMI explained that she learned singing and dancing after joining YG Entertainment. As she developed those skills, she became increasingly certain that she wanted to become an artist. Before debut, she was introduced to the public as HARAM. Her later stage name, RAMI, came from a nickname used by the other members.",
 
-        offStageTitle: "Beyond the stage",
+        offStageTitle: "Musical references and a curious personality",
         offStage:
-          "RAMI has shared her appreciation for music by naming Charlie Puth as her favorite artist. She also described BATTER UP as especially meaningful because it was the first song released by BABYMONSTER.",
+          "RAMI has shown admiration for artists such as BLACKPINK's ROSÉ and AKMU's Lee Suhyun. Public member profiles also describe her as someone who enjoys sports, dancing and taking on new challenges. Her experience in front of the camera from an early age gave her a different starting point from members who discovered performance during trainee life.",
 
-        highlightsTitle: "Career highlights",
+        highlightsTitle: "A distinctive path to debut",
         highlights: [
-          "Introduced to fans under the name HARAM before adopting the stage name RAMI.",
-          "Discovered her desire to become an artist while learning singing and dancing at YG.",
-          "Selected as one of the seven final members through Last Evaluation.",
-          "Made her official seven-member debut with BABYMONS7ER on April 1, 2024.",
+          "Worked as a child model from approximately age two to twelve, before entering the K-pop training system.",
+          "Her mother shared a particularly interesting family story: she had once been part of a girl group's pre-debut team.",
+          "Was first introduced to BABYMONSTER fans under the name HARAM before adopting the stage name RAMI.",
+          "Developed her singing and dancing skills at YG, where she discovered her determination to become a professional artist.",
         ],
 
-        sources: [
-          {
-            label: "YG Official Profile",
-            url: officialYG,
-          },
-          {
-            label: "Korea JoongAng Daily - RAMI's Stage Name",
-            url: joongAngArticle,
-          },
-          {
-            label: "CNN Brasil Interview",
-            url: cnnInterview,
-          },
-          {
-            label: "Vogue Hong Kong Interview",
-            url: vogueInterview,
-          },
-        ],
+        sources: ramiSources.en,
       },
 
       "pt-BR": {
         intro:
-          "RAMI é uma integrante sul-coreana do BABYMONSTER. Anteriormente apresentada como HARAM, ela desenvolveu o sonho de se tornar artista durante seu período na YG, onde descobriu a dança e o canto.",
+          "RAMI é uma vocalista sul-coreana do BABYMONSTER, apresentada inicialmente ao público com o nome HARAM. Sua história começou diante das câmeras muito antes de sua estreia no K-pop, e seu desenvolvimento como cantora e dançarina aconteceu durante os anos de treinamento na YG Entertainment.",
 
-        earlyInterestTitle: "Descobrindo sua voz",
+        earlyInterestTitle: "Uma infância diante das câmeras",
         earlyInterest:
-          "RAMI explicou que começou a aprender a cantar e dançar depois de entrar na YG Entertainment. Conforme continuava desenvolvendo essas habilidades, passou a ter cada vez mais certeza de que queria se tornar artista.",
+          "RAMI revelou que começou a trabalhar como modelo infantil aos dois anos de idade e continuou até aproximadamente os doze. Sua entrada no mundo do entretenimento aconteceu naturalmente durante esse período. Em uma entrevista à SBS, ela também contou que sua mãe quase estreou em um grupo feminino e chegou a participar de uma equipe pré-debut, tornando a música e as apresentações parte da história de sua família.",
 
         ygJourneyTitle: "De HARAM a RAMI",
         ygJourney:
-          "Antes do debut, ela foi apresentada ao público como HARAM. Em 2023, a YG explicou ao Korea JoongAng Daily que o nome RAMI surgiu de um apelido utilizado pelas outras integrantes. A empresa também associou o nome a significados como amor, felicidade e a primeira luz de uma lâmpada.",
+          "RAMI explicou que começou a aprender canto e dança depois de entrar na YG Entertainment. Conforme desenvolvia essas habilidades, passou a ter cada vez mais certeza de que queria se tornar artista. Antes do debut, foi apresentada ao público como HARAM. Seu nome artístico posterior, RAMI, surgiu de um apelido utilizado pelas outras integrantes.",
 
-        offStageTitle: "Além dos palcos",
+        offStageTitle: "Referências musicais e personalidade curiosa",
         offStage:
-          "RAMI já demonstrou sua admiração pela música ao revelar que Charlie Puth é seu artista favorito. Ela também contou que BATTER UP tem um significado especial, por ter sido a primeira música lançada pelo BABYMONSTER.",
+          "RAMI já demonstrou admiração por artistas como ROSÉ, do BLACKPINK, e Lee Suhyun, do AKMU. Perfis públicos das integrantes também a descrevem como alguém que gosta de esportes, dança e de aceitar novos desafios. Sua experiência diante das câmeras desde a infância deu a ela um ponto de partida diferente das integrantes que descobriram as apresentações durante a vida de trainee.",
 
-        highlightsTitle: "Destaques da carreira",
+        highlightsTitle: "Uma trajetória particular até a estreia",
         highlights: [
-          "Foi apresentada aos fãs com o nome HARAM antes de adotar o nome artístico RAMI.",
-          "Descobriu o desejo de se tornar artista enquanto aprendia canto e dança na YG.",
-          "Foi selecionada como uma das sete integrantes finais através do Last Evaluation.",
-          "Fez sua estreia oficial com sete integrantes no álbum BABYMONS7ER, em 1º de abril de 2024.",
+          "Trabalhou como modelo infantil aproximadamente dos dois aos doze anos, antes de entrar no sistema de treinamento do K-pop.",
+          "Sua mãe compartilhou uma história familiar curiosa: ela já havia integrado uma equipe pré-debut de um grupo feminino.",
+          "Foi apresentada inicialmente aos fãs do BABYMONSTER com o nome HARAM, antes de adotar o nome artístico RAMI.",
+          "Desenvolveu suas habilidades de canto e dança na YG, onde descobriu sua determinação de se tornar uma artista profissional.",
         ],
 
-        sources: [
-          {
-            label: "Perfil oficial da YG",
-            url: officialYG,
-          },
-          {
-            label: "Korea JoongAng Daily - Nome artístico de RAMI",
-            url: joongAngArticle,
-          },
-          {
-            label: "Entrevista à CNN Brasil",
-            url: cnnInterview,
-          },
-          {
-            label: "Entrevista à Vogue Hong Kong",
-            url: vogueInterview,
-          },
-        ],
+        sources: ramiSources["pt-BR"],
       },
     },
   },
+
+  // ====================================================
+  // RORA
+  // ====================================================
 
   {
     slug: "rora",
     name: "RORA",
     number: "06",
     birthday: "2008-08-14",
+
     nationality: {
       en: "South Korean",
       "pt-BR": "Sul-coreana",
     },
+
     gradient: "from-amber-950 via-orange-900 to-black",
 
     bio: {
       en: {
         intro:
-          "RORA is a South Korean member of BABYMONSTER, recognized for her expressive and soulful vocals. Her love for music began early, inspired in part by watching artists from YG Entertainment.",
+          "RORA is a South Korean vocalist of BABYMONSTER, born in Gangneung. Her connection with the entertainment world began during childhood, when she participated in children's entertainment projects before joining YG. Today, she is recognized for her expressive vocals and calm but confident personality.",
 
-        earlyInterestTitle: "Inspired by YG artists",
+        earlyInterestTitle: "An artist since childhood",
         earlyInterest:
-          "RORA shared that she, PHARITA and CHIQUITA loved music from a young age. Watching YG artists sing and dance helped inspire their shared dream of becoming performers.",
+          "Before becoming known as RORA, she had experiences as a child model and actress and was part of the children's group U.SSO Girl under the stage name U.ha. Public member profiles also identify Gangneung as her birthplace and mention a younger brother. Alongside PHARITA and CHIQUITA, she has said that watching YG artists perform helped inspire her early dream of becoming a singer.",
 
-        ygJourneyTitle: "Her journey at YG",
+        ygJourneyTitle: "A place in the final seven",
         ygJourney:
-          "RORA continued developing her musical abilities through her preparation at YG Entertainment and became one of the seven members selected through Last Evaluation. Korea JoongAng Daily highlighted her strong, soulful vocals and detailed musical expression when reporting on the group's pre-debut lineup.",
+          "RORA's official YG introduction included footage from her audition and trainee days. During the Last Evaluation, she was initially not included in the first five members selected by YG. After strong public support for all seven trainees, the company reconsidered its decision, and RORA and ASA were added to the final lineup. Their inclusion helped create the seven-member group fans know today.",
 
-        offStageTitle: "Beyond the stage",
+        offStageTitle: "Piano, school and time with the members",
         offStage:
-          "Away from performances, RORA describes herself as laid-back. She enjoys drawing, watching movies and TV shows, and relaxing with the other members after their schedules.",
+          "RORA's musical interests extend beyond singing: member profiles identify piano as one of her specialties. In an interview with ELLE Singapore, she described life at an arts high school, where friends played instruments such as drums and piano and learned from one another. She also said she would like to learn guitar and that sharing meals with the other members is one of her happiest moments.",
 
-        highlightsTitle: "Career highlights",
+        highlightsTitle: "From child performer to vocalist",
         highlights: [
-          "Recognized for her strong and soulful vocal qualities during the group's pre-debut period.",
-          "Selected as one of the seven members through Last Evaluation.",
-          "Shared that watching YG artists helped inspire her dream of becoming an artist.",
-          "Made her official seven-member debut with BABYMONS7ER on April 1, 2024.",
+          "Had earlier experience in children's entertainment, including the group U.SSO Girl under the name U.ha.",
+          "Was one of the two trainees added to the final seven-member lineup after fans strongly supported the inclusion of all seven candidates.",
+          "Her expressive and soulful vocal qualities were highlighted by Korea JoongAng Daily during the group's pre-debut period.",
+          "Has shared her interest in learning other instruments, especially guitar, alongside her piano experience.",
         ],
 
-        sources: [
-          {
-            label: "YG Official Profile",
-            url: officialYG,
-          },
-          {
-            label: "Korea JoongAng Daily - BABYMONSTER Lineup",
-            url: joongAngArticle,
-          },
-          {
-            label: "CNN Brasil Interview",
-            url: cnnInterview,
-          },
-          {
-            label: "Sweety High Interview",
-            url: sweetyInterview,
-          },
-          {
-            label: "Vogue Hong Kong Interview",
-            url: vogueInterview,
-          },
-        ],
+        sources: roraSources.en,
       },
 
       "pt-BR": {
         intro:
-          "RORA é uma integrante sul-coreana do BABYMONSTER, reconhecida por seus vocais expressivos e marcantes. Seu amor pela música começou cedo, inspirado em parte por assistir aos artistas da YG Entertainment.",
+          "RORA é uma vocalista sul-coreana do BABYMONSTER, nascida em Gangneung. Sua conexão com o mundo artístico começou ainda na infância, quando participou de projetos de entretenimento infantil antes de entrar na YG. Atualmente, é reconhecida por seus vocais expressivos e por sua personalidade tranquila, mas confiante.",
 
-        earlyInterestTitle: "Inspirada pelos artistas da YG",
+        earlyInterestTitle: "Uma artista desde a infância",
         earlyInterest:
-          "RORA contou que ela, PHARITA e CHIQUITA amavam música desde pequenas. Assistir aos artistas da YG cantando e dançando ajudou a inspirar o sonho compartilhado de se tornarem performers.",
+          "Antes de ser conhecida como RORA, ela teve experiências como modelo e atriz infantil e integrou o grupo infantil U.SSO Girl com o nome artístico U.ha. Perfis públicos das integrantes também identificam Gangneung como sua cidade natal e mencionam que ela tem um irmão mais novo. Ao lado de PHARITA e CHIQUITA, ela contou que assistir aos artistas da YG se apresentando ajudou a inspirar seu sonho de se tornar cantora ainda pequena.",
 
-        ygJourneyTitle: "Sua trajetória na YG",
+        ygJourneyTitle: "Um lugar na formação final de sete",
         ygJourney:
-          "RORA continuou desenvolvendo suas habilidades musicais durante sua preparação na YG Entertainment e se tornou uma das sete integrantes selecionadas através do Last Evaluation. O Korea JoongAng Daily destacou seus vocais fortes e marcantes e sua expressão musical detalhada ao noticiar a formação pré-debut do grupo.",
+          "O vídeo oficial de apresentação de RORA pela YG incluiu imagens de sua audição e dos dias de treinamento. Durante o Last Evaluation, ela inicialmente não foi incluída entre as cinco primeiras integrantes selecionadas pela empresa. Após uma forte mobilização dos fãs em favor das sete trainees, a YG reconsiderou a decisão, e RORA e ASA foram adicionadas à formação final. A participação das duas ajudou a formar o grupo de sete integrantes que conhecemos hoje.",
 
-        offStageTitle: "Além dos palcos",
+        offStageTitle: "Piano, escola e momentos com as integrantes",
         offStage:
-          "Fora das apresentações, RORA se descreve como uma pessoa tranquila. Ela gosta de desenhar, assistir a filmes e programas de TV e descansar com as outras integrantes depois dos compromissos.",
+          "Os interesses musicais de RORA vão além do canto: perfis das integrantes apontam o piano como uma de suas especialidades. Em entrevista à ELLE Singapore, ela descreveu a rotina em uma escola de artes, onde suas amigas tocavam instrumentos como bateria e piano e compartilhavam conhecimentos. Também comentou que gostaria de aprender violão e que fazer refeições com as outras integrantes está entre seus momentos mais felizes.",
 
-        highlightsTitle: "Destaques da carreira",
+        highlightsTitle: "De artista infantil a vocalista",
         highlights: [
-          "Reconhecida por seus vocais fortes e marcantes durante o período pré-debut do grupo.",
-          "Selecionada como uma das sete integrantes através do Last Evaluation.",
-          "Compartilhou que assistir aos artistas da YG ajudou a inspirar seu sonho de se tornar artista.",
-          "Fez sua estreia oficial com sete integrantes no álbum BABYMONS7ER, em 1º de abril de 2024.",
+          "Teve experiências anteriores no entretenimento infantil, incluindo a participação no grupo U.SSO Girl com o nome U.ha.",
+          "Foi uma das duas trainees adicionadas à formação final de sete integrantes depois que os fãs demonstraram forte apoio às sete candidatas.",
+          "Seus vocais expressivos e marcantes foram destacados pelo Korea JoongAng Daily durante o período pré-debut do grupo.",
+          "Já compartilhou o interesse em aprender outros instrumentos, especialmente violão, além de sua experiência com piano.",
         ],
 
-        sources: [
-          {
-            label: "Perfil oficial da YG",
-            url: officialYG,
-          },
-          {
-            label: "Korea JoongAng Daily - Formação do BABYMONSTER",
-            url: joongAngArticle,
-          },
-          {
-            label: "Entrevista à CNN Brasil",
-            url: cnnInterview,
-          },
-          {
-            label: "Entrevista à Sweety High",
-            url: sweetyInterview,
-          },
-          {
-            label: "Entrevista à Vogue Hong Kong",
-            url: vogueInterview,
-          },
-        ],
+        sources: roraSources["pt-BR"],
       },
     },
   },
+
+  // ====================================================
+  // CHIQUITA
+  // ====================================================
 
   {
     slug: "chiquita",
     name: "CHIQUITA",
     number: "07",
     birthday: "2009-02-17",
+
     nationality: {
       en: "Thai",
       "pt-BR": "Tailandesa",
     },
+
     gradient: "from-fuchsia-950 via-purple-900 to-black",
 
     bio: {
       en: {
         intro:
-          "CHIQUITA is the Thai youngest member of BABYMONSTER. Her love for music began at a young age, and she has shared how watching YG artists helped inspire her dream of becoming a performer.",
+          "CHIQUITA is BABYMONSTER's youngest member, known for her expressive performances and bright personality. Born in Nakhon Ratchasima, Thailand, she became part of the group's story after an unusually short trainee period. Her development and confidence attracted attention from the very beginning of the project.",
 
-        earlyInterestTitle: "A dream inspired by music",
+        earlyInterestTitle: "A young talent from Thailand",
         earlyInterest:
-          "CHIQUITA shared that she, PHARITA and RORA loved music from a young age and dreamed of becoming artists while watching YG performers. She has also described how exciting it felt to perform in front of an audience and later see fans cheering for the group.",
+          "CHIQUITA was born in Nakhon Ratchasima, Thailand. Public member profiles identify her as the younger sister of Copper, a member of the Thai boy group BUS. Alongside PHARITA and RORA, she has shared that watching YG artists perform helped inspire her dream of becoming an artist while she was still young.",
 
-        ygJourneyTitle: "Becoming a BABYMONSTER member",
+        ygJourneyTitle: "Only three months before joining the project",
         ygJourney:
-          "CHIQUITA was the first member publicly introduced for the BABYMONSTER project. She later took part in Last Evaluation and was selected for the final seven-member lineup. Her path from Thailand to the YG project became part of the group's pre-debut story.",
+          "CHIQUITA joined the BABYMONSTER project after only three months of training at YG, making her the member with the shortest initial training period. YG producer Yang Hyun Suk described her as fearless and said that her first monthly evaluation immediately caught his attention. The company also highlighted her clear high notes and the rapid development of her own vocal style.",
 
-        offStageTitle: "Beyond the stage",
+        offStageTitle: "Collectibles, plushies and little joys",
         offStage:
-          "CHIQUITA describes herself as someone who loves having fun and making people laugh. She enjoys joking around with the other members. She has also shared that she likes drawing and ordering delicious food with the members during their free time.",
+          "In a 2026 interview with Vogue Hong Kong, CHIQUITA revealed that she enjoys collecting designer toys, figures and blind-box collectibles. She explained that opening them is exciting and helps her relax. Member profiles also mention her love of plushies, bright colors and food such as ramen, offering a playful contrast to her powerful stage performances.",
 
-        highlightsTitle: "Career highlights",
+        highlightsTitle: "The youngest with a fast start",
         highlights: [
-          "Was the first member publicly introduced for the BABYMONSTER project.",
+          "Joined the BABYMONSTER project after only three months of YG training, the shortest initial training period among the members.",
+          "YG highlighted her fearlessness during her first monthly evaluation and her clear high notes.",
           "Became the youngest member of the final seven-member lineup.",
-          "Selected through Last Evaluation alongside the other six members.",
-          "Made her official seven-member debut with BABYMONS7ER on April 1, 2024.",
+          "Her interest in collecting designer toys and blind-box figures was shared directly in a 2026 Vogue Hong Kong interview.",
         ],
 
-        sources: [
-          {
-            label: "YG Official Profile",
-            url: officialYG,
-          },
-          {
-            label: "Korea JoongAng Daily - BABYMONSTER Lineup",
-            url: joongAngArticle,
-          },
-          {
-            label: "CNN Brasil Interview",
-            url: cnnInterview,
-          },
-          {
-            label: "Sweety High Interview",
-            url: sweetyInterview,
-          },
-          {
-            label: "Vogue Hong Kong Interview",
-            url: vogueInterview,
-          },
-        ],
+        sources: chiquitaSources.en,
       },
 
       "pt-BR": {
         intro:
-          "CHIQUITA é a integrante mais jovem e tailandesa do BABYMONSTER. Seu amor pela música começou ainda cedo, e ela já contou como assistir aos artistas da YG ajudou a inspirar seu sonho de se tornar performer.",
+          "CHIQUITA é a integrante mais jovem do BABYMONSTER, conhecida por suas apresentações expressivas e personalidade alegre. Nascida em Nakhon Ratchasima, na Tailândia, passou a fazer parte da história do grupo após um período de treinamento inicial bastante curto. Seu desenvolvimento e sua confiança chamaram a atenção desde o início do projeto.",
 
-        earlyInterestTitle: "Um sonho inspirado pela música",
+        earlyInterestTitle: "Um talento jovem da Tailândia",
         earlyInterest:
-          "CHIQUITA contou que ela, PHARITA e RORA amavam música desde pequenas e sonhavam em se tornar artistas enquanto assistiam às apresentações de artistas da YG. Ela também já comentou sobre como foi emocionante se apresentar para o público e depois ver os fãs torcendo pelo grupo.",
+          "CHIQUITA nasceu em Nakhon Ratchasima, na Tailândia. Perfis públicos das integrantes a identificam como irmã mais nova de Copper, integrante do grupo masculino tailandês BUS. Ao lado de PHARITA e RORA, ela contou que assistir aos artistas da YG se apresentando ajudou a inspirar seu sonho de se tornar artista ainda pequena.",
 
-        ygJourneyTitle: "Tornando-se integrante do BABYMONSTER",
+        ygJourneyTitle: "Apenas três meses antes de entrar no projeto",
         ygJourney:
-          "CHIQUITA foi a primeira integrante apresentada publicamente no projeto BABYMONSTER. Posteriormente, participou do Last Evaluation e foi selecionada para a formação final de sete integrantes. Sua trajetória da Tailândia até o projeto da YG tornou-se parte da história pré-debut do grupo.",
+          "CHIQUITA entrou no projeto BABYMONSTER após apenas três meses de treinamento na YG, tornando-se a integrante com o menor período inicial de preparação. O produtor da YG, Yang Hyun Suk, descreveu sua personalidade como destemida e contou que sua primeira avaliação mensal chamou imediatamente sua atenção. A empresa também destacou seus agudos claros e o rápido desenvolvimento de seu próprio estilo vocal.",
 
-        offStageTitle: "Além dos palcos",
+        offStageTitle: "Colecionáveis, pelúcias e pequenas alegrias",
         offStage:
-          "CHIQUITA se descreve como alguém que gosta de se divertir e fazer as pessoas rirem. Ela adora brincar com as outras integrantes. Também já compartilhou que gosta de desenhar e pedir comidas gostosas com as meninas durante o tempo livre.",
+          "Em uma entrevista de 2026 à Vogue Hong Kong, CHIQUITA revelou que gosta de colecionar brinquedos de design, figuras e itens de caixas-surpresa. Ela explicou que abrir essas embalagens é emocionante e a ajuda a relaxar. Perfis das integrantes também mencionam seu carinho por pelúcias, cores vibrantes e comidas como ramen, mostrando um contraste divertido com suas apresentações poderosas nos palcos.",
 
-        highlightsTitle: "Destaques da carreira",
+        highlightsTitle: "A mais jovem com uma trajetória rápida",
         highlights: [
-          "Foi a primeira integrante apresentada publicamente no projeto BABYMONSTER.",
-          "Tornou-se a integrante mais jovem da formação final de sete integrantes.",
-          "Foi selecionada através do Last Evaluation junto das outras seis integrantes.",
-          "Fez sua estreia oficial com sete integrantes no álbum BABYMONS7ER, em 1º de abril de 2024.",
+          "Entrou no projeto BABYMONSTER após apenas três meses de treinamento na YG, o menor período inicial de preparação entre as integrantes.",
+          "A YG destacou sua personalidade destemida durante a primeira avaliação mensal e seus agudos vocais bem definidos.",
+          "Tornou-se a integrante mais jovem da formação final de sete membros.",
+          "Seu interesse por brinquedos de design e figuras de caixas-surpresa foi compartilhado diretamente em uma entrevista de 2026 à Vogue Hong Kong.",
         ],
 
-        sources: [
-          {
-            label: "Perfil oficial da YG",
-            url: officialYG,
-          },
-          {
-            label: "Korea JoongAng Daily - Formação do BABYMONSTER",
-            url: joongAngArticle,
-          },
-          {
-            label: "Entrevista à CNN Brasil",
-            url: cnnInterview,
-          },
-          {
-            label: "Entrevista à Sweety High",
-            url: sweetyInterview,
-          },
-          {
-            label: "Entrevista à Vogue Hong Kong",
-            url: vogueInterview,
-          },
-        ],
+        sources: chiquitaSources["pt-BR"],
       },
     },
   },
