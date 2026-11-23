@@ -83,7 +83,6 @@ async function CollectionContent({ params }: PageProps) {
   const { locale, dictionary } = await getDictionary();
 
   const copy = dictionary.watch;
-  const videoCopy = dictionary.videoPage;
 
   const supabase = await createClient();
 
@@ -283,9 +282,11 @@ async function CollectionContent({ params }: PageProps) {
             collectionGradient={collectionGradient}
             locale={locale as Locale}
             allLabel={dictionary.home.filters.all}
-            noDescription={videoCopy.noDescription}
             videoDetails={copy.videoDetails}
             emptyEraMessage={emptyEraMessage}
+            sortLabel={copy.sortLabel}
+            newestFirst={copy.newestFirst}
+            oldestFirst={copy.oldestFirst}
           />
         ) : (
           <div className="mt-12 rounded-xl border border-white/10 bg-white/[0.03] px-6 py-20 text-center">
