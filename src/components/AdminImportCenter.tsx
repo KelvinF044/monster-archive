@@ -53,6 +53,15 @@ type Candidate = {
   youtubeUrl: string;
 };
 
+type CandidateClassification = {
+  collectionId: string;
+  eraId: string;
+  memberIds: string[];
+  confidence: number;
+  needsReview: boolean;
+  reason: string;
+};
+
 type Props = {
   initialSources: ImportSource[];
   collections: Collection[];
@@ -60,6 +69,7 @@ type Props = {
   members: Member[];
   apiConfigured: boolean;
   refreshConfigured: boolean;
+  smartImportConfigured: boolean;
 };
 
 function parsePlaylistId(value: string): string | null {
@@ -102,6 +112,7 @@ export default function AdminImportCenter({
   members,
   apiConfigured,
   refreshConfigured,
+  smartImportConfigured,
 }: Props) {
   const supabase = createClient();
   const t = useAdminText();
@@ -130,6 +141,10 @@ export default function AdminImportCenter({
   const [batchMemberIds, setBatchMemberIds] = useState<string[]>([]);
   const [savingDefaults, setSavingDefaults] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<
+    Record<string, CandidateClassification>
+  >({});
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -219,6 +234,7 @@ export default function AdminImportCenter({
     setBatchEraId(data.default_era_id ?? "");
     setCandidates([]);
     setSelectedIds([]);
+    setAiSuggestions({});
     setSuccess(t("Playlist registered. You can now scan its videos."));
     setSavingSource(false);
   }
@@ -306,6 +322,7 @@ export default function AdminImportCenter({
     setBatchEraId(source.default_era_id ?? "");
     setCandidates([]);
     setSelectedIds([]);
+    setAiSuggestions({});
     setNextPageToken(null);
     setTotalResults(null);
     setSearch("");
@@ -403,6 +420,101 @@ export default function AdminImportCenter({
     );
   }
 
+  function updateAiSuggestion(
+    videoId: string,
+    update: Partial<CandidateClassification>
+  ) {
+    setAiSuggestions((current) => ({
+      ...current,
+      [videoId]: {
+        ...current[videoId],
+        ...update,
+      },
+    }));
+  }
+
+  function toggleSuggestedMember(videoId: string, memberId: string) {
+    const current = aiSuggestions[videoId];
+    if (!current) return;
+
+    const memberIds = current.memberIds.includes(memberId)
+      ? current.memberIds.filter((id) => id !== memberId)
+      : [...current.memberIds, memberId];
+
+    updateAiSuggestion(videoId, { memberIds });
+  }
+
+  async function suggestSelected() {
+    if (!activeSource || selectedIds.length === 0) return;
+
+    if (!smartImportConfigured) {
+      setError(
+        t("Configure OPENAI_API_KEY in Vercel to activate Smart Import. The key must remain server-side.")
+      );
+      return;
+    }
+
+    if (selectedIds.length > 20) {
+      setError(t("Classify a maximum of 20 videos per batch."));
+      return;
+    }
+
+    clearMessages();
+    setSuggesting(true);
+
+    try {
+      const response = await fetch("/api/admin/import/suggest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceId: activeSource.id,
+          videoIds: selectedIds,
+          locale,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error ?? t("Smart Import could not classify this batch."));
+      }
+
+      const nextSuggestions: Record<string, CandidateClassification> = {};
+
+      for (const suggestion of result.suggestions ?? []) {
+        nextSuggestions[suggestion.videoId] = {
+          collectionId: suggestion.collectionId,
+          eraId: suggestion.eraId ?? "",
+          memberIds: suggestion.memberIds ?? [],
+          confidence: suggestion.confidence ?? 0,
+          needsReview: Boolean(suggestion.needsReview),
+          reason: suggestion.reason ?? "",
+        };
+      }
+
+      setAiSuggestions((current) => ({
+        ...current,
+        ...nextSuggestions,
+      }));
+
+      const needsReviewCount = Object.values(nextSuggestions).filter(
+        (suggestion) => suggestion.needsReview
+      ).length;
+
+      setSuccess(
+        `${Object.keys(nextSuggestions).length} ${t("videos classified by Smart Import. Review each suggestion before importing.")} ${needsReviewCount} ${t("require extra attention.")}`
+      );
+    } catch (suggestError) {
+      setError(
+        suggestError instanceof Error
+          ? suggestError.message
+          : t("Unexpected error while classifying the selected videos.")
+      );
+    } finally {
+      setSuggesting(false);
+    }
+  }
+
   async function importSelected() {
     if (!activeSource || selectedIds.length === 0) return;
 
@@ -413,8 +525,13 @@ export default function AdminImportCenter({
       return;
     }
 
-    if (!batchCollectionId) {
-      setError(t("Choose a collection for this batch."));
+    const hasMissingCollection = selectedIds.some((videoId) => {
+      const suggestion = aiSuggestions[videoId];
+      return !(suggestion?.collectionId || batchCollectionId);
+    });
+
+    if (hasMissingCollection) {
+      setError(t("Choose a collection for every selected video before importing."));
       return;
     }
 
@@ -433,9 +550,19 @@ export default function AdminImportCenter({
         body: JSON.stringify({
           sourceId: activeSource.id,
           videoIds: selectedIds,
-          collectionId: batchCollectionId,
+          collectionId: batchCollectionId || undefined,
           eraId: batchEraId || null,
           memberIds: batchMemberIds,
+          classifications: selectedIds.map((videoId) => {
+            const suggestion = aiSuggestions[videoId];
+
+            return {
+              videoId,
+              collectionId: suggestion?.collectionId || batchCollectionId,
+              eraId: suggestion ? suggestion.eraId || null : batchEraId || null,
+              memberIds: suggestion?.memberIds ?? batchMemberIds,
+            };
+          }),
         }),
       });
 
@@ -455,6 +582,11 @@ export default function AdminImportCenter({
         )
       );
       setSelectedIds([]);
+      setAiSuggestions((current) => {
+        const next = { ...current };
+        for (const videoId of imported) delete next[videoId];
+        return next;
+      });
 
       const summary = [
         `${result.importedCount ?? 0} importado(s) como rascunho`,
@@ -519,6 +651,15 @@ export default function AdminImportCenter({
           <p className="font-bold text-amber-200">{t("YouTube API not configured.")}</p>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
             {t("Add YOUTUBE_API_KEY to the server environment to query public playlists. Never send the key to the browser or publish it to GitHub.")}
+          </p>
+        </div>
+      )}
+
+      {apiConfigured && !smartImportConfigured && (
+        <div className="rounded-xl border border-purple-400/20 bg-purple-400/[0.05] p-5">
+          <p className="font-bold text-purple-200">{t("Smart Import AI is not configured yet.")}</p>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">
+            {t("Add OPENAI_API_KEY as a Secret in Vercel. Manual playlist review and import continue to work without this key.") }
           </p>
         </div>
       )}
@@ -844,72 +985,182 @@ export default function AdminImportCenter({
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredCandidates.map((candidate) => (
-                <label
-                  key={candidate.videoId}
-                  className={`flex flex-col gap-4 rounded-xl border p-4 transition sm:flex-row sm:items-center ${
-                    candidate.alreadyRegistered
-                      ? "border-white/5 bg-white/[0.01] opacity-60"
-                      : selectedIds.includes(candidate.videoId)
-                        ? "border-purple-400/40 bg-purple-500/[0.06]"
-                        : "border-white/10 bg-white/[0.02] hover:border-white/20"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(candidate.videoId)}
-                    disabled={candidate.alreadyRegistered}
-                    onChange={() => toggleCandidate(candidate.videoId)}
-                    className="h-4 w-4 shrink-0 accent-purple-500"
-                  />
-                  <img
-                    src={candidate.thumbnailUrl}
-                    alt=""
-                    loading="lazy"
-                    className="aspect-video w-full rounded-lg object-cover sm:w-40"
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold text-white">{candidate.title}</span>
-                      {candidate.alreadyRegistered && (
-                        <span className="rounded-full bg-green-500/10 px-2 py-1 text-[9px] font-bold text-green-400">
-                          {t("ALREADY IN ARCHIVE")}
-                        </span>
-                      )}
-                    </span>
-                    <span className="mt-2 block text-xs text-zinc-500">
-                      {candidate.channelTitle} · {t("Playlist position")} {candidate.position + 1}
-                    </span>
-                    <span className="mt-1 block text-xs text-zinc-600">
-                      {t("Added to playlist:")} {formatDate(candidate.playlistAddedAt, locale)}
-                    </span>
-                    <span className="mt-3 inline-block text-[10px] font-bold text-purple-300">
-                      {t("YOUTUBE · ORIGINAL VIDEO")}
-                    </span>
-                  </span>
-                  <a
-                    href={candidate.youtubeUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(event) => event.stopPropagation()}
-                    className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 hover:text-white"
+              {filteredCandidates.map((candidate) => {
+                const suggestion = aiSuggestions[candidate.videoId];
+
+                return (
+                  <div
+                    key={candidate.videoId}
+                    className={`flex flex-col gap-4 rounded-xl border p-4 transition sm:flex-row sm:items-start ${
+                      candidate.alreadyRegistered
+                        ? "border-white/5 bg-white/[0.01] opacity-60"
+                        : selectedIds.includes(candidate.videoId)
+                          ? "border-purple-400/40 bg-purple-500/[0.06]"
+                          : "border-white/10 bg-white/[0.02] hover:border-white/20"
+                    }`}
                   >
-                    {t("OPEN ↗")}
-                  </a>
-                </label>
-              ))}
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(candidate.videoId)}
+                      disabled={candidate.alreadyRegistered}
+                      onChange={() => toggleCandidate(candidate.videoId)}
+                      aria-label={t("Select video") + ": " + candidate.title}
+                      className="mt-1 h-4 w-4 shrink-0 accent-purple-500"
+                    />
+                    <img
+                      src={candidate.thumbnailUrl}
+                      alt=""
+                      loading="lazy"
+                      className="aspect-video w-full rounded-lg object-cover sm:w-40"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-bold text-white">{candidate.title}</p>
+                        {candidate.alreadyRegistered && (
+                          <span className="rounded-full bg-green-500/10 px-2 py-1 text-[9px] font-bold text-green-400">
+                            {t("ALREADY IN ARCHIVE")}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-2 text-xs text-zinc-500">
+                        {candidate.channelTitle} · {t("Playlist position")} {candidate.position + 1}
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-600">
+                        {t("Added to playlist:")} {formatDate(candidate.playlistAddedAt, locale)}
+                      </p>
+                      <p className="mt-3 inline-block text-[10px] font-bold text-purple-300">
+                        {t("YOUTUBE · ORIGINAL VIDEO")}
+                      </p>
+
+                      {suggestion && !candidate.alreadyRegistered && (
+                        <div className="mt-4 grid gap-3 rounded-xl border border-purple-400/20 bg-purple-400/[0.04] p-4 md:grid-cols-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2 md:col-span-2">
+                            <span className="text-[10px] font-black tracking-widest text-purple-300">
+                              {t("SMART IMPORT SUGGESTION")}
+                            </span>
+                            <span className={`rounded-full px-2.5 py-1 text-[9px] font-bold ${
+                              suggestion.confidence >= 80 && !suggestion.needsReview
+                                ? "bg-green-500/10 text-green-300"
+                                : "bg-amber-500/10 text-amber-300"
+                            }`}>
+                              {suggestion.confidence}% · {suggestion.needsReview ? t("REVIEW") : t("GOOD MATCH")}
+                            </span>
+                          </div>
+
+                          <label className="block text-[10px] font-bold tracking-widest text-zinc-400">
+                            {t("SUGGESTED COLLECTION")}
+                            <select
+                              value={suggestion.collectionId}
+                              onChange={(event) =>
+                                updateAiSuggestion(candidate.videoId, {
+                                  collectionId: event.target.value,
+                                })
+                              }
+                              className="mt-2 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2.5 text-xs text-white outline-none focus:border-purple-400"
+                            >
+                              {collections.map((collection) => (
+                                <option key={collection.id} value={collection.id}>
+                                  {collection.title} · {collection.category}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <label className="block text-[10px] font-bold tracking-widest text-zinc-400">
+                            {t("SUGGESTED ERA")}
+                            <select
+                              value={suggestion.eraId}
+                              onChange={(event) =>
+                                updateAiSuggestion(candidate.videoId, {
+                                  eraId: event.target.value,
+                                })
+                              }
+                              className="mt-2 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2.5 text-xs text-white outline-none focus:border-purple-400"
+                            >
+                              <option value="">{t("No era")}</option>
+                              {eras.filter((era) => era.is_active).map((era) => (
+                                <option key={era.id} value={era.id}>{era.name}</option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <div className="md:col-span-2">
+                            <p className="mb-2 text-[10px] font-bold tracking-widest text-zinc-400">
+                              {t("SUGGESTED MEMBERS")}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {members.map((member) => {
+                                const checked = suggestion.memberIds.includes(member.id);
+                                return (
+                                  <label
+                                    key={member.id}
+                                    className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-2 text-[10px] transition ${
+                                      checked
+                                        ? "border-purple-400/50 bg-purple-500/15 text-white"
+                                        : "border-white/10 bg-black/20 text-zinc-500 hover:text-white"
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => toggleSuggestedMember(candidate.videoId, member.id)}
+                                      className="accent-purple-500"
+                                    />
+                                    {member.name}
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <p className="text-xs leading-5 text-zinc-400 md:col-span-2">
+                            <span className="font-bold text-zinc-300">{t("Why this suggestion:")}</span>{" "}
+                            {suggestion.reason}
+                          </p>
+
+                          {suggestion.needsReview && (
+                            <p className="text-[10px] font-semibold text-amber-300 md:col-span-2">
+                              {t("Low confidence or ambiguous metadata. Confirm the classification manually before importing.")}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <a
+                      href={candidate.youtubeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-[10px] font-bold text-zinc-400 hover:text-white"
+                    >
+                      {t("OPEN ↗")}
+                    </a>
+                  </div>
+                );
+              })}
             </div>
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={toggleAllVisible}
-              disabled={availableCandidates.length === 0}
-              className="text-xs font-bold text-zinc-400 hover:text-white disabled:opacity-40"
-            >
-              {t("SELECT / DESELECT VISIBLE")}
-            </button>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={toggleAllVisible}
+                disabled={availableCandidates.length === 0}
+                className="text-xs font-bold text-zinc-400 hover:text-white disabled:opacity-40"
+              >
+                {t("SELECT / DESELECT VISIBLE")}
+              </button>
+              {selectedCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void suggestSelected()}
+                  disabled={suggesting || !smartImportConfigured || selectedCount > 20}
+                  className="rounded-lg border border-purple-400/40 bg-purple-500/10 px-4 py-2.5 text-[10px] font-black text-purple-200 transition hover:bg-purple-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {suggesting ? t("ANALYZING WITH AI...") : t("SMART IMPORT · SUGGEST CLASSIFICATION")}
+                </button>
+              )}
+            </div>
 
             {nextPageToken && (
               <button
@@ -928,6 +1179,10 @@ export default function AdminImportCenter({
               <p className="font-black">{selectedCount} {t("VIDEO(S) SELECTED")}</p>
               <p className="mt-1 text-[10px] text-zinc-500">
                 {t("Batch import · drafts · manual review before publication.")}
+                {" "}
+                {Object.keys(aiSuggestions).length > 0
+                  ? `${Object.keys(aiSuggestions).length} ${t("AI suggestions ready to review")}`
+                  : ""}
               </p>
             </div>
             <button
@@ -937,7 +1192,7 @@ export default function AdminImportCenter({
                 importing ||
                 selectedCount === 0 ||
                 selectedCount > 20 ||
-                !batchCollectionId ||
+                (!batchCollectionId && selectedIds.some((videoId) => !aiSuggestions[videoId]?.collectionId)) ||
                 !refreshConfigured
               }
               className="rounded-lg bg-purple-500 px-5 py-3 text-xs font-black text-white transition hover:bg-purple-400 disabled:cursor-not-allowed disabled:opacity-40"

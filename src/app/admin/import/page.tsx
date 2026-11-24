@@ -111,6 +111,7 @@ export default async function AdminImportPage() {
             eras={erasResult.data ?? []}
             members={membersResult.data ?? []}
             apiConfigured={Boolean(process.env.YOUTUBE_API_KEY)}
+            smartImportConfigured={Boolean(process.env.OPENAI_API_KEY)}
             refreshConfigured={
               Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) &&
               Boolean(process.env.CRON_SECRET)

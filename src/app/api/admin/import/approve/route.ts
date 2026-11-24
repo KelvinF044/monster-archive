@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { requireActiveAdmin } from "@/lib/admin/requireActiveAdmin";
 
+type VideoClassification = {
+  videoId?: string;
+  collectionId?: string;
+  eraId?: string | null;
+  memberIds?: string[];
+};
 
 type RequestBody = {
   sourceId?: string;
@@ -9,6 +15,7 @@ type RequestBody = {
   collectionId?: string;
   eraId?: string | null;
   memberIds?: string[];
+  classifications?: VideoClassification[];
 };
 
 type YouTubeVideo = {
@@ -21,6 +28,13 @@ type YouTubeVideo = {
   status?: {
     privacyStatus?: string;
   };
+};
+
+type ResolvedClassification = {
+  videoId: string;
+  collectionId: string;
+  eraId: string | null;
+  memberIds: string[];
 };
 
 function createSlug(videoId: string) {
@@ -91,25 +105,93 @@ export async function POST(request: NextRequest) {
   const videoIds = Array.isArray(body.videoIds)
     ? Array.from(new Set(body.videoIds))
     : [];
-  const collectionId = body.collectionId;
-  const eraId = body.eraId || null;
-  const memberIds = Array.isArray(body.memberIds)
+  const fallbackCollectionId = body.collectionId || "";
+  const fallbackEraId = body.eraId || null;
+  const fallbackMemberIds = Array.isArray(body.memberIds)
     ? Array.from(new Set(body.memberIds))
     : [];
 
-  if (!sourceId || !collectionId || videoIds.length === 0 || videoIds.length > 20) {
+  const hasPerVideoClassifications =
+    Array.isArray(body.classifications) && body.classifications.length > 0;
+  const classificationsById = new Map<string, VideoClassification>();
+
+  if (hasPerVideoClassifications) {
+    for (const classification of body.classifications ?? []) {
+      if (
+        !classification ||
+        typeof classification.videoId !== "string" ||
+        classificationsById.has(classification.videoId)
+      ) {
+        return NextResponse.json(
+          { error: "The per-video classification list is invalid." },
+          { status: 400 }
+        );
+      }
+      classificationsById.set(classification.videoId, classification);
+    }
+  }
+
+  if (
+    !sourceId ||
+    videoIds.length === 0 ||
+    videoIds.length > 20 ||
+    (hasPerVideoClassifications &&
+      classificationsById.size !== videoIds.length) ||
+    (!hasPerVideoClassifications && !fallbackCollectionId)
+  ) {
     return NextResponse.json(
-      { error: "Choose a source, a collection and between 1 and 20 videos." },
+      {
+        error:
+          "Choose a source, a classification for every video and between 1 and 20 videos.",
+      },
       { status: 400 }
     );
   }
 
   if (
     videoIds.some((id) => !/^[A-Za-z0-9_-]{11}$/.test(id)) ||
-    memberIds.length > 7
+    fallbackMemberIds.length > 7
   ) {
     return NextResponse.json(
       { error: "One or more selected identifiers are invalid." },
+      { status: 400 }
+    );
+  }
+
+  const requestedIds = new Set(videoIds);
+  if (
+    hasPerVideoClassifications &&
+    Array.from(classificationsById.keys()).some((id) => !requestedIds.has(id))
+  ) {
+    return NextResponse.json(
+      { error: "A classification references a video outside this batch." },
+      { status: 400 }
+    );
+  }
+
+  const assignments: ResolvedClassification[] = videoIds.map((videoId) => {
+    const suggested = classificationsById.get(videoId);
+    const memberIds = Array.isArray(suggested?.memberIds)
+      ? Array.from(new Set(suggested.memberIds))
+      : fallbackMemberIds;
+
+    return {
+      videoId,
+      collectionId: suggested?.collectionId || fallbackCollectionId,
+      eraId: suggested?.eraId || fallbackEraId,
+      memberIds,
+    };
+  });
+
+  if (
+    assignments.some(
+      (assignment) =>
+        !assignment.collectionId ||
+        assignment.memberIds.length > 7
+    )
+  ) {
+    return NextResponse.json(
+      { error: "Each video must have one active collection and valid members." },
       { status: 400 }
     );
   }
@@ -128,22 +210,34 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const [collectionResult, eraResult, membersResult] = await Promise.all([
+  const collectionIds = Array.from(
+    new Set(assignments.map((assignment) => assignment.collectionId))
+  );
+  const eraIds = Array.from(
+    new Set(
+      assignments
+        .map((assignment) => assignment.eraId)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+  const memberIds = Array.from(
+    new Set(assignments.flatMap((assignment) => assignment.memberIds))
+  );
+
+  const [collectionsResult, erasResult, membersResult] = await Promise.all([
     admin.supabase
       .from("watch_collections")
       .select("id")
-      .eq("id", collectionId)
       .eq("is_active", true)
-      .maybeSingle(),
+      .in("id", collectionIds),
 
-    eraId
+    eraIds.length > 0
       ? admin.supabase
           .from("watch_eras")
           .select("id, name")
-          .eq("id", eraId)
           .eq("is_active", true)
-          .maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
+          .in("id", eraIds)
+      : Promise.resolve({ data: [], error: null }),
 
     memberIds.length > 0
       ? admin.supabase
@@ -154,26 +248,36 @@ export async function POST(request: NextRequest) {
       : Promise.resolve({ data: [], error: null }),
   ]);
 
-  if (collectionResult.error || !collectionResult.data) {
+  if (
+    collectionsResult.error ||
+    (collectionsResult.data?.length ?? 0) !== collectionIds.length
+  ) {
     return NextResponse.json(
-      { error: collectionResult.error?.message ?? "Select an active collection." },
+      { error: collectionsResult.error?.message ?? "One or more collections are inactive or unavailable." },
       { status: 400 }
     );
   }
 
-  if (eraId && (eraResult.error || !eraResult.data)) {
+  if (erasResult.error || (erasResult.data?.length ?? 0) !== eraIds.length) {
     return NextResponse.json(
-      { error: eraResult.error?.message ?? "The selected era is inactive or unavailable." },
+      { error: erasResult.error?.message ?? "One or more selected eras are inactive or unavailable." },
       { status: 400 }
     );
   }
 
-  if (membersResult.error || (membersResult.data?.length ?? 0) !== memberIds.length) {
+  if (
+    membersResult.error ||
+    (membersResult.data?.length ?? 0) !== memberIds.length
+  ) {
     return NextResponse.json(
       { error: membersResult.error?.message ?? "One or more selected members are inactive or unavailable." },
       { status: 400 }
     );
   }
+
+  const eraNames = new Map(
+    (erasResult.data ?? []).map((era) => [era.id, era.name])
+  );
 
   const params = new URLSearchParams({
     part: "snippet,status",
@@ -248,9 +352,20 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
+    const assignment = assignments.find((item) => item.videoId === video.id);
+    if (!assignment) {
+      failed.push({
+        videoId: video.id,
+        reason: "No classification was found for this video.",
+      });
+      continue;
+    }
+
     const title = (video.snippet?.title ?? "Untitled YouTube video").trim();
     const description = (video.snippet?.description ?? "").slice(0, 3000);
-    const eraName = eraResult.data?.name ?? null;
+    const eraName = assignment.eraId
+      ? eraNames.get(assignment.eraId) ?? null
+      : null;
 
     const { data: createdVideo, error: createError } = await admin.supabase
       .from("watch_videos")
@@ -265,7 +380,7 @@ export async function POST(request: NextRequest) {
         status: "draft",
         is_featured: false,
         era: eraName,
-        era_id: eraId,
+        era_id: assignment.eraId,
         metadata_source: "youtube_api",
         youtube_metadata_refreshed_at: now,
         import_source_id: source.id,
@@ -285,7 +400,7 @@ export async function POST(request: NextRequest) {
       .from("watch_video_collections")
       .insert({
         video_id: createdVideo.id,
-        collection_id: collectionId,
+        collection_id: assignment.collectionId,
         display_order: 0,
       });
 
@@ -299,11 +414,11 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    if (memberIds.length > 0) {
+    if (assignment.memberIds.length > 0) {
       const { error: memberLinkError } = await admin.supabase
         .from("watch_video_members")
         .insert(
-          memberIds.map((memberId) => ({
+          assignment.memberIds.map((memberId) => ({
             video_id: createdVideo.id,
             member_id: memberId,
           }))
