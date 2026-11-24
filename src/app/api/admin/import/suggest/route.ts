@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { requireActiveAdmin } from "@/lib/admin/requireActiveAdmin";
 
+export const maxDuration = 60;
+
 type RequestBody = {
   sourceId?: unknown;
   videoIds?: unknown;
