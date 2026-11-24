@@ -403,7 +403,7 @@ const ptBR: Record<string, string> = {
   "Could not publish selected videos. Try again.": "Não foi possível publicar os vídeos selecionados. Tente novamente.",
   "No videos were published. Refresh the list and try again.": "Nenhum vídeo foi publicado. Atualize a lista e tente novamente.",
   "videos published successfully.": "vídeos publicados com sucesso.",
-  "were skipped because they were no longer drafts.": "foram ignorados porque não eram mais rascunhos."
+  "were skipped because they were no longer drafts.": "foram ignorados porque não eram mais rascunhos.",
   "Configure OPENAI_API_KEY in Vercel to activate Smart Import. The key must remain server-side.": "Configure OPENAI_API_KEY na Vercel para ativar o Smart Import. A chave deve permanecer apenas no servidor.",
   "Classify a maximum of 20 videos per batch.": "Classifique no máximo 20 vídeos por lote.",
   "Smart Import could not classify this batch.": "O Smart Import não conseguiu classificar este lote.",
