@@ -423,6 +423,8 @@ const ptBR: Record<string, string> = {
   "SMART IMPORT · SUGGEST CLASSIFICATION": "SMART IMPORT · SUGERIR CLASSIFICAÇÃO",
   "ANALYZING WITH AI...": "ANALISANDO COM IA...",
   "AI suggestions ready to review": "sugestões da IA prontas para revisão",
+  "Unexpected error while classifying the selected videos.": "Ocorreu um erro inesperado ao classificar os vídeos selecionados.",
+  "Choose a collection for every selected video before importing.": "Escolha uma coleção para cada vídeo selecionado antes de importar.",
 };
 
 export function translateAdminText(locale: Locale, source: string): string {
