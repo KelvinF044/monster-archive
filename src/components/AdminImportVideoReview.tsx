@@ -1,15 +1,12 @@
 "use client";
 
-import { useState } from "react";
-
-import { useAdminLocale } from "@/components/AdminLocaleProvider";
 import { useAdminText } from "@/components/useAdminText";
+import AdminImportSuggestionPanel from "@/components/AdminImportSuggestionPanel";
 import {
-  EDITORIAL_NOTE_LIMIT,
+  applyImportSuggestion,
   resolveImportClassification,
   type BatchClassification,
   type ImportReviewOverride,
-  type ImportSuggestion,
 } from "@/lib/admin/import/review";
 
 type Option = { id: string; name: string };
@@ -36,70 +33,14 @@ export default function AdminImportVideoReview({
   disabled, aiEnabled, onChange,
 }: Props) {
   const t = useAdminText();
-  const { locale } = useAdminLocale();
-  const [note, setNote] = useState("");
-  const [suggestion, setSuggestion] = useState<ImportSuggestion | null>(null);
-  const [suggesting, setSuggesting] = useState(false);
-  const [suggestionMessage, setSuggestionMessage] = useState("");
-
   const current = resolveImportClassification(batch, override);
   const collection = collections.find((item) => item.id === current.collectionId);
-  const suggestedCollection = collections.find((item) => item.id === suggestion?.collectionId);
-  const suggestedEra = eras.find((item) => item.id === suggestion?.eraId);
-  const suggestedMembers = suggestion
-    ? members.filter((item) => suggestion.memberIds.includes(item.id))
-    : [];
-  const applyCollection = override.collectionId === undefined ? suggestedCollection : undefined;
-  const applyEra = override.eraId === undefined ? suggestedEra : undefined;
-  const applyMembers = override.memberIds === undefined && suggestedMembers.length > 0;
-  const canApply = Boolean(applyCollection || applyEra || applyMembers);
+  const currentEra = eras.find(item => item.id === current.eraId);
+  const currentMembers = members.filter(item => current.memberIds.includes(item.id));
   const hasManualOverride = Object.keys(override).length > 0;
 
-  async function suggestClassification() {
-    if (!note.trim() || suggesting) return;
-
-    setSuggesting(true);
-    setSuggestion(null);
-    setSuggestionMessage("");
-    try {
-      const response = await fetch("/api/admin/import/suggest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ videoId, sourceId, note: note.trim(), locale }),
-      });
-      const result = await response.json();
-
-      if (!response.ok) {
-        setSuggestionMessage(result.error ?? "Suggestions are unavailable. You can finish the review manually.");
-        return;
-      }
-
-      setSuggestion(result.suggestion);
-    } catch {
-      setSuggestionMessage("Suggestions are unavailable. You can finish the review manually.");
-    } finally {
-      setSuggesting(false);
-    }
-  }
-
-  function applySuggestion() {
-    if (!canApply) return;
-
-    onChange({
-      ...override,
-      collectionId: applyCollection?.id ?? override.collectionId,
-      eraId: applyEra?.id ?? override.eraId,
-      memberIds: applyMembers ? suggestedMembers.map((member) => member.id) : override.memberIds,
-      confirmedMvCollectionId: applyCollection && applyCollection.id !== current.collectionId
-        ? undefined
-        : override.confirmedMvCollectionId,
-    });
-    setSuggestion(null);
-    setSuggestionMessage("Suggestion applied. Review the classification before importing.");
-  }
-
   return (
-    <details className="rounded-lg border border-white/10 bg-black/20">
+    <details open={aiEnabled || undefined} className="rounded-lg border border-white/10 bg-black/20">
       <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-white">
         {title}
         <span className="mt-1 block text-xs font-normal text-zinc-400">
@@ -108,6 +49,9 @@ export default function AdminImportVideoReview({
           {collection?.category === "MV" && !current.officialMvConfirmed && (
             <span className="text-amber-300"> · {t("Official MV confirmation required")}</span>
           )}
+        </span>
+        <span className="mt-1 block text-xs font-normal text-zinc-500">
+          {t("Era")}: {currentEra?.name ?? t("No era")} · {t("Participating members")}: {currentMembers.map(member => member.name).join(", ") || "—"}
         </span>
       </summary>
 
@@ -190,56 +134,17 @@ export default function AdminImportVideoReview({
           </button>
         )}
 
-        {aiEnabled && (
-          <div className="space-y-3 border-t border-white/10 pt-4">
-            <label className="block space-y-1 text-xs text-zinc-300">
-              <span>{t("Editorial note for this video")}</span>
-              <textarea
-                value={note}
-                onChange={(event) => {
-                  setNote(event.target.value);
-                  setSuggestion(null);
-                  setSuggestionMessage("");
-                }}
-                maxLength={EDITORIAL_NOTE_LIMIT}
-                rows={2}
-                disabled={suggesting}
-                placeholder={t("Describe what you verified in your own words.")}
-                className={selectClass}
-              />
-            </label>
-            <button
-              type="button"
-              disabled={!note.trim() || suggesting}
-              onClick={() => void suggestClassification()}
-              className="rounded-lg border border-purple-400/40 px-3 py-2 text-xs font-bold text-purple-300 hover:text-white disabled:opacity-40"
-            >
-              {suggesting ? t("Getting suggestion…") : t("Suggest classification")}
-            </button>
-            {suggestionMessage && (
-              <p role="status" className="text-xs text-zinc-300">{t(suggestionMessage)}</p>
-            )}
-            {suggestion && (
-              <div role="status" className="space-y-2 rounded-lg bg-purple-500/10 p-3 text-xs text-zinc-200">
-                <p className="font-bold text-purple-200">{t("AI suggestion")}</p>
-                {suggestedCollection && <p>{t("Collection")} · {suggestedCollection.title}</p>}
-                {suggestedEra && <p>{t("Era")} · {suggestedEra.name}</p>}
-                {suggestedMembers.length > 0 && (
-                  <p>{t("Participating members")} · {suggestedMembers.map((member) => member.name).join(", ")}</p>
-                )}
-                {(!suggestedCollection || !suggestedEra || !suggestedMembers.length) && (
-                  <p className="text-amber-200">{t("Some fields have insufficient evidence. Review them manually.")}</p>
-                )}
-                {suggestion.reason && <p>{suggestion.reason}</p>}
-                {canApply && (
-                  <button type="button" onClick={applySuggestion} className="font-bold text-purple-300 hover:text-white">
-                    {t("Apply to fields without individual edits")}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+        {aiEnabled && <AdminImportSuggestionPanel
+          key={JSON.stringify([sourceId, videoId])}
+          videoIds={[videoId]}
+          sourceId={sourceId}
+          collections={collections}
+          eras={eras}
+          members={members}
+          disabled={disabled}
+          canApply={suggestion => applyImportSuggestion(batch, override, suggestion) !== override}
+          onApply={suggestion => onChange(applyImportSuggestion(batch, override, suggestion))}
+        />}
       </fieldset>
     </details>
   );

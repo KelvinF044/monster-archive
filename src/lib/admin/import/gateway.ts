@@ -26,7 +26,8 @@ export async function suggestImportClassification(
   config: NonNullable<ReturnType<typeof getImportGatewayConfig>>,
   taxonomy: ImportGatewayTaxonomy,
   note: string,
-  locale: "pt-BR" | "en"
+  locale: "pt-BR" | "en",
+  scope: "single" | "batch" = "single",
 ) {
   const started = Date.now();
   const response = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {
@@ -37,7 +38,7 @@ export async function suggestImportClassification(
     },
     cache: "no-store",
     signal: AbortSignal.timeout(12000),
-    body: JSON.stringify(createImportGatewayRequest(config.model, taxonomy, note, locale)),
+    body: JSON.stringify(createImportGatewayRequest(config.model, taxonomy, note, locale, scope)),
   });
 
   if (!response.ok) {
@@ -54,6 +55,7 @@ export async function suggestImportClassification(
   const { suggestion, kind } = decodeImportGatewayResponse(result, taxonomy);
   console.info("Smart Import generation", {
     model: config.model,
+    scope,
     inputTokens: result?.usage?.prompt_tokens,
     outputTokens: result?.usage?.completion_tokens,
     durationMs: Date.now() - started,

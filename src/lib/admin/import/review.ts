@@ -40,8 +40,76 @@ export type ImportSuggestion = {
   reason: string;
 };
 
+/** Suggestions fill only fields without an explicit individual override. */
+export function applyImportSuggestion(
+  batch: BatchClassification,
+  override: ImportReviewOverride,
+  suggestion: ImportSuggestion,
+): ImportReviewOverride {
+  const next = { ...override };
+  let applied = false;
+  if (override.collectionId === undefined && suggestion.collectionId) {
+    next.collectionId = suggestion.collectionId;
+    if (suggestion.collectionId !== resolveImportClassification(batch, override).collectionId) {
+      delete next.confirmedMvCollectionId;
+    }
+    applied = true;
+  }
+  if (override.eraId === undefined && suggestion.eraId) {
+    next.eraId = suggestion.eraId;
+    applied = true;
+  }
+  if (override.memberIds === undefined && suggestion.memberIds.length > 0) {
+    next.memberIds = [...suggestion.memberIds];
+    applied = true;
+  }
+  return applied ? next : override;
+}
+
+export function applyImportSuggestionToBatch(
+  batch: BatchClassification,
+  overrides: Record<string, ImportReviewOverride>,
+  videoIds: readonly string[],
+  suggestion: ImportSuggestion,
+) {
+  let next = overrides;
+  for (const videoId of videoIds) {
+    const original = overrides[videoId] ?? {};
+    const updated = applyImportSuggestion(batch, original, suggestion);
+    if (updated !== original) {
+      if (next === overrides) next = { ...overrides };
+      next[videoId] = updated;
+    }
+  }
+  return next;
+}
+
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function parseImportSuggestionRequest(body: unknown): {
+  sourceId: string;
+  videoIds: string[];
+  note: string;
+  locale: "en" | "pt-BR";
+  scope: "single" | "batch";
+} | null {
+  if (!isRecord(body)) return null;
+  const { sourceId, videoId, videoIds, note, locale } = body;
+  if (typeof sourceId !== "string" || !uuidPattern.test(sourceId) ||
+      typeof note !== "string" || !note.trim() || note.length > EDITORIAL_NOTE_LIMIT ||
+      (locale !== "en" && locale !== "pt-BR")) return null;
+
+  const shared = videoIds !== undefined;
+  const ids = shared ? videoIds : [videoId];
+  if ((shared && videoId !== undefined) ||
+      !Array.isArray(ids) || ids.length < (shared ? 2 : 1) ||
+      ids.length > IMPORT_BATCH_LIMIT ||
+      ids.some(id => typeof id !== "string" || !youtubeVideoIdPattern.test(id)) ||
+      new Set(ids).size !== ids.length) return null;
+
+  return { sourceId, videoIds: ids as string[], note: note.trim(), locale, scope: shared ? "batch" as const : "single" as const };
 }
 
 function parseItem(value: unknown): ImportItem | null {

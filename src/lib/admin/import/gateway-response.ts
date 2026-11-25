@@ -17,6 +17,7 @@ export function createImportGatewayRequest(
   taxonomy: ImportGatewayTaxonomy,
   note: string,
   locale: "pt-BR" | "en",
+  scope: "single" | "batch" = "single",
 ) {
   // Use short, per-request keys in place of UUIDs. Only this request's
   // catalog can be mapped back to database IDs on the server.
@@ -59,6 +60,9 @@ export function createImportGatewayRequest(
           "An explicit official music video uses category MV. Performances, dance practices, stages, teasers and fan edits are not MVs.",
           "Select members only when the note explicitly supports their participation. If the note explicitly says all seven members, select all seven.",
           "Do not infer an era from a song title, artist or release date alone.",
+          ...(scope === "batch" ? [
+            "This editorial note covers multiple selected videos. Return only classifications explicitly common to every selected video. Omit any field or member that varies between videos or is not confirmed for the whole batch.",
+          ] : []),
           `Write one brief explanation, no more than 150 characters, in ${locale === "en" ? "English" : "Brazilian Portuguese"}.`,
         ].join(" "),
       },

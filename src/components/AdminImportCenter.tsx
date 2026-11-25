@@ -6,8 +6,10 @@ import { useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 
 import AdminImportVideoReview from "@/components/AdminImportVideoReview";
+import AdminImportSuggestionPanel from "@/components/AdminImportSuggestionPanel";
 import {
   IMPORT_BATCH_LIMIT,
+  applyImportSuggestionToBatch,
   resolveImportClassification,
   type ImportReviewOverride,
 } from "@/lib/admin/import/review";
@@ -965,6 +967,19 @@ export default function AdminImportCenter({
           {selectedCandidates.length > 0 && (
             <section aria-labelledby="import-video-review" className="space-y-3">
               <h3 id="import-video-review" className="text-lg font-bold text-white">{t("Review selected videos")}</h3>
+              {aiEnabled && selectedCount > 1 && (
+                <AdminImportSuggestionPanel
+                  key={JSON.stringify([activeSource.id, ...selectedIds.slice().sort()])}
+                  videoIds={selectedIds}
+                  sourceId={activeSource.id}
+                  collections={collections}
+                  eras={activeEras}
+                  members={members}
+                  disabled={importing || loadingMore}
+                  canApply={suggestion => applyImportSuggestionToBatch(batch, overrides, selectedIds, suggestion) !== overrides}
+                  onApply={suggestion => setOverrides(current => applyImportSuggestionToBatch(batch, current, selectedIds, suggestion))}
+                />
+              )}
               {selectedCandidates.map((candidate) => (
                 <AdminImportVideoReview
                   key={candidate.videoId}
@@ -977,7 +992,7 @@ export default function AdminImportCenter({
                   batch={batch}
                   override={overrides[candidate.videoId]}
                   disabled={importing}
-                  aiEnabled={aiEnabled}
+                  aiEnabled={aiEnabled && selectedCount === 1}
                   onChange={(override) => setOverrides((current) => ({
                     ...current,
                     [candidate.videoId]: override,

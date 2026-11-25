@@ -6,12 +6,7 @@ import {
   suggestImportClassification,
   SUGGESTION_UNAVAILABLE,
 } from "@/lib/admin/import/gateway";
-import {
-  EDITORIAL_NOTE_LIMIT,
-  isRecord,
-  uuidPattern,
-  youtubeVideoIdPattern,
-} from "@/lib/admin/import/review";
+import { parseImportSuggestionRequest } from "@/lib/admin/import/review";
 import { requireActiveAdmin } from "@/lib/admin/requireActiveAdmin";
 
 export async function POST(request: NextRequest) {
@@ -36,24 +31,16 @@ export async function POST(request: NextRequest) {
     ? await request.json().catch(() => null)
     : null;
 
-  if (!isRecord(body)) {
-    return NextResponse.json({ error: "Provide a short editorial note for the selected video." }, { status: 400 });
+  const parsed = parseImportSuggestionRequest(body);
+  if (!parsed) {
+    return NextResponse.json({ error: "Select up to 20 distinct videos and provide a short editorial note." }, { status: 400 });
   }
-
-  const { sourceId, videoId, note, locale } = body;
-  if (
-    typeof sourceId !== "string" || !uuidPattern.test(sourceId) ||
-    typeof videoId !== "string" || !youtubeVideoIdPattern.test(videoId) ||
-    typeof note !== "string" || !note.trim() || note.length > EDITORIAL_NOTE_LIMIT ||
-    (locale !== "en" && locale !== "pt-BR")
-  ) {
-    return NextResponse.json({ error: "Provide a short editorial note for the selected video." }, { status: 400 });
-  }
+  const { sourceId, videoIds, note, locale, scope } = parsed;
 
   const { supabase } = admin;
   const [source, existing, collections, eras, members] = await Promise.all([
     supabase.from("watch_import_sources").select("id").eq("id", sourceId).eq("is_active", true).maybeSingle(),
-    supabase.from("watch_videos").select("id").eq("youtube_video_id", videoId).maybeSingle(),
+    supabase.from("watch_videos").select("id").in("youtube_video_id", videoIds).limit(1),
     supabase.from("watch_collections").select("id, title, category").eq("is_active", true).order("display_order"),
     supabase.from("watch_eras").select("id, name").eq("is_active", true).order("display_order"),
     supabase.from("members").select("id, name").eq("is_active", true).order("display_order"),
@@ -65,8 +52,8 @@ export async function POST(request: NextRequest) {
   if (!source.data) {
     return NextResponse.json({ error: "This playlist source is inactive." }, { status: 404 });
   }
-  if (existing.data) {
-    return NextResponse.json({ error: "This video is already registered." }, { status: 409 });
+  if (existing.data?.length) {
+    return NextResponse.json({ error: scope === "batch" ? "One or more selected videos are already registered." : "This video is already registered." }, { status: 409 });
   }
 
   const taxonomy = {
@@ -76,9 +63,9 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    // The YouTube ID is used only for duplicate detection. The provider gets
-    // the original editorial note and the archive's own taxonomy.
-    const { suggestion, status, error } = await suggestImportClassification(config, taxonomy, note.trim(), locale);
+    // The YouTube IDs are used only for duplicate detection. One generation
+    // uses the editor's own note and taxonomy, regardless of batch size.
+    const { suggestion, status, error } = await suggestImportClassification(config, taxonomy, note, locale, scope);
 
     return suggestion
       ? NextResponse.json({ suggestion })
