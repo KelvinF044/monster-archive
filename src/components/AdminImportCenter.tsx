@@ -5,6 +5,15 @@
 import { useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 
+import AdminImportVideoReview from "@/components/AdminImportVideoReview";
+import AdminImportSuggestionPanel from "@/components/AdminImportSuggestionPanel";
+import {
+  IMPORT_BATCH_LIMIT,
+  applyImportSuggestionToBatch,
+  resolveImportClassification,
+  type ImportReviewOverride,
+} from "@/lib/admin/import/review";
+
 import { createClient } from "@/lib/supabase/client";
 import { useAdminText } from "@/components/useAdminText";
 import { useAdminLocale } from "@/components/AdminLocaleProvider";
@@ -60,6 +69,7 @@ type Props = {
   members: Member[];
   apiConfigured: boolean;
   refreshConfigured: boolean;
+  aiEnabled: boolean;
 };
 
 function parsePlaylistId(value: string): string | null {
@@ -79,6 +89,17 @@ function parsePlaylistId(value: string): string | null {
   } catch {
     return null;
   }
+}
+
+function mergeCandidates(current: Candidate[], incoming: Candidate[]): Candidate[] {
+  const byVideoId = new Map(current.map((candidate) => [candidate.videoId, candidate]));
+  for (const candidate of incoming) {
+    if (!byVideoId.has(candidate.videoId) || candidate.alreadyRegistered) {
+      byVideoId.set(candidate.videoId, candidate);
+    }
+  }
+
+  return Array.from(byVideoId.values());
 }
 
 function formatDate(value: string | null, locale: "en" | "pt-BR") {
@@ -102,6 +123,7 @@ export default function AdminImportCenter({
   members,
   apiConfigured,
   refreshConfigured,
+  aiEnabled,
 }: Props) {
   const supabase = createClient();
   const t = useAdminText();
@@ -124,6 +146,7 @@ export default function AdminImportCenter({
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
+  const [overrides, setOverrides] = useState<Record<string, ImportReviewOverride>>({});
 
   const [batchCollectionId, setBatchCollectionId] = useState("");
   const [batchEraId, setBatchEraId] = useState("");
@@ -152,6 +175,24 @@ export default function AdminImportCenter({
   );
 
   const selectedCount = selectedIds.length;
+  const selectedCandidates = candidates.filter((candidate) => selectedIds.includes(candidate.videoId));
+  const reviewIds = selectedCandidates.map(candidate => candidate.videoId);
+  const activeEras = eras.filter((era) => era.is_active);
+  const batch = {
+    collectionId: batchCollectionId,
+    eraId: batchEraId || null,
+    memberIds: batchMemberIds,
+  };
+  const items = selectedIds.map((videoId) => ({
+    videoId,
+    ...resolveImportClassification(batch, overrides[videoId]),
+  }));
+  const missingCollection = items.some((item) => !collections.some((collection) => collection.id === item.collectionId));
+  const missingMvConfirmation = items.some((item) =>
+    !item.officialMvConfirmed && collections.some(
+      (collection) => collection.id === item.collectionId && collection.category === "MV"
+    )
+  );
   const importedCount = candidates.filter((candidate) => candidate.alreadyRegistered).length;
 
   function clearMessages() {
@@ -306,6 +347,7 @@ export default function AdminImportCenter({
     setBatchEraId(source.default_era_id ?? "");
     setCandidates([]);
     setSelectedIds([]);
+    setOverrides({});
     setNextPageToken(null);
     setTotalResults(null);
     setSearch("");
@@ -322,7 +364,7 @@ export default function AdminImportCenter({
         throw new Error(result.error ?? t("Unable to scan the playlist."));
       }
 
-      setCandidates(result.items ?? []);
+      setCandidates(mergeCandidates([], result.items ?? []));
       setNextPageToken(result.nextPageToken ?? null);
       setTotalResults(result.totalResults ?? null);
       setSuccess(t("Playlist scanned. Results are loaded live from YouTube."));
@@ -358,10 +400,7 @@ export default function AdminImportCenter({
         throw new Error(result.error ?? t("Unable to load the next page."));
       }
 
-      setCandidates((current) => [
-        ...current,
-        ...(result.items ?? []),
-      ]);
+      setCandidates((current) => mergeCandidates(current, result.items ?? []));
       setNextPageToken(result.nextPageToken ?? null);
     } catch (loadError) {
       setError(
@@ -404,7 +443,7 @@ export default function AdminImportCenter({
   }
 
   async function importSelected() {
-    if (!activeSource || selectedIds.length === 0) return;
+    if (!activeSource || selectedIds.length === 0 || importing || loadingMore) return;
 
     if (!refreshConfigured) {
       setError(
@@ -413,12 +452,17 @@ export default function AdminImportCenter({
       return;
     }
 
-    if (!batchCollectionId) {
-      setError(t("Choose a collection for this batch."));
+    if (missingCollection) {
+      setError(t("Choose a collection for each selected video."));
       return;
     }
 
-    if (selectedIds.length > 20) {
+    if (missingMvConfirmation) {
+      setError(t("Review the selected videos that require official MV confirmation."));
+      return;
+    }
+
+    if (selectedIds.length > IMPORT_BATCH_LIMIT) {
       setError(t("Import a maximum of 20 videos per batch."));
       return;
     }
@@ -432,55 +476,50 @@ export default function AdminImportCenter({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sourceId: activeSource.id,
-          videoIds: selectedIds,
-          collectionId: batchCollectionId,
-          eraId: batchEraId || null,
-          memberIds: batchMemberIds,
+          items,
         }),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error ?? t("Unable to import videos."));
+        throw new Error(t(result.error ?? "Unable to import videos."));
       }
 
-      const imported = new Set<string>(result.imported ?? []);
+      const registered = new Set<string>([
+        ...(result.imported ?? []),
+        ...(result.duplicates ?? []),
+      ]);
+      const unavailable = new Set<string>(result.unavailable ?? []);
 
       setCandidates((current) =>
         current.map((candidate) =>
-          imported.has(candidate.videoId)
+          registered.has(candidate.videoId)
             ? { ...candidate, alreadyRegistered: true }
             : candidate
         )
       );
-      setSelectedIds([]);
+      setSelectedIds((current) => current.filter((id) => !registered.has(id) && !unavailable.has(id)));
 
       const summary = [
-        `${result.importedCount ?? 0} importado(s) como rascunho`,
-        result.duplicates?.length
-          ? `${result.duplicates.length} duplicado(s)`
-          : "",
-        result.unavailable?.length
-          ? `${result.unavailable.length} indisponível(is)`
-          : "",
-        result.failed?.length
-          ? `${result.failed.length} com erro`
-          : "",
-      ]
-        .filter(Boolean)
-        .join(" · ");
+        `${result.importedCount ?? 0} ${t("saved as drafts")}`,
+        result.duplicates?.length ? `${result.duplicates.length} ${t("already registered")}` : "",
+        result.unavailable?.length ? `${result.unavailable.length} ${t("unavailable")}` : "",
+        result.failed?.length ? `${result.failed.length} ${t("failed")}` : "",
+      ].filter(Boolean).join(" · ");
 
       setImportSummary(summary);
 
       if (result.failed?.length) {
         setError(
           result.failed
-            .slice(0, 3)
-            .map((item: { videoId: string; reason: string }) => `${item.videoId}: ${item.reason}`)
-            .join(" | ")
+            .map((item: { videoId: string; reason: string }) => {
+              const title = candidates.find((candidate) => candidate.videoId === item.videoId)?.title;
+              return `${title ?? item.videoId} · ${t(item.reason)}`;
+            })
+            .join("\n")
         );
-      } else {
+      } else if (result.importedCount > 0) {
         setSuccess(t("Batch imported. Videos are saved as drafts and are not publicly visible yet."));
       }
     } catch (importError) {
@@ -533,7 +572,7 @@ export default function AdminImportCenter({
       )}
 
       {error && (
-        <div role="alert" className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
+        <div role="alert" className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300 whitespace-pre-line">
           {error}
         </div>
       )}
@@ -712,7 +751,7 @@ export default function AdminImportCenter({
                       </button>
                       <button
                         type="button"
-                        disabled={!source.is_active || !apiConfigured || loadingPage}
+                        disabled={!source.is_active || !apiConfigured || loadingPage || loadingMore || importing}
                         onClick={() => void scanSource(source)}
                         className="rounded-lg bg-white px-4 py-2 text-[10px] font-black text-black hover:bg-purple-200 disabled:opacity-40"
                       >
@@ -750,6 +789,7 @@ export default function AdminImportCenter({
               <select
                 id="batch-collection"
                 value={batchCollectionId}
+                disabled={importing}
                 onChange={(event) => setBatchCollectionId(event.target.value)}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
               >
@@ -769,6 +809,7 @@ export default function AdminImportCenter({
               <select
                 id="batch-era"
                 value={batchEraId}
+                disabled={importing}
                 onChange={(event) => setBatchEraId(event.target.value)}
                 className="w-full rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-purple-400"
               >
@@ -800,6 +841,7 @@ export default function AdminImportCenter({
                       <input
                         type="checkbox"
                         checked={checked}
+                        disabled={importing}
                         onChange={() => toggleMember(member.id)}
                         className="accent-purple-500"
                       />
@@ -858,7 +900,7 @@ export default function AdminImportCenter({
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(candidate.videoId)}
-                    disabled={candidate.alreadyRegistered}
+                    disabled={candidate.alreadyRegistered || importing}
                     onChange={() => toggleCandidate(candidate.videoId)}
                     className="h-4 w-4 shrink-0 accent-purple-500"
                   />
@@ -905,7 +947,7 @@ export default function AdminImportCenter({
             <button
               type="button"
               onClick={toggleAllVisible}
-              disabled={availableCandidates.length === 0}
+              disabled={availableCandidates.length === 0 || importing}
               className="text-xs font-bold text-zinc-400 hover:text-white disabled:opacity-40"
             >
               {t("SELECT / DESELECT VISIBLE")}
@@ -915,13 +957,51 @@ export default function AdminImportCenter({
               <button
                 type="button"
                 onClick={() => void loadMore()}
-                disabled={loadingMore}
+                disabled={loadingMore || importing}
                 className="rounded-lg border border-white/10 px-5 py-3 text-xs font-bold text-zinc-300 hover:border-purple-400/40 disabled:opacity-50"
               >
                 {loadingMore ? t("LOADING...") : t("LOAD NEXT 50")}
               </button>
             )}
           </div>
+
+          {selectedCandidates.length > 0 && (
+            <section aria-labelledby="import-video-review" className="space-y-3">
+              <h3 id="import-video-review" className="text-lg font-bold text-white">{t("Review selected videos")}</h3>
+              {aiEnabled && selectedCount > 1 && (
+                <AdminImportSuggestionPanel
+                  key={JSON.stringify([activeSource.id, ...reviewIds])}
+                  videoIds={reviewIds}
+                  sourceId={activeSource.id}
+                  collections={collections}
+                  eras={activeEras}
+                  members={members}
+                  disabled={importing || loadingMore}
+                  canApply={(suggestion, individual) => applyImportSuggestionToBatch(batch, overrides, reviewIds, suggestion, individual) !== overrides}
+                  onApply={(suggestion, individual) => setOverrides(current => applyImportSuggestionToBatch(batch, current, reviewIds, suggestion, individual))}
+                />
+              )}
+              {selectedCandidates.map((candidate, index) => (
+                <AdminImportVideoReview
+                  key={candidate.videoId}
+                  videoId={candidate.videoId}
+                  title={selectedCount > 1 ? `${index + 1}. ${candidate.title}` : candidate.title}
+                  sourceId={activeSource.id}
+                  collections={collections}
+                  eras={activeEras}
+                  members={members}
+                  batch={batch}
+                  override={overrides[candidate.videoId]}
+                  disabled={importing}
+                  aiEnabled={aiEnabled && selectedCount === 1}
+                  onChange={(override) => setOverrides((current) => ({
+                    ...current,
+                    [candidate.videoId]: override,
+                  }))}
+                />
+              ))}
+            </section>
+          )}
 
           <div className="sticky bottom-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-purple-400/20 bg-[#101017]/95 p-4 shadow-2xl backdrop-blur">
             <div>
@@ -935,9 +1015,11 @@ export default function AdminImportCenter({
               onClick={() => void importSelected()}
               disabled={
                 importing ||
+                loadingMore ||
                 selectedCount === 0 ||
-                selectedCount > 20 ||
-                !batchCollectionId ||
+                selectedCount > IMPORT_BATCH_LIMIT ||
+                missingCollection ||
+                missingMvConfirmation ||
                 !refreshConfigured
               }
               className="rounded-lg bg-purple-500 px-5 py-3 text-xs font-black text-white transition hover:bg-purple-400 disabled:cursor-not-allowed disabled:opacity-40"
@@ -951,7 +1033,7 @@ export default function AdminImportCenter({
       <section className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
         <p className="text-xs font-bold tracking-widest text-purple-300">{t("IMPORTANT")}</p>
         <p className="mt-2 text-sm leading-6 text-zinc-500">
-          {t("The candidate queue is loaded live and is not saved as a playlist copy. Approved imports fetch current video metadata and create drafts in the archive. Default classification is set manually per playlist; no video is auto-published or classified by AI.")}
+          {t("Approved imports fetch current YouTube metadata and create drafts. Publication requires a separate confirmation.")}
         </p>
         <div className="mt-4 flex flex-wrap gap-4 text-xs font-bold">
           <Link href="/admin/videos" className="text-purple-300 hover:text-purple-200">{t("OPEN VIDEO MANAGER →")}</Link>

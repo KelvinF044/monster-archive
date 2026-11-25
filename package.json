@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "test:smart-import:live": "node scripts/smart-import-live-eval.mjs",
+    "test:smart-import:numbered:live": "node scripts/smart-import-numbered-live-eval.mjs",
     "start": "next start",
     "lint": "eslint"
   },

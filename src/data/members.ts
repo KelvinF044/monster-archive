@@ -291,9 +291,16 @@ const roraKprofiles = makeSource(
   "https://kprofiles.com/rora-babymonster-profile/"
 );
 
+const roraKJD = makeSource(
+  "Korea JoongAng Daily — Introducing RORA",
+  "Korea JoongAng Daily — Apresentação de RORA",
+  "https://www.koreajoongangdaily.com/entertainment/yg-unveils-fifth-member-of-new-girl-group-babymonster/11248584"
+);
+
 const roraSources = makeSources(
   officialYG,
   roraSoompi,
+  roraKJD,
   cnnInterview,
   elleInterview,
   roraKprofiles,
@@ -656,7 +663,7 @@ export const members = [
 
         earlyInterestTitle: "A childhood in front of the cameras",
         earlyInterest:
-          "RAMI revealed that she began working as a child model at just two years old and continued until she was around twelve. Her entry into the entertainment industry happened naturally during this period. In an interview with SBS, she also shared that her mother had nearly debuted in a girl group and had participated in a pre-debut team, making music and performance part of her family's story.",
+          "RAMI revealed that she began working as a child model at just two years old and continued until she was around twelve. Her entry into the entertainment industry happened naturally during this period. During an appearance on SBS's Running Man, she also shared that her mother had nearly debuted in a girl group and had participated in a pre-debut team, making music and performance part of her family's story.",
 
         ygJourneyTitle: "From HARAM to RAMI",
         ygJourney:
@@ -669,7 +676,7 @@ export const members = [
         highlightsTitle: "A distinctive path to debut",
         highlights: [
           "Worked as a child model from approximately age two to twelve, before entering the K-pop training system.",
-          "Her mother shared a particularly interesting family story: she had once been part of a girl group's pre-debut team.",
+          "On SBS's Running Man, RAMI recalled that her mother had been part of a girl group's pre-debut team.",
           "Was first introduced to BABYMONSTER fans under the name HARAM before adopting the stage name RAMI.",
           "Developed her singing and dancing skills at YG, where she discovered her determination to become a professional artist.",
         ],
@@ -683,7 +690,7 @@ export const members = [
 
         earlyInterestTitle: "Uma infância diante das câmeras",
         earlyInterest:
-          "RAMI revelou que começou a trabalhar como modelo infantil aos dois anos de idade e continuou até aproximadamente os doze. Sua entrada no mundo do entretenimento aconteceu naturalmente durante esse período. Em uma entrevista à SBS, ela também contou que sua mãe quase estreou em um grupo feminino e chegou a participar de uma equipe pré-debut, tornando a música e as apresentações parte da história de sua família.",
+          "RAMI revelou que começou a trabalhar como modelo infantil aos dois anos de idade e continuou até aproximadamente os doze. Sua entrada no mundo do entretenimento aconteceu naturalmente durante esse período. Durante sua participação no Running Man, da SBS, ela também contou que sua mãe quase estreou em um grupo feminino e chegou a participar de uma equipe pré-debut, tornando a música e as apresentações parte da história de sua família.",
 
         ygJourneyTitle: "De HARAM a RAMI",
         ygJourney:
@@ -696,7 +703,7 @@ export const members = [
         highlightsTitle: "Uma trajetória particular até a estreia",
         highlights: [
           "Trabalhou como modelo infantil aproximadamente dos dois aos doze anos, antes de entrar no sistema de treinamento do K-pop.",
-          "Sua mãe compartilhou uma história familiar curiosa: ela já havia integrado uma equipe pré-debut de um grupo feminino.",
+          "No Running Man, da SBS, RAMI contou que sua mãe havia integrado uma equipe pré-debut de um grupo feminino.",
           "Foi apresentada inicialmente aos fãs do BABYMONSTER com o nome HARAM, antes de adotar o nome artístico RAMI.",
           "Desenvolveu suas habilidades de canto e dança na YG, onde descobriu sua determinação de se tornar uma artista profissional.",
         ],
@@ -744,7 +751,7 @@ export const members = [
         highlights: [
           "Had earlier experience in children's entertainment, including the group U.SSO Girl under the name U.ha.",
           "Was one of the two trainees added to the final seven-member lineup after fans strongly supported the inclusion of all seven candidates.",
-          "Her expressive and soulful vocal qualities were highlighted by Korea JoongAng Daily during the group's pre-debut period.",
+          "In January 2023, Korea JoongAng Daily covered her pre-debut solo performance of Kiana Ledé's 'Forfeit'.",
           "Has shared her interest in learning other instruments, especially guitar, alongside her piano experience.",
         ],
 
@@ -771,7 +778,7 @@ export const members = [
         highlights: [
           "Teve experiências anteriores no entretenimento infantil, incluindo a participação no grupo U.SSO Girl com o nome U.ha.",
           "Foi uma das duas trainees adicionadas à formação final de sete integrantes depois que os fãs demonstraram forte apoio às sete candidatas.",
-          "Seus vocais expressivos e marcantes foram destacados pelo Korea JoongAng Daily durante o período pré-debut do grupo.",
+          "Em janeiro de 2023, o Korea JoongAng Daily noticiou sua apresentação solo pré-debut de 'Forfeit', de Kiana Ledé.",
           "Já compartilhou o interesse em aprender outros instrumentos, especialmente violão, além de sua experiência com piano.",
         ],
 
