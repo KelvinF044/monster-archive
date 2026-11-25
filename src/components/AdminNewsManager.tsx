@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { useAdminLocale } from "@/components/AdminLocaleProvider";
+import { AdminConfirmationDialog, useAdminConfirmation, type ConfirmAction } from "@/components/AdminConfirmation";
 import { allowedTransitions, articleFields, blankNews, editableStatus, NEWS_CATEGORIES, NEWS_STATUSES, PAGE_SIZE, reviewReady, SOURCE_KINDS, type EditorialSource, type NewsCatalogs, type NewsCategory, type NewsDetail, type NewsFields, type NewsList, type NewsStatus, type RelatedVideo, type SourceKind } from "@/lib/admin/news/model";
 import { newsCopy, newsError, type NewsCopy } from "@/lib/admin/news/messages";
 
@@ -47,13 +48,14 @@ export default function AdminNewsManager({initialList,catalogs:initialCatalogs}:
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
   const [editorBusy,setEditorBusy]=useState(false);
+  const confirmation=useAdminConfirmation();
   const editorTop=useRef<HTMLDivElement>(null);
   const editorIdentity=editor===undefined?null:editor?.article.id??"new";
   useEffect(()=>{
     if(editorIdentity) editorTop.current?.scrollIntoView({behavior:"smooth",block:"start"});
   },[editorIdentity]);
   const totalPages=Math.max(1,Math.ceil(list.total/PAGE_SIZE));
-  const allowSwitch=()=>!editorBusy&&(!dirty||window.confirm(c.discardConfirm));
+  const allowSwitch=async()=>!editorBusy&&!listBusy&&(!dirty||await confirmation.confirm(c.discardConfirm,c.discard));
 
   async function getList(next:Filters,page:number){
     setListBusy(true);setError("");
@@ -63,13 +65,13 @@ export default function AdminNewsManager({initialList,catalogs:initialCatalogs}:
     }catch(e){setError(errorCode(e));}finally{setListBusy(false);}
   }
   async function openArticle(id:string){
-    if(!allowSwitch())return;
+    if(!(await allowSwitch()))return;
     setListBusy(true);setError("");
     try{setEditor(await api<NewsDetail>({id}));setDirty(false);setNotice("");}
     catch(e){setError(errorCode(e));}finally{setListBusy(false);}
   }
-  function newArticle(){if(allowSwitch()){setEditor(null);setDirty(false);setError("");setNotice("");}}
-  function closeEditor(){if(allowSwitch()){setEditor(undefined);setDirty(false);setNotice("");}}
+  async function newArticle(){if(await allowSwitch()){setEditor(null);setDirty(false);setError("");setNotice("");}}
+  async function closeEditor(){if(await allowSwitch()){setEditor(undefined);setDirty(false);setNotice("");}}
   async function refreshAfterMutation(id:string,message:string){
     const result=await api<NewsDetail>({id});
     setEditor(result);
@@ -85,7 +87,7 @@ export default function AdminNewsManager({initialList,catalogs:initialCatalogs}:
         <p className="mt-6 text-xs font-bold tracking-[0.25em] text-purple-400">MONSTER ARCHIVE / {t("Phase 2.3 — Preview")}</p>
         <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
           <div><h1 className="text-4xl font-black">{c.heading}.</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">{c.intro}</p></div>
-          <button type="button" onClick={newArticle} disabled={editorBusy||listBusy} className={primaryClass}>+ {c.create}</button>
+          <button type="button" onClick={()=>void newArticle()} disabled={editorBusy||listBusy} className={primaryClass}>+ {c.create}</button>
         </div>
       </header>
 
@@ -123,15 +125,16 @@ export default function AdminNewsManager({initialList,catalogs:initialCatalogs}:
       {editor!==undefined&&<div ref={editorTop} className="mt-8 scroll-mt-24">
         {notice&&<p role="status" className="mb-3 rounded-lg border border-green-400/20 bg-green-500/10 p-3 text-sm text-green-300">{notice}</p>}
         <NewsEditor key={editorKey} detail={editor} catalogs={catalogs} copy={copy} locale={locale}
-          onDirty={setDirty} onBusy={setEditorBusy} close={closeEditor} onChanged={refreshAfterMutation}
+          onDirty={setDirty} onBusy={setEditorBusy} close={()=>void closeEditor()} onChanged={refreshAfterMutation} confirmAction={confirmation.confirm}
           onSourceRegistered={source=>setCatalogs(previous=>({...previous,sources:[...previous.sources.filter(v=>v.id!==source.id),source].sort((a,b)=>a.name.localeCompare(b.name))}))}/>
       </div>}
     </div>
+    <AdminConfirmationDialog pending={confirmation.pending} title={c.confirmAction} cancelLabel={c.cancel} onResolve={confirmation.resolve}/>
   </main>;
 }
 
-type EditorProps={detail:NewsDetail|null;catalogs:NewsCatalogs;copy:NewsCopy;locale:string;onDirty:(value:boolean)=>void;onBusy:(value:boolean)=>void;close:()=>void;onChanged:(id:string,message:string)=>Promise<void>;onSourceRegistered:(source:EditorialSource)=>void};
-function NewsEditor({detail,catalogs,copy,locale,onDirty,onBusy,close,onChanged,onSourceRegistered}:EditorProps){
+type EditorProps={detail:NewsDetail|null;catalogs:NewsCatalogs;copy:NewsCopy;locale:string;onDirty:(value:boolean)=>void;onBusy:(value:boolean)=>void;close:()=>void;onChanged:(id:string,message:string)=>Promise<void>;onSourceRegistered:(source:EditorialSource)=>void;confirmAction:ConfirmAction};
+function NewsEditor({detail,catalogs,copy,locale,onDirty,onBusy,close,onChanged,onSourceRegistered,confirmAction}:EditorProps){
   const c=copy.text;
   const article=detail?.article;
   const baseline=article?articleFields(article):blankNews();
@@ -173,7 +176,7 @@ function NewsEditor({detail,catalogs,copy,locale,onDirty,onBusy,close,onChanged,
   async function transition(target:NewsStatus){
     if(!article||busy||dirty)return;
     const confirmation=target==="published"?c.publishConfirm:target==="approved"?c.approveConfirm:target==="archived"?c.archiveConfirm:target==="draft"?c.returnConfirm:target==="rejected"?c.rejectConfirm:"";
-    if(confirmation&&!window.confirm(confirmation))return;
+    if(confirmation&&!(await confirmAction(confirmation,transitionLabels[target])))return;
     await run({...common(),action:"transition",status:target},c.workflowSaved);
   }
   async function registerSource(){
@@ -193,7 +196,7 @@ function NewsEditor({detail,catalogs,copy,locale,onDirty,onBusy,close,onChanged,
       try{result=await api<{id:string}>(undefined,payload);}
       catch(e){
         if(errorCode(e)!=="source_shared")throw e;
-        if(!window.confirm(c.duplicateSource+"\n\n"+c.sharedConfirm))return;
+        if(!(await confirmAction(c.duplicateSource+"\n\n"+c.sharedConfirm,c.addSource)))return;
         result=await api<{id:string}>(undefined,{...payload,allowShared:true});
       }
       await onChanged(result.id,c.sourceAttached);setSourceUrl("");
@@ -211,6 +214,8 @@ function NewsEditor({detail,catalogs,copy,locale,onDirty,onBusy,close,onChanged,
     return <Field key={key} label={label}>{multi?<textarea className={fieldClass+" resize-y"} rows={key.startsWith("summary")?4:7} maxLength={maxLength} disabled={disabled} value={form[key]} onChange={e=>change(key,e.target.value)}/>:<input className={fieldClass} maxLength={maxLength} disabled={disabled} value={form[key]} onChange={e=>change(key,e.target.value)}/>}</Field>;
   }
   const ready=reviewReady(form,detail?.sources.length??0);
+  const workflowMessage=article?.status==="published"?c.publishedWorkflow:article?.status==="approved"?c.approvedWorkflow:article?.status==="archived"?c.archivedWorkflow:ready?c.ready:c.notReady;
+  const workflowPositive=article?.status==="published"||article?.status==="approved"||(article?.status!=="archived"&&ready);
   const transitionLabels:Record<NewsStatus,string>={draft:c.returnDraft,in_review:c.reviewStep,approved:c.approve,rejected:c.reject,published:c.publish,archived:c.archive};
   return <section className="rounded-xl border border-purple-400/20 bg-[#0d0e13] p-4 md:p-6">
     <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
@@ -285,7 +290,7 @@ function NewsEditor({detail,catalogs,copy,locale,onDirty,onBusy,close,onChanged,
       </div>
       <section className={panelClass+" mt-5"}>
         <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-sm font-black">{c.review}</h3><StatusBadge status={article.status} copy={copy}/></div>
-        <p className={`mt-3 rounded-lg p-3 text-xs ${ready?"bg-green-500/10 text-green-300":"bg-amber-500/10 text-amber-300"}`}>{ready?"✓ "+c.ready:c.notReady}</p>
+        <p className={`mt-3 rounded-lg p-3 text-xs ${workflowPositive?"bg-green-500/10 text-green-300":article.status==="archived"?"bg-white/5 text-zinc-400":"bg-amber-500/10 text-amber-300"}`}>{workflowPositive?"✓ "+workflowMessage:workflowMessage}</p>
         <div className="mt-4 flex flex-wrap gap-2">{allowedTransitions(article.status).map(target=><button key={target} type="button" disabled={busy||dirty||(target==="approved"&&!ready)||(target==="published"&&!ready)} onClick={()=>void transition(target)} className={target==="approved"||target==="published"?primaryClass:buttonClass}>{transitionLabels[target]}</button>)}</div>
         <div className="mt-4 flex flex-wrap gap-4 text-[10px] text-zinc-500"><span>{c.approvedAt}: {dateLabel(article.approved_at,locale)}</span><span>{c.publishedAt}: {dateLabel(article.published_at,locale)}</span></div>
       </section>

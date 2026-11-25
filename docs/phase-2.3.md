@@ -94,14 +94,18 @@ placeholder until phase 2.3.4.
 7. Confirm existing Watch, Members, Home imagery, and administrator permissions
    remain unchanged.
 
-Status: implementation and automated checks complete; authenticated interactive
-validation in the test environment remains pending. No SQL migration is needed
-beyond Phase 2.3.1.
+Owner confirmed creation, manual source registration/link, bilingual review and
+publication (Published badge and approval/publication dates). The browser-native
+confirmation was flagged by Vercel's interaction timing tool; a non-blocking,
+keyboard-accessible confirmation dialog replaces it while preserving explicit
+administrative confirmation. Published/approved/archived workflow messages now
+reflect their actual status. Interactive performance confirmation remains
+pending; no database changes are required.
 
 ## Remaining delivery
 
 1. Editorial database schema and RLS — completed in homologation.
-2. News administration and review workflow — implementation complete, owner validation pending.
+2. News administration and review workflow — publication validated by owner; confirmation UX improvement pending interactive retest.
 3. Events administration, official sources, time zones and status.
 4. Public bilingual news feed, article detail, and event schedule.
 5. Editorial center and approved-source discovery, deduplication and curation.
