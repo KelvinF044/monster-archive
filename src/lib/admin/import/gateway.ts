@@ -2,6 +2,7 @@ import "server-only";
 
 import { isRecord, type ImportSuggestion } from "./review";
 import { resolveImportGatewayConfig } from "./gateway-config";
+import { classifyGatewayError } from "./gateway-errors";
 
 type Taxonomy = {
   collections: { id: string; title: string; category: string }[];
@@ -105,8 +106,13 @@ export async function suggestImportClassification(
   });
 
   if (!response.ok) {
-    console.warn("Smart Import Gateway request failed", { status: response.status });
-    return { suggestion: null, status: response.status === 429 ? 429 : 503 };
+    const failure = classifyGatewayError(response.status, await response.json().catch(() => null));
+    console.warn("Smart Import Gateway request failed", {
+      status: response.status,
+      model: config.model,
+      kind: failure.kind,
+    });
+    return { suggestion: null, status: response.status === 429 ? 429 : 503, error: failure.message };
   }
 
   const result = await response.json().catch(() => null);

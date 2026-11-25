@@ -78,11 +78,11 @@ export async function POST(request: NextRequest) {
   try {
     // The YouTube ID is used only for duplicate detection. The provider gets
     // the original editorial note and the archive's own taxonomy.
-    const { suggestion, status } = await suggestImportClassification(config, taxonomy, note.trim(), locale);
+    const { suggestion, status, error } = await suggestImportClassification(config, taxonomy, note.trim(), locale);
 
     return suggestion
       ? NextResponse.json({ suggestion })
-      : NextResponse.json({ error: SUGGESTION_UNAVAILABLE }, { status });
+      : NextResponse.json({ error: error ?? SUGGESTION_UNAVAILABLE }, { status });
   } catch (error) {
     console.warn("Smart Import generation failed", { type: error instanceof Error ? error.name : "unknown" });
     return NextResponse.json({ error: SUGGESTION_UNAVAILABLE }, { status: 503 });
