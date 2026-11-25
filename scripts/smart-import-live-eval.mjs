@@ -4,9 +4,11 @@ import { createImportGatewayRequest, decodeImportGatewayResponse } from "../src/
 import { resolveImportGatewayConfig } from "../src/lib/admin/import/gateway-config.ts";
 import { classifyGatewayError } from "../src/lib/admin/import/gateway-errors.ts";
 
+const mode = process.env.SMART_IMPORT_AI_EVAL_ON_BUILD ?? "";
+const resume = /^resume:(\d+)$/.exec(mode);
 if (process.env.VERCEL_ENV !== "preview" ||
     process.env.VERCEL_GIT_COMMIT_REF !== "feat/smart-import" ||
-    process.env.SMART_IMPORT_AI_EVAL_ON_BUILD !== "true") {
+    (mode !== "true" && !resume)) {
   process.exit(0);
 }
 
@@ -108,15 +110,23 @@ async function runCase(index) {
   }
 }
 
-// Stop on an unsuccessful initial live response or account/rate failure.
-for (let index = 0; index < cases.length;) {
-  const size = index < 3 ? 1 : 3;
-  const group = await Promise.all(Array.from({ length: Math.min(size, cases.length - index) }, (_, i) => runCase(index + i)));
-  results.push(...group);
-  index += group.length;
-  if (group.some(r => r.status === 401 || r.status === 402 || r.status === 403 || r.status === 429) ||
-      (index <= 3 && group.some(r => r.kind !== "ok"))) break;
-  if (index < cases.length) await new Promise(resolve => setTimeout(resolve, 1400));
+// Pace the free tier and allow an explicit resume without repeating completed cases.
+const start = resume ? Number(resume[1]) - 1 : 0;
+if (!Number.isSafeInteger(start) || start < 0 || start >= cases.length) {
+  console.log("MA_SMART_IMPORT_EVAL", JSON.stringify({ status: "invalid_start" }));
+  process.exit(0);
+}
+for (let index = start; index < cases.length; index++) {
+  const before = Date.now();
+  const result = await runCase(index);
+  results.push(result);
+  if ((index + 1) % 5 === 0 || result.kind !== "ok") {
+    console.log("MA_EVAL_PROGRESS", JSON.stringify({ case: index + 1, kind: result.kind, status: result.status }));
+  }
+  if ([401, 402, 403, 429].includes(result.status) || (index === start && result.kind !== "ok")) break;
+  if (index + 1 < cases.length) {
+    await new Promise(resolve => setTimeout(resolve, Math.max(0, 8500 - (Date.now() - before))));
+  }
 }
 
 const valid = results.filter(r => r.kind === "ok");
@@ -129,7 +139,7 @@ const metric = field => {
   };
 };
 console.log("MA_SMART_IMPORT_EVAL", JSON.stringify({
-  model: config.model, planned: cases.length, attempted: results.length, valid: valid.length,
+  model: config.model, planned: cases.length, start: start + 1, attempted: results.length, valid: valid.length,
   collection: metric("collection"), era: metric("era"), members: metric("members"),
   allFieldsCorrect: valid.filter(r => r.collection && r.era && r.members).length,
   failed: results.filter(r => r.kind !== "ok" || !r.collection || !r.era || !r.members)
