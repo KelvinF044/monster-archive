@@ -124,8 +124,17 @@ BEGIN
   IF NOT denied THEN RAISE EXCEPTION 'A non-official source could be marked official.'; END IF;
 
   INSERT INTO public.agenda_event_sources (event_id, source_id, source_name, source_url, canonical_url, official_evidence)
-  VALUES (event_row, official_source, 'Synthetic official test source', base_url || '/event', base_url || '/event', true);
+  VALUES (event_row, press_source, 'Synthetic press test source', base_url || '/press-event', base_url || '/press-event', false);
   UPDATE public.agenda_events SET status = 'in_review' WHERE id = event_row;
+  denied := false;
+  BEGIN
+    UPDATE public.agenda_events SET status = 'approved' WHERE id = event_row;
+  EXCEPTION WHEN raise_exception THEN denied := true;
+  END;
+  IF NOT denied THEN RAISE EXCEPTION 'Event approved without official confirmation.'; END IF;
+
+  INSERT INTO public.agenda_event_sources (event_id, source_id, source_name, source_url, canonical_url, official_evidence)
+  VALUES (event_row, official_source, 'Synthetic official test source', base_url || '/event', base_url || '/event', true);
   UPDATE public.agenda_events SET status = 'approved' WHERE id = event_row;
   UPDATE public.agenda_events SET status = 'published' WHERE id = event_row;
 
@@ -208,5 +217,5 @@ END;
 $$;
 
 RESET ROLE;
+SELECT 'PASS — editorial workflow, deduplication, attribution, audit and public isolation. Fixture transaction will roll back.' AS result;
 ROLLBACK;
-SELECT 'PASS — editorial workflow, deduplication, attribution, audit and public isolation. Test fixtures rolled back.' AS result;
