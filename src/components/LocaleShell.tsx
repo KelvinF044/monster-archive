@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import LanguageProvider from "@/components/LanguageProvider";
 import SiteHeader from "@/components/SiteHeader";
 import { getLocale } from "@/lib/i18n/server";
+import { members } from "@/data/members";
 
 export default async function LocaleShell({
   children,
@@ -14,7 +15,7 @@ export default async function LocaleShell({
 
   return (
     <LanguageProvider initialLocale={locale}>
-      <SiteHeader />
+      <SiteHeader memberLinks={members.map(({ slug, name }) => ({ slug, name }))} />
       {children}
     </LanguageProvider>
   );

@@ -1,6 +1,19 @@
 import type { Locale } from "@/lib/i18n/config";
 
 const ptBR: Record<string, string> = {
+  "Source management and editorial review will be implemented in the editorial stage.": "O gerenciamento de fontes e a revisão editorial serão implementados na etapa editorial.",
+  "Event management will be implemented in the next schedule stage.": "O gerenciamento de eventos será implementado na próxima etapa da agenda.",
+  "News management will be implemented in the next editorial stage.": "O gerenciamento de notícias será implementado na próxima etapa editorial.",
+  "Workspace under development": "Área em desenvolvimento",
+  "Phase 2.3 — Preview": "Fase 2.3 — Homologação",
+  "Manage sources and editorial review": "Gerencie fontes e a revisão editorial",
+  "Manage the official schedule": "Gerencie a agenda oficial",
+  "Manage archive news": "Gerencie as notícias do acervo",
+  "Editorial": "Editorial",
+  "Events": "Eventos",
+  "News": "Notícias",
+  "Manage the audiovisual archive": "Gerencie o acervo audiovisual",
+  "Watch": "Vídeos",
   "Dashboard": "Painel",
   "Dashboard.": "Painel.",
   "Archive overview": "Visão geral do arquivo",

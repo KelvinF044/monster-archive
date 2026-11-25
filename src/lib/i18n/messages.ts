@@ -10,6 +10,8 @@ type CollectionTranslation = {
 export type Dictionary = {
   navigation: {
     home: string;
+    news: string;
+    events: string;
     members: string;
     watch: string;
     about: string;
@@ -185,6 +187,8 @@ export const messages: Record<Locale, Dictionary> = {
   en: {
     navigation: {
       home: "Home",
+      news: "News",
+      events: "Events",
       members: "Members",
       watch: "Watch",
       about: "About",
@@ -442,6 +446,8 @@ export const messages: Record<Locale, Dictionary> = {
   "pt-BR": {
     navigation: {
       home: "Início",
+      news: "Notícias",
+      events: "Eventos",
       members: "Integrantes",
       watch: "Vídeos",
       about: "Sobre",
