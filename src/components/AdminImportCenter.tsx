@@ -176,6 +176,7 @@ export default function AdminImportCenter({
 
   const selectedCount = selectedIds.length;
   const selectedCandidates = candidates.filter((candidate) => selectedIds.includes(candidate.videoId));
+  const reviewIds = selectedCandidates.map(candidate => candidate.videoId);
   const activeEras = eras.filter((era) => era.is_active);
   const batch = {
     collectionId: batchCollectionId,
@@ -969,22 +970,22 @@ export default function AdminImportCenter({
               <h3 id="import-video-review" className="text-lg font-bold text-white">{t("Review selected videos")}</h3>
               {aiEnabled && selectedCount > 1 && (
                 <AdminImportSuggestionPanel
-                  key={JSON.stringify([activeSource.id, ...selectedIds.slice().sort()])}
-                  videoIds={selectedIds}
+                  key={JSON.stringify([activeSource.id, ...reviewIds])}
+                  videoIds={reviewIds}
                   sourceId={activeSource.id}
                   collections={collections}
                   eras={activeEras}
                   members={members}
                   disabled={importing || loadingMore}
-                  canApply={suggestion => applyImportSuggestionToBatch(batch, overrides, selectedIds, suggestion) !== overrides}
-                  onApply={suggestion => setOverrides(current => applyImportSuggestionToBatch(batch, current, selectedIds, suggestion))}
+                  canApply={(suggestion, individual) => applyImportSuggestionToBatch(batch, overrides, reviewIds, suggestion, individual) !== overrides}
+                  onApply={(suggestion, individual) => setOverrides(current => applyImportSuggestionToBatch(batch, current, reviewIds, suggestion, individual))}
                 />
               )}
-              {selectedCandidates.map((candidate) => (
+              {selectedCandidates.map((candidate, index) => (
                 <AdminImportVideoReview
                   key={candidate.videoId}
                   videoId={candidate.videoId}
-                  title={candidate.title}
+                  title={selectedCount > 1 ? `${index + 1}. ${candidate.title}` : candidate.title}
                   sourceId={activeSource.id}
                   collections={collections}
                   eras={activeEras}

@@ -4,9 +4,10 @@ import {
   getImportGatewayConfig,
   isImportAiEnabled,
   suggestImportClassification,
+  suggestNumberedImportClassifications,
   SUGGESTION_UNAVAILABLE,
 } from "@/lib/admin/import/gateway";
-import { parseImportSuggestionRequest } from "@/lib/admin/import/review";
+import { parseImportSuggestionRequest, parseNumberedEditorialNote } from "@/lib/admin/import/review";
 import { requireActiveAdmin } from "@/lib/admin/requireActiveAdmin";
 
 export async function POST(request: NextRequest) {
@@ -36,6 +37,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Select up to 20 distinct videos and provide a short editorial note." }, { status: 400 });
   }
   const { sourceId, videoIds, note, locale, scope } = parsed;
+  const numbered = scope === "batch" ? parseNumberedEditorialNote(note, videoIds.length) : null;
+  if (scope === "batch" && !numbered) {
+    return NextResponse.json({ error: "Check the numbered notes: use each selected video number at most once and provide a description." }, { status: 400 });
+  }
 
   const { supabase } = admin;
   const [source, existing, collections, eras, members] = await Promise.all([
@@ -65,6 +70,14 @@ export async function POST(request: NextRequest) {
   try {
     // The YouTube IDs are used only for duplicate detection. One generation
     // uses the editor's own note and taxonomy, regardless of batch size.
+    if (numbered?.entries.length) {
+      const result = await suggestNumberedImportClassifications(config, taxonomy, numbered, locale);
+      if (!result.suggestion) return NextResponse.json({ error: result.error ?? SUGGESTION_UNAVAILABLE }, { status: result.status });
+      return NextResponse.json({
+        suggestion: result.suggestion,
+        individualSuggestions: Object.fromEntries(result.individual.map(item => [videoIds[item.number - 1], item.suggestion])),
+      });
+    }
     const { suggestion, status, error } = await suggestImportClassification(config, taxonomy, note, locale, scope);
 
     return suggestion

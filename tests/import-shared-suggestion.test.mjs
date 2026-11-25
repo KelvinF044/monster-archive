@@ -27,7 +27,7 @@ test("accepts the existing individual payload and one shared note for multiple v
 test("rejects blank notes, ambiguous payloads, duplicate selections and oversized batches", () => {
   const base = { sourceId, note: "Verified.", locale: "pt-BR", videoIds };
   for (const invalid of [
-    { ...base, note: " " }, { ...base, note: "x".repeat(501) },
+    { ...base, note: " " }, { ...base, note: "x".repeat(2501) },
     { ...base, videoIds: [] }, { ...base, videoIds: [videoIds[0]] },
     { ...base, videoIds: [videoIds[0], videoIds[0]] },
     { ...base, videoIds: [videoIds[0], "wrong"] },
@@ -35,6 +35,7 @@ test("rejects blank notes, ambiguous payloads, duplicate selections and oversize
     { ...base, videoIds: Array.from({ length: 21 }, (_, i) => `video${String(i).padStart(6, "0")}`) },
     { ...base, locale: "fr" },
   ]) assert.equal(parseImportSuggestionRequest(invalid), null);
+  assert.equal(parseImportSuggestionRequest({ sourceId, videoId: videoIds[0], note: "x".repeat(501), locale: "en" }), null);
 });
 
 test("applies a common suggestion to selected rows only, preserving manual edits", () => {

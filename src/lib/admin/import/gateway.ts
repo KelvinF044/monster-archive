@@ -2,7 +2,15 @@ import "server-only";
 
 import { resolveImportGatewayConfig } from "./gateway-config";
 import { classifyGatewayError } from "./gateway-errors";
-import { createImportGatewayRequest, decodeImportGatewayResponse, type ImportGatewayTaxonomy } from "./gateway-response";
+import {
+  constrainSharedImportSuggestion,
+  createImportGatewayRequest,
+  createNumberedImportGatewayRequest,
+  decodeImportGatewayResponse,
+  decodeNumberedImportGatewayResponse,
+  type ImportGatewayTaxonomy,
+} from "./gateway-response";
+import type { NumberedEditorialNote } from "./review";
 
 export const SUGGESTION_UNAVAILABLE = "Suggestions are unavailable. You can finish the review manually.";
 
@@ -22,12 +30,9 @@ export function getImportGatewayConfig(runtimeOidcToken: string | null = null) {
   });
 }
 
-export async function suggestImportClassification(
+async function requestGateway(
   config: NonNullable<ReturnType<typeof getImportGatewayConfig>>,
-  taxonomy: ImportGatewayTaxonomy,
-  note: string,
-  locale: "pt-BR" | "en",
-  scope: "single" | "batch" = "single",
+  body: unknown,
 ) {
   const started = Date.now();
   const response = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {
@@ -37,8 +42,8 @@ export async function suggestImportClassification(
       "Content-Type": "application/json",
     },
     cache: "no-store",
-    signal: AbortSignal.timeout(12000),
-    body: JSON.stringify(createImportGatewayRequest(config.model, taxonomy, note, locale, scope)),
+    signal: AbortSignal.timeout(18000),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -48,19 +53,50 @@ export async function suggestImportClassification(
       model: config.model,
       kind: failure.kind,
     });
-    return { suggestion: null, status: response.status === 429 ? 429 : 503, error: failure.message };
+    return { ok: false as const, status: response.status === 429 ? 429 : 503, error: failure.message };
   }
 
   const result = await response.json().catch(() => null);
-  const { suggestion, kind } = decodeImportGatewayResponse(result, taxonomy);
+  return { ok: true as const, result, durationMs: Date.now() - started };
+}
+
+function logGeneration(model: string, scope: string, result: { usage?: { prompt_tokens?: number; completion_tokens?: number } } | null, durationMs: number, valid: boolean, kind: string) {
   console.info("Smart Import generation", {
-    model: config.model,
+    model,
     scope,
     inputTokens: result?.usage?.prompt_tokens,
     outputTokens: result?.usage?.completion_tokens,
-    durationMs: Date.now() - started,
-    valid: Boolean(suggestion),
+    durationMs,
+    valid,
     kind,
   });
+}
+
+export async function suggestImportClassification(
+  config: NonNullable<ReturnType<typeof getImportGatewayConfig>>,
+  taxonomy: ImportGatewayTaxonomy,
+  note: string,
+  locale: "pt-BR" | "en",
+  scope: "single" | "batch" = "single",
+) {
+  const response = await requestGateway(config, createImportGatewayRequest(config.model, taxonomy, note, locale, scope));
+  if (!response.ok) return { suggestion: null, status: response.status, error: response.error };
+  const { suggestion: decoded, kind } = decodeImportGatewayResponse(response.result, taxonomy);
+  const suggestion = decoded && scope === "batch" ? constrainSharedImportSuggestion(decoded, note, locale) : decoded;
+  logGeneration(config.model, scope, response.result, response.durationMs, Boolean(suggestion), kind);
   return { suggestion, status: suggestion ? 200 : 502 };
+}
+
+export async function suggestNumberedImportClassifications(
+  config: NonNullable<ReturnType<typeof getImportGatewayConfig>>,
+  taxonomy: ImportGatewayTaxonomy,
+  note: NumberedEditorialNote,
+  locale: "pt-BR" | "en",
+) {
+  const response = await requestGateway(config, createNumberedImportGatewayRequest(config.model, taxonomy, note, locale));
+  if (!response.ok) return { suggestion: null, status: response.status, error: response.error };
+  const decoded = decodeNumberedImportGatewayResponse(response.result, taxonomy, note, locale);
+  logGeneration(config.model, "numbered-batch", response.result, response.durationMs, Boolean(decoded.suggestion), decoded.kind);
+  if (!decoded.suggestion) return { suggestion: null, status: 502 };
+  return { suggestion: decoded.suggestion, individual: decoded.individual, status: 200 };
 }

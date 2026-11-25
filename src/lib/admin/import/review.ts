@@ -1,5 +1,6 @@
 export const IMPORT_BATCH_LIMIT = 20;
 export const EDITORIAL_NOTE_LIMIT = 500;
+export const BATCH_EDITORIAL_NOTE_LIMIT = 2500;
 
 export const youtubeVideoIdPattern = /^[A-Za-z0-9_-]{11}$/;
 export const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -40,6 +41,31 @@ export type ImportSuggestion = {
   reason: string;
 };
 
+export type NumberedEditorialNote = {
+  sharedNote: string;
+  entries: { number: number; note: string }[];
+};
+
+/** Numbers refer to the displayed review order, not YouTube IDs or titles. */
+export function parseNumberedEditorialNote(note: string, count: number): NumberedEditorialNote | null {
+  const markers = [...note.matchAll(/(?:^|[\r\n;])[ \t]*(?:v[ií]deo[ \t]*)?#?(\d{1,3})[ \t]*[:.)-][ \t]*/giu)];
+  if (!markers.length) return { sharedNote: note.trim(), entries: [] };
+
+  const clean = (value: string) => value.trim().replace(/;+$/, "").trim();
+  const sharedNote = clean(note.slice(0, markers[0].index));
+  const entries: NumberedEditorialNote["entries"] = [];
+  const seen = new Set<number>();
+  for (let i = 0; i < markers.length; i++) {
+    const marker = markers[i];
+    const number = Number(marker[1]);
+    const ownNote = clean(note.slice(marker.index! + marker[0].length, markers[i + 1]?.index ?? note.length));
+    if (!Number.isInteger(number) || number < 1 || number > count || seen.has(number) || !ownNote) return null;
+    seen.add(number);
+    entries.push({ number, note: ownNote });
+  }
+  return { sharedNote, entries };
+}
+
 /** Suggestions fill only fields without an explicit individual override. */
 export function applyImportSuggestion(
   batch: BatchClassification,
@@ -71,11 +97,12 @@ export function applyImportSuggestionToBatch(
   overrides: Record<string, ImportReviewOverride>,
   videoIds: readonly string[],
   suggestion: ImportSuggestion,
+  individualSuggestions: Record<string, ImportSuggestion> = {},
 ) {
   let next = overrides;
   for (const videoId of videoIds) {
     const original = overrides[videoId] ?? {};
-    const updated = applyImportSuggestion(batch, original, suggestion);
+    const updated = applyImportSuggestion(batch, original, individualSuggestions[videoId] ?? suggestion);
     if (updated !== original) {
       if (next === overrides) next = { ...overrides };
       next[videoId] = updated;
@@ -97,11 +124,12 @@ export function parseImportSuggestionRequest(body: unknown): {
 } | null {
   if (!isRecord(body)) return null;
   const { sourceId, videoId, videoIds, note, locale } = body;
+  const shared = videoIds !== undefined;
   if (typeof sourceId !== "string" || !uuidPattern.test(sourceId) ||
-      typeof note !== "string" || !note.trim() || note.length > EDITORIAL_NOTE_LIMIT ||
+      typeof note !== "string" || !note.trim() ||
+      note.length > (shared ? BATCH_EDITORIAL_NOTE_LIMIT : EDITORIAL_NOTE_LIMIT) ||
       (locale !== "en" && locale !== "pt-BR")) return null;
 
-  const shared = videoIds !== undefined;
   const ids = shared ? videoIds : [videoId];
   if ((shared && videoId !== undefined) ||
       !Array.isArray(ids) || ids.length < (shared ? 2 : 1) ||
