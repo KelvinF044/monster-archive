@@ -14,6 +14,6 @@ export function resolveImportGatewayConfig(options: GatewayConfigOptions) {
 
   return {
     token,
-    model: options.model || "google/gemini-3.5-flash-lite",
+    model: options.model || "google/gemini-2.5-flash-lite",
   };
 }

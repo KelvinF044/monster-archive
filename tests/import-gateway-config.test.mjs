@@ -8,7 +8,7 @@ test("uses the runtime OIDC credential when the environment token is absent", ()
     runtimeOidcToken: "synthetic-runtime-token",
   }), {
     token: "synthetic-runtime-token",
-    model: "google/gemini-3.5-flash-lite",
+    model: "google/gemini-2.5-flash-lite",
   });
 });
 
