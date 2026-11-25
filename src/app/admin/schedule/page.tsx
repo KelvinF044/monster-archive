@@ -1,11 +1,29 @@
 import type { Metadata } from "next";
-import AdminEditorialWorkspacePreview from "@/components/AdminEditorialWorkspacePreview";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import { redirect } from "next/navigation";
+import { requireActiveAdmin } from "@/lib/admin/requireActiveAdmin";
+import { loadNewsCatalogs } from "@/lib/admin/news/queries";
+import { loadEventList } from "@/lib/admin/schedule/queries";
+import AdminScheduleManager from "@/components/AdminScheduleManager";
+import AdminText from "@/components/AdminText";
 
-export const metadata: Metadata = {
-  title: "Events",
-  robots: { index: false, follow: false },
-};
+export const metadata:Metadata={title:"Events management",robots:{index:false,follow:false}};
 
-export default function Page() {
-  return <AdminEditorialWorkspacePreview section="schedule" />;
+async function ScheduleWorkspace(){
+  await connection();
+  const admin=await requireActiveAdmin();
+  if(!admin) redirect("/admin/login");
+  let data: Awaited<ReturnType<typeof loadNewsCatalogs>>;
+  let list: Awaited<ReturnType<typeof loadEventList>>;
+  try {
+    [data,list]=await Promise.all([loadNewsCatalogs(admin.supabase),loadEventList(admin.supabase,{page:1})]);
+  }catch{
+    return <main className="min-h-screen bg-[#08090d] px-6 py-12 text-white"><div className="mx-auto max-w-7xl rounded-xl border border-red-500/30 bg-red-500/5 p-6"><AdminText>Unable to load the events workspace. Confirm that the Phase 2.3.1 migration was applied.</AdminText></div></main>;
+  }
+  return <AdminScheduleManager catalogs={data} initialList={list}/>;
+}
+
+export default function Page(){
+  return <Suspense fallback={<main className="min-h-screen bg-[#08090d] p-8 text-zinc-400"><AdminText>Loading...</AdminText></main>}><ScheduleWorkspace/></Suspense>;
 }

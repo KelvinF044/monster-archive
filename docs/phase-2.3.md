@@ -99,14 +99,51 @@ publication (Published badge and approval/publication dates). The browser-native
 confirmation was flagged by Vercel's interaction timing tool; a non-blocking,
 keyboard-accessible confirmation dialog replaces it while preserving explicit
 administrative confirmation. Published/approved/archived workflow messages now
-reflect their actual status. Interactive performance confirmation remains
-pending; no database changes are required.
+reflect their actual status. The owner accepted progression to the next subphase. A new interactive INP measurement was not recorded. No database changes are required.
+
+## Phase 2.3.3 — Event and agenda administration
+
+Implemented the existing `/admin/schedule` workspace and its active-admin API.
+It reuses the central member, Era and editorial source catalogs, the Watch
+lookup, existing editorial status rules, and the non-blocking confirmation
+dialog. The public calendar is still a placeholder until Phase 2.3.4.
+
+- Paginated list, title/slug search and category, editorial status, activity
+  status and local calendar-month filters.
+- Bilingual titles/summaries, event category, featured placement, existing Era,
+  venue, location and optional official URL.
+- A separate activity status (confirmed, postponed, rescheduled, cancelled,
+  completed) from the editorial workflow.
+- Local start/end dates, timed/all-day/time-TBA precision, IANA time zone,
+  precise UTC conversion and explicit selection for ambiguous repeated DST
+  times; nonexistent local times are rejected. No invented timestamps for
+  untimed items.
+- Explicit official-evidence checkbox for official group/organizer/broadcaster
+  sources. A press/manual source can be a reference but cannot independently
+  qualify an event for approval.
+- Links to existing members/videos and visible recent audit history of date,
+  time, timezone and status changes.
+- Authenticated, validated requests with no service-role key, AI call or
+  external source fetching. Existing database workflow is authoritative.
+
+### Event interactive test
+
+Create a clearly marked synthetic event in the test database, select a local
+date and an exact time in Asia/Seoul, verify the UTC conversion, link an
+official-category test source with explicit evidence, and move through review,
+approval and publication. An ordinary manual/press source must not satisfy the
+official-evidence requirement. Return the item to draft to reschedule, then
+review/publish again and check history. Verify all-day or time-TBA events do
+not invent a clock time. Test fixture URLs/names are for homologation only.
+
+Status: implementation and automated tests complete, authenticated owner
+validation pending. No SQL migration beyond Phase 2.3.1 is required.
 
 ## Remaining delivery
 
 1. Editorial database schema and RLS — completed in homologation.
-2. News administration and review workflow — publication validated by owner; confirmation UX improvement pending interactive retest.
-3. Events administration, official sources, time zones and status.
+2. News administration and review workflow — validated publication; owner approved progression.
+3. Events administration, official sources, time zones and status — implemented, interactive owner validation pending.
 4. Public bilingual news feed, article detail, and event schedule.
 5. Editorial center and approved-source discovery, deduplication and curation.
 6. Opt-in server-only AI assistance; structured suggestions, translations/summaries, reuse, shared cost cap, no automatic publication.

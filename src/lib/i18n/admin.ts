@@ -1,6 +1,7 @@
 import type { Locale } from "@/lib/i18n/config";
 
 const ptBR: Record<string, string> = {
+  "Unable to load the events workspace. Confirm that the Phase 2.3.1 migration was applied.": "Não foi possível carregar os eventos. Confirme a aplicação da migração da Fase 2.3.1.",
   "Unable to load the news workspace. Confirm that the Phase 2.3.1 migration was applied.": "Não foi possível carregar as notícias. Confirme a aplicação da migração da Fase 2.3.1.",
   "Source management and editorial review will be implemented in the editorial stage.": "O gerenciamento de fontes e a revisão editorial serão implementados na etapa editorial.",
   "Event management will be implemented in the next schedule stage.": "O gerenciamento de eventos será implementado na próxima etapa da agenda.",
