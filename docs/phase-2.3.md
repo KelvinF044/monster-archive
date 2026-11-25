@@ -42,7 +42,7 @@ captured in the audit log. Anonymous and non-admin users read only published
 content and applicable public relations. Source registry, candidates, AI runs
 and audit logs are not public. No new service-role writes are enabled.
 
-### Test rollout — pending database execution
+### Test rollout — completed in homologation (2026-11-25)
 
 1. Verify the selected Supabase project is `monster-archive-test` (not production).
 2. Run the complete migration once in its SQL Editor. It creates only new tables,
@@ -54,15 +54,54 @@ and audit logs are not public. No new service-role writes are enabled.
    locked published evidence, audit, and role isolation. The entire fixture
    transaction rolls back; the final result is PASS.
 5. Confirm existing images, Watch and administration work on the Preview.
-6. Only after the test checks pass proceed to the News admin interface.
+6. Owner returned successful migration, 12/12 structure rows with expected permissions, and workflow PASS. News admin development can proceed.
 
 Git branch: `feat/news-and-schedule`. SQL is applied manually to the isolated
 Supabase project; a Vercel preview build does not run database migrations.
 
+## Phase 2.3.2 — News administration
+
+Implemented in the existing `/admin/news` page; the public feed remains a preview
+placeholder until phase 2.3.4.
+
+- Paginated news listing, search, status and category filters.
+- Manual bilingual draft/editor with independent titles, summaries and optional
+  plain-text bodies; editable slug, category, Era, featured flag and optional
+  cover URL, bilingual alt text, credit and source URL.
+- Manual creation/selection of sources in the shared editorial registry and
+  attribution links with canonical URL deduplication. A source shared by
+  multiple stories requires explicit confirmation.
+- Search/link existing Watch videos and link existing members; no new catalog
+  records are created.
+- Explicit transitions for review, approval, rejection, publishing, archive and
+  return to draft. Approved/published content remains locked by the database.
+- All list/detail/mutation operations use the existing active-admin session,
+  scoped database RLS, validated inputs and optimistic update timestamps.
+- No external fetch, AI request, production migration or automatic publishing.
+
+### Homologation acceptance checklist
+
+1. Open News as a signed-in test administrator in the newest Vercel Preview.
+2. Create a clearly labeled test draft in one language and verify it appears in
+   the list; edit both languages and save.
+3. Register a manual test source, attach its public URL, and verify a duplicated
+   URL (including tracking parameters) is rejected within the same article.
+4. Link an existing member and Watch video; verify the relationship persists.
+5. Submit for review. Approval must require both titles, both summaries, and at
+   least one source. Approve, explicitly publish, and verify the read-only state.
+6. Archive the test article or return it to draft. Verify search/filter and
+   English/Portuguese switching on desktop and mobile.
+7. Confirm existing Watch, Members, Home imagery, and administrator permissions
+   remain unchanged.
+
+Status: implementation and automated checks complete; authenticated interactive
+validation in the test environment remains pending. No SQL migration is needed
+beyond Phase 2.3.1.
+
 ## Remaining delivery
 
-1. Apply and validate the new editorial schema and RLS in the isolated test database.
-2. News administration and review workflow.
+1. Editorial database schema and RLS — completed in homologation.
+2. News administration and review workflow — implementation complete, owner validation pending.
 3. Events administration, official sources, time zones and status.
 4. Public bilingual news feed, article detail, and event schedule.
 5. Editorial center and approved-source discovery, deduplication and curation.

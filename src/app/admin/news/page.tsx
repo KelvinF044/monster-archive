@@ -1,11 +1,28 @@
 import type { Metadata } from "next";
-import AdminEditorialWorkspacePreview from "@/components/AdminEditorialWorkspacePreview";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import { redirect } from "next/navigation";
+import { requireActiveAdmin } from "@/lib/admin/requireActiveAdmin";
+import { loadNewsCatalogs, loadNewsList } from "@/lib/admin/news/queries";
+import AdminNewsManager from "@/components/AdminNewsManager";
+import AdminText from "@/components/AdminText";
 
-export const metadata: Metadata = {
-  title: "News",
-  robots: { index: false, follow: false },
-};
+export const metadata:Metadata={title:"News management",robots:{index:false,follow:false}};
 
-export default function Page() {
-  return <AdminEditorialWorkspacePreview section="news" />;
+async function NewsWorkspace(){
+  await connection();
+  const admin=await requireActiveAdmin();
+  if(!admin) redirect("/admin/login");
+  let data: Awaited<ReturnType<typeof loadNewsCatalogs>>;
+  let list: Awaited<ReturnType<typeof loadNewsList>>;
+  try {
+    [data,list]=await Promise.all([loadNewsCatalogs(admin.supabase),loadNewsList(admin.supabase,{page:1})]);
+  }catch{
+    return <main className="min-h-screen bg-[#08090d] px-6 py-12 text-white"><div className="mx-auto max-w-7xl rounded-xl border border-red-500/30 bg-red-500/5 p-6"><AdminText>Unable to load the news workspace. Confirm that the Phase 2.3.1 migration was applied.</AdminText></div></main>;
+  }
+  return <AdminNewsManager catalogs={data} initialList={list}/>;
+}
+
+export default function Page(){
+  return <Suspense fallback={<main className="min-h-screen bg-[#08090d] p-8 text-zinc-400"><AdminText>Loading...</AdminText></main>}><NewsWorkspace/></Suspense>;
 }
