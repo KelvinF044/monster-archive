@@ -54,8 +54,8 @@ export async function suggestImportClassification(
   const { suggestion, kind } = decodeImportGatewayResponse(result, taxonomy);
   console.info("Smart Import generation", {
     model: config.model,
-    inputTokens: result.usage?.prompt_tokens,
-    outputTokens: result.usage?.completion_tokens,
+    inputTokens: result?.usage?.prompt_tokens,
+    outputTokens: result?.usage?.completion_tokens,
     durationMs: Date.now() - started,
     valid: Boolean(suggestion),
     kind,
