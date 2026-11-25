@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   getImportGatewayConfig,
+  isImportAiEnabled,
   suggestImportClassification,
   SUGGESTION_UNAVAILABLE,
 } from "@/lib/admin/import/gateway";
@@ -19,8 +20,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Administrator access required." }, { status: 401 });
   }
 
-  const config = getImportGatewayConfig();
+  const config = getImportGatewayConfig(request.headers.get("x-vercel-oidc-token"));
   if (!config) {
+    if (isImportAiEnabled()) {
+      console.warn("Smart Import Gateway credentials unavailable");
+      return NextResponse.json({
+        error: "AI authentication is unavailable. You can finish the review manually.",
+      }, { status: 503 });
+    }
     return NextResponse.json({ error: SUGGESTION_UNAVAILABLE }, { status: 503 });
   }
 

@@ -396,6 +396,7 @@ const ptBR: Record<string, string> = {
   "Suggestion applied. Review the classification before importing.": "Sugestão aplicada. Confira a classificação antes de importar.",
   "Some fields have insufficient evidence. Review them manually.": "Alguns campos têm evidência insuficiente. Revise-os manualmente.",
   "Suggestions are unavailable. You can finish the review manually.": "As sugestões estão indisponíveis. Você pode concluir a revisão manualmente.",
+  "AI authentication is unavailable. You can finish the review manually.": "A autenticação da IA está indisponível. Você pode concluir a revisão manualmente.",
   "Choose a collection for each selected video.": "Escolha uma coleção para cada vídeo selecionado.",
   "Review the selected videos that require official MV confirmation.": "Revise os vídeos selecionados que precisam de confirmação de MV oficial.",
   "Approved imports fetch current YouTube metadata and create drafts. Publication requires a separate confirmation.": "As importações aprovadas consultam os metadados atuais do YouTube e criam rascunhos. A publicação exige uma confirmação separada.",

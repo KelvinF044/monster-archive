@@ -1,6 +1,7 @@
 import "server-only";
 
 import { isRecord, type ImportSuggestion } from "./review";
+import { resolveImportGatewayConfig } from "./gateway-config";
 
 type Taxonomy = {
   collections: { id: string; title: string; category: string }[];
@@ -10,14 +11,20 @@ type Taxonomy = {
 
 export const SUGGESTION_UNAVAILABLE = "Suggestions are unavailable. You can finish the review manually.";
 
-export function getImportGatewayConfig() {
-  const token = process.env.VERCEL_OIDC_TOKEN || process.env.AI_GATEWAY_API_KEY;
-  if (process.env.SMART_IMPORT_AI_ENABLED !== "true" || !token) return null;
+export function isImportAiEnabled() {
+  return process.env.SMART_IMPORT_AI_ENABLED === "true";
+}
 
-  return {
-    token,
-    model: process.env.SMART_IMPORT_AI_MODEL || "google/gemini-3.5-flash-lite",
-  };
+export function getImportGatewayConfig(runtimeOidcToken: string | null = null) {
+  // Vercel supplies the OIDC token in the request header at function runtime,
+  // not in VERCEL_OIDC_TOKEN (which is available in builds and local development).
+  return resolveImportGatewayConfig({
+    enabled: isImportAiEnabled(),
+    runtimeOidcToken,
+    envOidcToken: process.env.VERCEL_OIDC_TOKEN,
+    apiKey: process.env.AI_GATEWAY_API_KEY,
+    model: process.env.SMART_IMPORT_AI_MODEL,
+  });
 }
 
 const suggestionSchema = {

@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import AdminImportCenter from "@/components/AdminImportCenter";
 import { createClient } from "@/lib/supabase/server";
 import AdminText from "@/components/AdminText";
-import { getImportGatewayConfig } from "@/lib/admin/import/gateway";
+import { isImportAiEnabled } from "@/lib/admin/import/gateway";
 
 export default async function AdminImportPage() {
   await connection();
@@ -111,7 +111,7 @@ export default async function AdminImportPage() {
             collections={collectionsResult.data ?? []}
             eras={erasResult.data ?? []}
             members={membersResult.data ?? []}
-            aiEnabled={Boolean(getImportGatewayConfig())}
+            aiEnabled={isImportAiEnabled()}
             apiConfigured={Boolean(process.env.YOUTUBE_API_KEY)}
             refreshConfigured={
               Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) &&
