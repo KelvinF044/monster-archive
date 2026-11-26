@@ -73,7 +73,10 @@ export async function POST(request: NextRequest) {
           p_summary_pt: suggestion.summary_pt, p_summary_en: suggestion.summary_en,
         });
       }
-      if (saved.error) return databaseError(saved.error);
+      if (saved.error) {
+        if (input.coverHash !== undefined && ["PGRST202", "42883"].includes(saved.error.code)) return fail("cover_setup", 503);
+        return databaseError(saved.error);
+      }
       const data = readObject(saved.data);
       if (data?.state === "draft" && isUuid(data.id)) {
         return reply({ draft: { id: data.id, kind: candidate.kind, existing: data.existing === true } });

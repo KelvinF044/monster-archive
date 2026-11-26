@@ -57,7 +57,7 @@ BEGIN
   ) THEN RAISE EXCEPTION 'Cover credit, link, source or draft state is missing.'; END IF;
   UPDATE public.news_articles SET cover_image_url = NULL WHERE id = saved_article_id;
   response := public.save_editorial_ai_draft_with_cover(candidate_id, revision, run_id, fields, poster_url);
-  IF NOT (response->>'existing')::boolean OR (response->>'id')::uuid <> article_id
+  IF NOT (response->>'existing')::boolean OR (response->>'id')::uuid <> saved_article_id
     OR EXISTS (SELECT 1 FROM public.news_articles WHERE id = saved_article_id AND cover_image_url IS NOT NULL) THEN
     RAISE EXCEPTION 'Retry did not preserve the existing edit.';
   END IF;
