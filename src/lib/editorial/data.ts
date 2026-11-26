@@ -10,6 +10,14 @@ export type Article = News & Pick<NewsArticle,"body_pt"|"body_en"|"cover_image_c
 export type Event = Pick<EventRow,"id"|"slug"|"category"|"title_pt"|"title_en"|"summary_pt"|"summary_en"|"location"|"venue_name"|"official_event_url"|"starts_on"|"ends_on"|"starts_at"|"ends_at"|"time_kind"|"timezone"|"event_status"|"era_id"|"is_featured">;
 export type Catalog = { id: string; name: string; slug: string };
 export type Catalogs = { eras: { id: string; name: string }[]; members: Catalog[] };
+export type HomeNewsItem = Pick<News,
+  "id" | "slug" | "title_pt" | "title_en" | "category" | "published_at" |
+  "cover_image_url" | "cover_image_alt_pt" | "cover_image_alt_en"
+>;
+export type HomeEventItem = Pick<Event,
+  "id" | "slug" | "title_pt" | "title_en" | "category" | "event_status" |
+  "starts_on" | "ends_on" | "starts_at" | "ends_at" | "time_kind" | "timezone"
+>;
 export type Relations = { sources: { source_name: string; source_url: string }[]; members: Catalog[]; videos: { title: string; href: string }[] };
 
 // Always use the public role, even when a signed-in administrator visits a public page.
@@ -73,6 +81,37 @@ export async function eventFeed(f: Filters, now: Date) {
   check(result);
   return { events: (result.data ?? []) as unknown as Event[], total: result.count ?? 0 };
 }
+export async function homeNews(now: Date): Promise<HomeNewsItem[]> {
+  const result = await publicDb()
+    .from("news_articles")
+    .select("id,slug,title_pt,title_en,category,published_at,cover_image_url,cover_image_alt_pt,cover_image_alt_en")
+    .eq("status", "published")
+    .lte("published_at", now.toISOString())
+    .order("published_at", { ascending: false })
+    .order("id")
+    .limit(3);
+
+  check(result);
+  return result.data ?? [];
+}
+
+export async function homeEvents(now: Date): Promise<HomeEventItem[]> {
+  const result = await publicDb()
+    .from("agenda_events")
+    .select("id,slug,title_pt,title_en,category,event_status,starts_on,ends_on,starts_at,ends_at,time_kind,timezone")
+    .eq("status", "published")
+    .lte("published_at", now.toISOString())
+    .in("event_status", ["confirmed", "rescheduled"])
+    .or(eventTimeFilter("upcoming", now))
+    .order("starts_on")
+    .order("starts_at", { nullsFirst: false })
+    .order("id")
+    .limit(3);
+
+  check(result);
+  return result.data ?? [];
+}
+
 export async function articleBySlug(slug: string, now: Date): Promise<Article | null> {
   if (!validSlug(slug)) return null;
   const result = await publicDb().from("news_articles").select(newsFields + ",body_pt,body_en,cover_image_credit,cover_image_source_url").eq("slug",slug).eq("status","published").lte("published_at",now.toISOString()).maybeSingle();

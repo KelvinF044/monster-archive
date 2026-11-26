@@ -271,6 +271,10 @@ The owner verified live bilingual generation and linked attribution on
   official API. Supply `EDITORIAL_X_BEARER_TOKEN` as a server-only Preview
   variable to enable it. The request can use X credits. The queue keeps the
   post reference, and AI generation requires the editor's verified facts.
+  The owner configured the token for the Preview branch. The X API returned
+  HTTP 402 on the live test. Keep discovery available and use the manual
+  candidate flow for X links until credits are funded. The owner wants to
+  consider API credits as a future funding goal for Support the Creator.
 - On an accepted YG news candidate, generate the suggestion and use **Preview
   report image**. The photo is read from the article body, including supported
   embedded raster images. The editor can select it for use where authorized.
@@ -285,6 +289,25 @@ The owner verified live bilingual generation and linked attribution on
   `supabase/checks/phase_2_3_6_cover_environment.sql` to verify the bucket,
   insert policy and draft function in the Supabase project linked to Preview.
 
+The owner verified that the cover migration passed its environment checks
+and that draft creation with the imported cover succeeded in homologation.
+
+## Phase 2.3.7 — Home editorial sections
+
+- The Home adds Latest News and Upcoming Events between the Watch catalog
+  and the About section. The existing locale selector updates both sections
+  immediately.
+- Latest News shows the three most recent published articles, regardless of
+  featured status. Upcoming Events shows up to three published confirmed or
+  rescheduled events in calendar order, using the public schedule's time rules.
+- The Home uses the existing anonymous Supabase client, publication checks
+  and RLS. Each section has its own empty or unavailable state. Editorial data
+  loads separately from the hero, Watch catalog and About. No new SQL is needed.
+- On the Preview, verify the sections in both languages and at desktop and
+  phone sizes. Verify that cards open their public detail pages, a draft stays
+  hidden regardless of admin sign-in, and the schedule link opens the full
+  agenda even when the Home list is empty.
+
 ## Remaining delivery
 
 1. Editorial database schema and RLS — completed in homologation.
@@ -292,8 +315,8 @@ The owner verified live bilingual generation and linked attribution on
 3. Events administration, official sources, time zones and status — owner confirmed in homologation.
 4. Public bilingual news feed, article detail, and event schedule — owner approved the views in homologation.
 5. Editorial Center and approved-source discovery, deduplication and curation — owner approved in homologation.
-6. AI draft assistance — owner verified generation and draft attribution. Multi-source discovery and imported covers are in Preview.
-7. Home latest-news and upcoming-events sections, preserving current layout and localization.
+6. AI draft assistance and YG imported covers — owner verified in Preview. Journal archive search is implemented. Live X discovery remains pending API credits.
+7. Home latest-news and upcoming-events sections — implemented for Preview acceptance.
 8. Preview regression tests and owner approval; only then apply production migration and merge to main.
 
 Keep About/Support the Creator, Community, and future phases out of scope.
