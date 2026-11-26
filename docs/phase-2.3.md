@@ -180,16 +180,51 @@ Public publication is checked separately in Phase 2.3.4. No new SQL required.
 5. Check English/Portuguese, desktop/mobile, existing public pages and admin.
    Keep the synthetic content and test source in the test database only.
 
-Status: implementation, TypeScript, targeted lint and 58 automated tests
-complete; Preview acceptance pending.
+The owner approved the News and Events views on 2026-11-26. The Events
+filter form now fits all five controls on one desktop row and wraps on
+narrower screens.
+
+## Phase 2.3.5 — Editorial Center
+
+- The bilingual `/admin/editorial` workspace uses the existing editorial schema.
+  Administrators can register or edit shared sources, toggle source availability,
+  add candidates manually, and scan active RSS or Atom feeds on demand.
+- Feed scans use the configured direct HTTPS URL, limit the response to 1 MiB,
+  and process up to 25 matching entries per scan. The keyword defaults to
+  BABYMONSTER, including Korean and Japanese spellings. Editors can change or
+  clear the keyword. Only feed metadata and a short excerpt enter the queue.
+- Canonical URL and per-source external ID prevent repeat candidates. URLs
+  already linked to an article or event of the same type are skipped. The
+  review queue supports search, filtering, pagination, editorial notes and
+  review statuses. Selected candidates can be used as a reference for manual
+  draft creation in News or Events.
+- All reads and changes use the active administrator session and existing RLS.
+  Source and candidate updates reuse the existing audit triggers. The RSS
+  reader verifies public IP addresses, pins the HTTPS connection and refuses
+  redirects. Source discovery and public publishing are separately controlled
+  by the editor. Phase 2.3.6 supplies AI drafting assistance.
+
+### Preview acceptance
+
+1. Open Editorial Center as an active administrator. Register a manual source
+   and add a labeled test candidate with its original URL.
+2. Add the same URL with a different tracking parameter. Confirm the duplicate
+   message and a single candidate in the queue.
+3. Review the candidate, add an editorial note, and select or reject it. Refresh
+   and verify the decision persists.
+4. Register an active source with a direct public feed URL, choose a content
+   type and scan. Confirm matching entries enter the queue as pending.
+   Repeat the scan and check the duplicate count.
+5. Open public Events at desktop and phone widths to check filter alignment.
+   The existing Supabase migration from Phase 2.3.1 covers this delivery.
 
 ## Remaining delivery
 
 1. Editorial database schema and RLS — completed in homologation.
 2. News administration and review workflow — validated publication; owner approved progression.
 3. Events administration, official sources, time zones and status — owner confirmed in homologation.
-4. Public bilingual news feed, article detail, and event schedule — implemented; Preview acceptance pending.
-5. Editorial center and approved-source discovery, deduplication and curation.
+4. Public bilingual news feed, article detail, and event schedule — owner approved the views in homologation.
+5. Editorial Center and approved-source discovery, deduplication and curation — implemented for Preview acceptance.
 6. Opt-in server-only AI assistance; structured suggestions, translations/summaries, reuse, shared cost cap, no automatic publication.
 7. Home latest-news and upcoming-events sections, preserving current layout and localization.
 8. Preview regression tests and owner approval; only then apply production migration and merge to main.
