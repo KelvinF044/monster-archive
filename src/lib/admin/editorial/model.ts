@@ -30,6 +30,8 @@ export type Candidate = Discovery & {
   status: CandidateStatus;
   duplicate_of_id: string | null;
   editorial_note: string | null;
+  draft_news_id?: string | null;
+  draft_event_id?: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -218,14 +218,48 @@ narrower screens.
 5. Open public Events at desktop and phone widths to check filter alignment.
    The existing Supabase migration from Phase 2.3.1 covers this delivery.
 
+## Phase 2.3.6 — AI draft assistance
+
+The owner approved the Editorial Center on 2026-11-26. Accepted candidates
+with active sources can now open AI draft assistance in their review panel.
+
+- Generation is started by the editor. The model receives the original title,
+  excerpt, language and any verified facts the editor adds. It returns PT-BR
+  and EN titles and summaries, plus a category from the selected taxonomy.
+- Editors can change the texts and category before saving. The draft and its
+  original attribution are created in a single transaction. A repeated save
+  opens the existing item. Events start with an unconfirmed date and an
+  unverified source link. The existing review and publication rules apply.
+- Identical inputs reuse a stored suggestion. The database records token usage
+  and estimated cost when the gateway supplies usage information. A shared
+  editorial allowance reserves US$0.005 per new attempt against US$1 per UTC
+  month. Failed attempts retain their reservation, and reuse adds no charge
+  to this allowance. These are application estimates for editorial assistance.
+- Vercel Preview enables the feature by default. `EDITORIAL_AI_ENABLED` can
+  override the default. The Gateway uses the existing server-only OIDC/API
+  credential path and the Gemini 2.5 Flash-Lite model.
+
+### Preview activation and verification
+
+1. In the Supabase SQL Editor for `monster-archive-test`, apply
+   `supabase/migrations/202611260001_editorial_ai_assistance.sql`.
+2. Optionally run `supabase/checks/phase_2_3_6_workflow.sql` in the same SQL Editor.
+   Expect PASS. The fixture transaction rolls back and makes zero AI calls.
+3. In the Vercel Preview, select a candidate with an active source, open
+   **AI draft assistance**, and generate a suggestion. Reopen with the same
+   inputs to verify reuse. Edit one title, create the draft, and open the editor
+   to verify the revision and original attribution.
+4. For an event, verify the date is empty and the official evidence checkbox
+   is clear. Confirm the draft is absent from the public agenda.
+
 ## Remaining delivery
 
 1. Editorial database schema and RLS — completed in homologation.
 2. News administration and review workflow — validated publication; owner approved progression.
 3. Events administration, official sources, time zones and status — owner confirmed in homologation.
 4. Public bilingual news feed, article detail, and event schedule — owner approved the views in homologation.
-5. Editorial Center and approved-source discovery, deduplication and curation — implemented for Preview acceptance.
-6. Opt-in server-only AI assistance; structured suggestions, translations/summaries, reuse, shared cost cap, no automatic publication.
+5. Editorial Center and approved-source discovery, deduplication and curation — owner approved in homologation.
+6. AI draft assistance — implemented for Preview activation and acceptance.
 7. Home latest-news and upcoming-events sections, preserving current layout and localization.
 8. Preview regression tests and owner approval; only then apply production migration and merge to main.
 

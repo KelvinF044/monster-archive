@@ -33,16 +33,16 @@ function dateLabel(value:string|null,locale:string){
 }
 
 type Filters={q:string;status:string;category:string};
-type Props={initialList:NewsList;catalogs:NewsCatalogs};
+type Props={initialList:NewsList;catalogs:NewsCatalogs;initialDetail?:NewsDetail};
 
-export default function AdminNewsManager({initialList,catalogs:initialCatalogs}:Props){
+export default function AdminNewsManager({initialList,catalogs:initialCatalogs,initialDetail}:Props){
   const {locale,t}=useAdminLocale();
   const copy=newsCopy(locale), c=copy.text;
   const [catalogs,setCatalogs]=useState(initialCatalogs);
   const [list,setList]=useState(initialList);
   const [filters,setFilters]=useState<Filters>({q:"",status:"",category:""});
   const [applied,setApplied]=useState<Filters>(filters);
-  const [editor,setEditor]=useState<NewsDetail|null|undefined>(undefined);
+  const [editor,setEditor]=useState<NewsDetail|null|undefined>(initialDetail);
   const [dirty,setDirty]=useState(false);
   const [listBusy,setListBusy]=useState(false);
   const [error,setError]=useState("");

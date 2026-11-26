@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAdminLocale } from "@/components/AdminLocaleProvider";
 import { CANDIDATE_KINDS, CANDIDATE_STATUSES, QUEUE_PAGE_SIZE, type Candidate, type CandidateStatus, type DiscoverySource, type Queue as QueueData } from "@/lib/admin/editorial/model";
 import type { EditorialCopy } from "@/lib/admin/editorial/messages";
+import EditorialAssist from "./Assist";
 import { Field, OriginalLink, buttonClass, inputClass, panelClass, primaryClass, timeLabel } from "./Controls";
 
 export type Filters = { q: string; kind: string; status: string; source: string };
@@ -109,6 +110,7 @@ function Review({ candidate, copy, busy, save }: {
         <button className={primaryClass}>{c.save}</button>
       </fieldset>
     </form>
+    {(candidate.status === "accepted" || candidate.draft_news_id || candidate.draft_event_id) && <EditorialAssist candidate={candidate} disabled={busy} />}
     {candidate.status === "accepted" && <p className="text-sm text-zinc-400">
       {c.acceptedHint}{" "}
       <Link href={candidate.kind === "news" ? "/admin/news" : "/admin/schedule"} className="font-semibold text-purple-300 hover:underline">

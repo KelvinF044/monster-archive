@@ -4,7 +4,6 @@ import type { AdminDatabase } from "../news/queries";
 import { isCandidateKind, isCandidateStatus, QUEUE_PAGE_SIZE, type Candidate, type CandidateKind, type Discovery, type DiscoverySource, type Queue } from "./model";
 
 export const sourceFields = "id,name,homepage_url,source_kind,is_active,feed_url,discovery_method,last_scanned_at,updated_at";
-const candidateFields = "id,source_id,kind,status,external_id,source_url,canonical_url,original_title,original_excerpt,original_language,source_published_at,duplicate_of_id,editorial_note,created_at,updated_at";
 
 export async function listSources(db: AdminDatabase): Promise<DiscoverySource[]> {
   const sources: DiscoverySource[] = [];
@@ -20,7 +19,7 @@ export async function listCandidates(db: AdminDatabase, params: URLSearchParams)
   const page = Math.min(10000, Math.max(1, Number.parseInt(params.get("page") ?? "", 10) || 1));
   const sourceId = params.get("source"), status = params.get("status"), kind = params.get("kind");
   const term = searchText(params.get("q"));
-  let query = db.from("editorial_candidates").select(candidateFields, { count: "exact" });
+  let query = db.from("editorial_candidates").select("*", { count: "exact" });
   if (isUuid(sourceId)) query = query.eq("source_id", sourceId);
   if (isCandidateKind(kind)) query = query.eq("kind", kind);
   if (isCandidateStatus(status)) query = query.eq("status", status);
