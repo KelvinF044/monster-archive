@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { connection } from "next/server";
 
 import { members } from "@/data/members";
+import { isEditorialIndexable } from "@/lib/editorial/metadata";
 import { createClient } from "@/lib/supabase/server";
 
 const SITE_URL = "https://www.themonsterarchive.com";
@@ -37,7 +38,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const fallbackSitemap = [...basePages, ...memberPages];
+  const editorialPages: MetadataRoute.Sitemap = isEditorialIndexable
+    ? [
+        { url: `${SITE_URL}/news`, changeFrequency: "weekly", priority: 0.8 },
+        { url: `${SITE_URL}/schedule`, changeFrequency: "weekly", priority: 0.8 },
+      ]
+    : [];
+  const fallbackSitemap = [...basePages, ...editorialPages, ...memberPages];
 
   try {
     const supabase = await createClient();

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { editorialRobots } from "@/lib/editorial/metadata";
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
@@ -10,7 +11,7 @@ import { button, FilterForm, Heading, Loading, Message, PageFrame, Pagination } 
 import { EventCard } from "@/components/editorial/Cards";
 import Calendar from "@/components/editorial/Calendar";
 
-export const metadata:Metadata={title:"Events",robots:{index:false,follow:false}};
+export const metadata:Metadata={title:"Events",robots:editorialRobots};
 type Props={searchParams:Promise<SearchParams>};
 const views:View[]=["upcoming","calendar","history"];
 export default function SchedulePage(props:Props){return <Suspense fallback={<Loading/>}><ScheduleContent {...props}/></Suspense>;}

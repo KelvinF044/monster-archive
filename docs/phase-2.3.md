@@ -308,6 +308,36 @@ and that draft creation with the imported cover succeeded in homologation.
   hidden regardless of admin sign-in, and the schedule link opens the full
   agenda even when the Home list is empty.
 
+The owner approved the Home layout in the Preview on 2026-11-26.
+
+## Phase 2.3.8 — Release verification
+
+The public News and Events pages carry a noindex directive in Preview.
+Production deployments allow indexing and include both editorial landing
+pages in the existing public sitemap. The administrative metadata is unchanged.
+
+### Production rollout after owner approval
+
+1. Verify the Production deployment's Supabase project, confirm backup or
+   recovery access, and confirm which of these migrations are pending. Apply
+   the pending migrations to Production in this order:
+   - `supabase/migrations/202611250001_editorial_news_schedule.sql`
+   - `supabase/migrations/202611260001_editorial_ai_assistance.sql`
+   - `supabase/migrations/202611260002_editorial_discovery_covers.sql`
+2. Run the read-only checks `supabase/checks/phase_2_3_1_structure.sql` and
+   `supabase/checks/phase_2_3_6_cover_environment.sql`. Expect 12 editorial
+   tables with RLS enabled and three `true` values for covers. The
+   migrations do not copy test articles, events or sources to Production.
+3. Editorial AI is opt-in in Production. To enable it, set
+   `EDITORIAL_AI_ENABLED=true` for Production and verify the AI Gateway
+   credentials through the existing server-side credential path. X continues
+   with manual candidates while automatic discovery awaits credits.
+4. Merge the verified release to `main`, wait for the Production deployment
+   in Vercel, then check Home, News, Events, Watch and Members. Confirm the
+   administrator pages require sign-in and the public editorial pages
+   render without a data error. Empty News and Events lists are expected
+   until an administrator publishes the first real items.
+
 ## Remaining delivery
 
 1. Editorial database schema and RLS — completed in homologation.
@@ -316,7 +346,7 @@ and that draft creation with the imported cover succeeded in homologation.
 4. Public bilingual news feed, article detail, and event schedule — owner approved the views in homologation.
 5. Editorial Center and approved-source discovery, deduplication and curation — owner approved in homologation.
 6. AI draft assistance and YG imported covers — owner verified in Preview. Journal archive search is implemented. Live X discovery remains pending API credits.
-7. Home latest-news and upcoming-events sections — implemented for Preview acceptance.
+7. Home latest-news and upcoming-events sections — owner approved the layout in Preview.
 8. Preview regression tests and owner approval; only then apply production migration and merge to main.
 
 Keep About/Support the Creator, Community, and future phases out of scope.

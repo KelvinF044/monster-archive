@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { editorialRobots } from "@/lib/editorial/metadata";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
@@ -9,7 +10,7 @@ import { editorialCopy, label } from "@/lib/editorial/copy";
 import { BackLink, ExternalLink, Loading, Message, PageFrame, RelationPanel } from "@/components/editorial/Shared";
 import Cover from "@/components/editorial/Cover";
 
-export const metadata:Metadata={title:"News article",robots:{index:false,follow:false}};
+export const metadata:Metadata={title:"News article",robots:editorialRobots};
 type Props={params:Promise<{slug:string}>};
 export default function NewsDetailPage(props:Props){return <Suspense fallback={<Loading/>}><ArticleContent {...props}/></Suspense>;}
 async function ArticleContent({params}:Props){

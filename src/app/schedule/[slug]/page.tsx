@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { editorialRobots } from "@/lib/editorial/metadata";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
@@ -10,7 +11,7 @@ import { BackLink, ExternalLink, Loading, Message, PageFrame, RelationPanel, pan
 import { EventBadge } from "@/components/editorial/Cards";
 import EventTime from "@/components/editorial/EventTime";
 
-export const metadata:Metadata={title:"Event details",robots:{index:false,follow:false}};
+export const metadata:Metadata={title:"Event details",robots:editorialRobots};
 type Props={params:Promise<{slug:string}>};
 export default function EventDetailPage(props:Props){return <Suspense fallback={<Loading/>}><EventContent {...props}/></Suspense>;}
 async function EventContent({params}:Props){

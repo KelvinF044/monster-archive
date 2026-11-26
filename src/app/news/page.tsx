@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { editorialRobots } from "@/lib/editorial/metadata";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { getLocale } from "@/lib/i18n/server";
@@ -8,7 +9,7 @@ import { editorialCopy } from "@/lib/editorial/copy";
 import { FilterForm, Heading, Loading, Message, PageFrame, Pagination } from "@/components/editorial/Shared";
 import { NewsCard } from "@/components/editorial/Cards";
 
-export const metadata: Metadata = { title: "News", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "News", robots: editorialRobots };
 type Props = { searchParams: Promise<SearchParams> };
 export default function NewsPage(props: Props) {
   return <Suspense fallback={<Loading/>}><NewsContent {...props}/></Suspense>;
