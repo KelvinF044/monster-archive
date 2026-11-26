@@ -97,14 +97,14 @@ async function HomeContent() {
     <main className="min-h-screen bg-[#08090d] text-white">
       <HomeHero heroImage={heroImage} />
 
+      <Suspense fallback={null}>
+        <HomeEditorialContent />
+      </Suspense>
+
       <HomeCatalog
         collections={collections}
         collectionsError={collectionsError}
       />
-
-      <Suspense fallback={null}>
-        <HomeEditorialContent />
-      </Suspense>
 
       <HomeAboutFooter />
     </main>

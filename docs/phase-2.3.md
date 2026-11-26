@@ -294,9 +294,9 @@ and that draft creation with the imported cover succeeded in homologation.
 
 ## Phase 2.3.7 — Home editorial sections
 
-- The Home adds Latest News and Upcoming Events between the Watch catalog
-  and the About section. The existing locale selector updates both sections
-  immediately.
+- The Home shows Latest News and Upcoming Events directly below the hero,
+  before the Explore the archive catalog. The existing locale selector
+  updates both sections immediately.
 - Latest News shows the three most recent published articles, regardless of
   featured status. Upcoming Events shows up to three published confirmed or
   rescheduled events in calendar order, using the public schedule's time rules.
