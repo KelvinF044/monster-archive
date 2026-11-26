@@ -9,7 +9,7 @@ import type { Catalogs, Relations } from "@/lib/editorial/data";
 
 export const panel = "rounded-xl border border-white/10 bg-white/[0.03]";
 export const button = "inline-flex items-center justify-center rounded-lg border border-white/15 px-4 py-2.5 text-sm font-bold transition hover:border-purple-400 hover:text-purple-300 focus-visible:outline-2 focus-visible:outline-purple-400";
-const control = "mt-2 min-w-0 w-full rounded-lg border border-white/15 bg-[#111217] px-3 py-2.5 text-sm text-white focus:border-purple-400 focus:outline-none";
+const control = "mt-2 min-w-0 w-full rounded-lg border border-white/15 bg-[#111217] px-3 text-sm text-white focus:border-purple-400 focus:outline-none";
 export function PageFrame({ children }: { children: ReactNode }) { return <main className="min-h-screen bg-[#08090d] px-5 py-12 text-white md:px-10 md:py-20"><div className="mx-auto max-w-7xl">{children}</div></main>; }
 export function Heading({ section, locale }: { section:"news"|"schedule"; locale:Locale }) {
   const c = editorialCopy(locale);
@@ -20,14 +20,15 @@ export function Message({ text, hint }: { text:string; hint?:string }) { return 
 export function FilterForm({ section, f, catalog, locale }: { section:"news"|"schedule"; f:Filters; catalog:Catalogs; locale:Locale }) {
   const c = editorialCopy(locale);
   const categories = section === "news" ? NEWS_CATEGORIES : EVENT_CATEGORIES;
-  const select = (name:string,title:string,value:string,options:{id:string;name:string}[]) => <label className="min-w-0 text-xs font-bold text-zinc-400">{title}<select className={control} name={name} defaultValue={value}><option value="">{c.all}</option>{options.map(o=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>;
+  const filterControl = control + (section === "schedule" ? " h-10 py-2" : " py-2.5");
+  const select = (name:string,title:string,value:string,options:{id:string;name:string}[]) => <label className="min-w-0 text-xs font-bold text-zinc-400">{title}<select className={filterControl} name={name} defaultValue={value}><option value="">{c.all}</option>{options.map(o=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>;
   return <form key={editorialHref(section,f,{page:1})} action={"/"+section} method="get" className={panel+" mb-8 p-4 md:p-5"}>
     {section === "schedule" && <input type="hidden" name="view" value={f.view}/>}
     {section === "schedule" && f.view === "calendar" && <input type="hidden" name="month" value={f.month}/>}
     <div className={section === "schedule"
       ? "grid items-end gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))]"
       : "grid gap-4 sm:grid-cols-2 lg:grid-cols-4"}>
-      <label className="min-w-0 text-xs font-bold text-zinc-400">{c.search}<input className={control} name="q" defaultValue={f.q} maxLength={100} placeholder={c.searchPlaceholder}/></label>
+      <label className="min-w-0 text-xs font-bold text-zinc-400">{c.search}<input className={filterControl} name="q" defaultValue={f.q} maxLength={100} placeholder={c.searchPlaceholder}/></label>
       {select("category",c.category,f.category,categories.map(id=>({id,name:label(id,locale)})))}
       {select("era",c.era,f.era,catalog.eras)}
       {select("member",c.member,f.member,catalog.members)}

@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
   if (!admin) return fail("unauthorized", 401);
   if (request.headers.get("content-type")?.split(";")[0].trim() !== "application/json") return fail("invalid_request", 415);
   const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) return fail("invalid_request", 403);
+  const host = request.headers.get("host") ?? request.nextUrl.host;
+  if (origin && origin !== request.nextUrl.protocol + "//" + host) return fail("invalid_request", 403);
   const raw = await request.text();
   if (raw.length > 16000) return fail("invalid_request", 413);
   let input;
