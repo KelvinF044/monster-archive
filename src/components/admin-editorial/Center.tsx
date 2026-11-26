@@ -7,6 +7,7 @@ import { editorialAdminCopy, type EditorialError } from "@/lib/admin/editorial/m
 import { QUEUE_PAGE_SIZE, type DiscoverySource, type Queue as QueueData, type ScanResult } from "@/lib/admin/editorial/model";
 import { buttonClass, primaryClass } from "./Controls";
 import Sources from "./Sources";
+import NewsDiscovery from "./NewsDiscovery";
 import DiscoveryForms from "./DiscoveryForms";
 import { Queue, type Filters } from "./Queue";
 
@@ -90,10 +91,13 @@ export default function AdminEditorialCenter({ sources, queue, failed }: Props) 
         throw cause;
       }
       saved = true;
-      if (action === "scan") setScan(result);
+      if (action === "scan" || action === "discover_news") setScan(result);
       else setMessage(action === "save_source" ? "sourceSaved" : action === "curate" ? "reviewSaved" : "candidateSaved");
-      const page = action === "add_candidate" || action === "scan" ? 1 : workspace.queue.page;
-      setWorkspace(await fetchWorkspace(filters, page));
+      const showNew = action === "discover_news" && result.added > 0;
+      const next = showNew ? { q: "", kind: "news", status: "pending", source: "" } : filters;
+      const page = action === "add_candidate" || action === "scan" || action === "discover_news" ? 1 : workspace.queue.page;
+      setWorkspace(await fetchWorkspace(next, page));
+      if (showNew) setFilters(next);
     });
     return saved;
   }
@@ -123,11 +127,13 @@ export default function AdminEditorialCenter({ sources, queue, failed }: Props) 
         {scan && <>
           <p>{c.matches} {scan.matches} · {c.added} {scan.added} · {c.duplicates} {scan.duplicates}</p>
           {scan.truncated && <p className="mt-1">{c.scanLimit}</p>}
+          {!!scan.failures && <p className="mt-1 text-amber-300">{c.scanFailures} {scan.failures}</p>}
         </>}
       </div>}
       {selectedTab === "sources"
         ? <Sources sources={workspace.sources} busy={busy} copy={copy} onSave={submit} />
         : <div className="space-y-6">
+          <NewsDiscovery sources={workspace.sources} busy={busy} submit={submit} />
           <DiscoveryForms sources={workspace.sources} busy={busy} copy={copy} submit={submit} />
           <Queue queue={workspace.queue} sources={workspace.sources} filters={filters} copy={copy} busy={busy} load={load} submit={submit} />
         </div>}

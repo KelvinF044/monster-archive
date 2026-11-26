@@ -1,4 +1,5 @@
 import "server-only";
+import { discoveryUrlAliases } from "./publishers";
 import { isUuid, searchText } from "../news/model";
 import type { AdminDatabase } from "../news/queries";
 import { isCandidateKind, isCandidateStatus, QUEUE_PAGE_SIZE, type Candidate, type CandidateKind, type Discovery, type DiscoverySource, type Queue } from "./model";
@@ -37,9 +38,19 @@ export async function getSource(db: AdminDatabase, id: string) {
 
 export async function insertCandidate(db: AdminDatabase, sourceId: string, kind: CandidateKind, discovery: Discovery) {
   const links = kind === "news" ? "news_article_sources" : "agenda_event_sources";
-  const linked = await db.from(links).select("id").eq("canonical_url", discovery.canonical_url).limit(1).maybeSingle();
+  const aliases = discoveryUrlAliases(discovery.canonical_url);
+  const linksQuery = db.from(links).select("id");
+  const linked = await (aliases.length === 1 ? linksQuery.eq("canonical_url", discovery.canonical_url)
+    : linksQuery.in("canonical_url", aliases)).limit(1).maybeSingle();
   if (linked.error) throw new Error("database_error");
   if (linked.data) return "duplicate";
+
+  if (aliases.length > 1) {
+    const candidate = await db.from("editorial_candidates").select("id").eq("kind", kind)
+      .in("canonical_url", aliases).limit(1).maybeSingle();
+    if (candidate.error) throw new Error("database_error");
+    if (candidate.data) return "duplicate";
+  }
 
   // The two existing unique indexes cover concurrent submissions and repeated
   // scans: canonical URL across sources and external ID within a source/kind.

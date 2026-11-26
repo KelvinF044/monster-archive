@@ -36,7 +36,7 @@ export type Candidate = Discovery & {
   updated_at: string;
 };
 export type Queue = { candidates: Candidate[]; page: number; total: number };
-export type ScanResult = { added: number; duplicates: number; matches: number; truncated: boolean };
+export type ScanResult = { added: number; duplicates: number; matches: number; truncated: boolean; failures?: number };
 
 export const QUEUE_PAGE_SIZE = 20;
 export const FEED_SCAN_LIMIT = 25;
@@ -94,7 +94,7 @@ function normalizedSearch(value: string) {
   return value.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
 }
 
-export function matchesFeedTerm(discovery: Discovery, term: string) {
+export function matchesFeedTerm(discovery: Pick<Discovery, "original_title" | "original_excerpt">, term: string) {
   const query = normalizedSearch(term);
   if (!query) return true;
   const text = normalizedSearch(discovery.original_title + " " + (discovery.original_excerpt ?? ""));

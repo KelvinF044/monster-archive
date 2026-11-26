@@ -18,6 +18,10 @@ const en = {
   goNews: "Open News management", goEvents: "Open Events management",
   acceptedHint: "Use the original source when preparing a draft.",
   noDate: "Date unavailable", added: "Added", duplicates: "Duplicates skipped", matches: "Matching items",
+  scanFailures: "Items that could not be processed",
+  x_setup: "X search requires the server-side EDITORIAL_X_BEARER_TOKEN credential.",
+  x_error: "X did not return results. Check the API credential, credits and request limits.",
+  publisher_error: "The selected publisher could not be read. Try again or add a candidate manually.",
   scanLimit: "Only the first 25 matching feed entries were processed. Use a more specific keyword to check others.",
   database_error: "Could not load or save editorial data. Refresh and try again.", unauthorized: "Sign in again to continue.",
   invalid_request: "Check the required fields and try again.", invalid_source: "Check the source fields and use a public HTTPS feed URL.",
@@ -46,6 +50,10 @@ const pt: { [K in keyof typeof en]: string } = {
   goNews: "Abrir gerenciamento de Notícias", goEvents: "Abrir gerenciamento de Eventos",
   acceptedHint: "Use a fonte original ao preparar o rascunho.",
   noDate: "Data indisponível", added: "Adicionados", duplicates: "Duplicados ignorados", matches: "Itens encontrados",
+  scanFailures: "Itens que não puderam ser processados",
+  x_setup: "A busca no X requer a credencial EDITORIAL_X_BEARER_TOKEN no servidor.",
+  x_error: "O X não retornou resultados. Confira a credencial da API, os créditos e os limites de consulta.",
+  publisher_error: "Não foi possível ler a fonte selecionada. Tente novamente ou adicione um candidato manualmente.",
   scanLimit: "A busca processou os primeiros 25 itens encontrados. Use uma palavra-chave mais específica para buscar outros.",
   database_error: "Não foi possível carregar ou salvar os dados editoriais. Atualize e tente novamente.", unauthorized: "Entre novamente para continuar.",
   invalid_request: "Confira os campos obrigatórios e tente novamente.", invalid_source: "Confira os campos da fonte e use uma URL HTTPS pública para o feed.",
@@ -65,4 +73,4 @@ export function editorialAdminCopy(locale: string) {
   return { text: isPt ? pt : en, kinds, statuses };
 }
 export type EditorialCopy = ReturnType<typeof editorialAdminCopy>;
-export type EditorialError = "database_error" | "unauthorized" | "invalid_request" | "invalid_source" | "source_duplicate" | "inactive_source" | "invalid_candidate" | "candidate_duplicate" | "stale" | "feed_error" | "scan_partial";
+export type EditorialError = "database_error" | "unauthorized" | "invalid_request" | "invalid_source" | "source_duplicate" | "inactive_source" | "invalid_candidate" | "candidate_duplicate" | "stale" | "feed_error" | "scan_partial" | "x_setup" | "x_error" | "publisher_error";

@@ -252,6 +252,34 @@ with active sources can now open AI draft assistance in their review panel.
 4. For an event, verify the date is empty and the official evidence checkbox
    is clear. Confirm the draft is absent from the public agenda.
 
+### Publisher discovery and source covers
+
+The owner verified live bilingual generation and linked attribution on
+2026-11-26. The follow-up adds **Find news** under Editorial Center.
+
+- YG official reports are read from the public English Reports listing.
+  The scan filters the latest page for BABYMONSTER and reads matching reports
+  for the title, date, and a short excerpt. The Korea Herald K-pop feed and
+  The Korea Times Entertainment feed are included, alongside registered feeds.
+- Matches are queued as pending. Source URLs already linked to archive entries
+  and URLs already in the queue are skipped. YG hostname aliases are handled.
+  Different publisher URLs can still describe the same story and are reviewed
+  editorially. Feed results are limited to items currently returned by the feed.
+- X searches recent appearances from the official group account using the
+  official API. Supply `EDITORIAL_X_BEARER_TOKEN` as a server-only Preview
+  variable to enable it. The request can use X credits. The queue keeps the
+  post reference, and AI generation requires the editor's verified facts.
+- On an accepted YG news candidate, generate the suggestion and use **Preview
+  report image**. The photo is read from the article body, including supported
+  embedded raster images. The editor can select it for use where authorized.
+  Selected covers are copied to the existing archive-images bucket and saved
+  with the cover credit, original report URL and bilingual alt text. The image
+  appears above the public article once the editor publishes the draft.
+- Apply `supabase/migrations/202611260002_editorial_discovery_covers.sql` to
+  `monster-archive-test` to enable saving imported covers. The search, preview
+  and existing text-only workflows operate on the previous schema. Optionally
+  run `supabase/checks/phase_2_3_6_discovery_covers.sql` in the test SQL Editor.
+
 ## Remaining delivery
 
 1. Editorial database schema and RLS — completed in homologation.
@@ -259,7 +287,7 @@ with active sources can now open AI draft assistance in their review panel.
 3. Events administration, official sources, time zones and status — owner confirmed in homologation.
 4. Public bilingual news feed, article detail, and event schedule — owner approved the views in homologation.
 5. Editorial Center and approved-source discovery, deduplication and curation — owner approved in homologation.
-6. AI draft assistance — implemented for Preview activation and acceptance.
+6. AI draft assistance — owner verified generation and draft attribution. Multi-source discovery and imported covers are in Preview.
 7. Home latest-news and upcoming-events sections, preserving current layout and localization.
 8. Preview regression tests and owner approval; only then apply production migration and merge to main.
 

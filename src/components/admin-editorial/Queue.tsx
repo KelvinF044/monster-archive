@@ -44,7 +44,7 @@ export function Queue({ queue, filters, sources, copy, busy, load, submit }: Pro
 
   return <section className="space-y-4">
     <h2 className="text-xl font-bold">{c.queue} <span className="text-sm font-normal text-zinc-400">({queue.total})</span></h2>
-    <form className={panelClass + " grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-[1.3fr_1fr_1fr_1fr_auto]"} onSubmit={filter}>
+    <form key={JSON.stringify(filters)} className={panelClass + " grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-[1.3fr_1fr_1fr_1fr_auto]"} onSubmit={filter}>
       <Field label={c.search}><input name="q" defaultValue={filters.q} className={inputClass} maxLength={100} /></Field>
       <Field label={c.status}><select name="status" className={inputClass} defaultValue={filters.status}>
         <option value="">{c.all}</option>{CANDIDATE_STATUSES.map(status => <option key={status} value={status}>{copy.statuses[status]}</option>)}

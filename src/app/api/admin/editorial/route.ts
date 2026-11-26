@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireActiveAdmin } from "@/lib/admin/requireActiveAdmin";
 import { getSource, insertCandidate, listCandidates, listSources, sourceFields } from "@/lib/admin/editorial/repository";
 import { FEED_SCAN_LIMIT, isCandidateKind, isCandidateStatus, matchesFeedTerm, parseDiscovery, parseSource } from "@/lib/admin/editorial/model";
+import { discoverNews } from "@/lib/admin/editorial/news-discovery";
+import { isNewsProvider } from "@/lib/admin/editorial/publishers";
 import { readFeed } from "@/lib/admin/editorial/read-feed";
 import { isUuid, readObject, textValue } from "@/lib/admin/news/model";
+
+export const maxDuration = 60;
 
 function reply(body: unknown, status = 200) {
   return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -39,6 +43,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const db = admin.supabase;
+    if (input.action === "discover_news") {
+      if (!isNewsProvider(input.provider) || (input.provider === "rss" && !isUuid(input.sourceId))) return fail("invalid_request");
+      const result = await discoverNews(db, input.provider, isUuid(input.sourceId) ? input.sourceId : null);
+      return "error" in result ? fail(result.error!, result.status) : reply(result);
+    }
+
     if (input.action === "save_source") {
       const fields = parseSource(input.fields);
       if (!fields) return fail("invalid_source");

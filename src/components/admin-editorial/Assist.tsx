@@ -7,10 +7,17 @@ import { newsCopy } from "@/lib/admin/news/messages";
 import { scheduleCopy } from "@/lib/admin/schedule/messages";
 import { editorialCategories, FACTS_LIMIT, SUMMARY_LIMIT, type EditorialSuggestion, type GeneratedEditorialSuggestion, type SavedEditorialDraft } from "@/lib/admin/editorial/assist-model";
 import type { Candidate } from "@/lib/admin/editorial/model";
+import { ygReportUrl } from "@/lib/admin/editorial/publishers";
+import SourceCover from "./SourceCover";
 import { Field, inputClass, primaryClass } from "./Controls";
 
 const en = {
   heading: "AI draft assistance", facts: "Verified facts from the source (optional)",
+  xFacts: "Verified facts from the original post", x_facts_required: "Read the original post and enter the verified facts before generating a draft.",
+  cover_missing: "The official report no longer contains a compatible image.",
+  cover_unavailable: "The official image could not be read. Try again or save without a cover.",
+  cover_changed: "The image changed at the source. Reload the preview before using it.",
+  cover_storage: "The cover could not be stored. Confirm the cover migration or save without it.",
   evidence: "Generation sends the candidate title, excerpt, language and any facts you add to the configured AI model.",
   generate: "Generate suggestion", regenerate: "Replace suggestion", generating: "Generating…", save: "Create draft", saving: "Creating…",
   review: "Check both versions against the original source and edit them before creating the draft.",
@@ -35,6 +42,11 @@ const en = {
 };
 const pt: { [Key in keyof typeof en]: string } = {
   heading: "Rascunho assistido por IA", facts: "Fatos verificados na fonte (opcional)",
+  xFacts: "Fatos verificados na publicação original", x_facts_required: "Leia a publicação original e informe os fatos verificados antes de gerar o rascunho.",
+  cover_missing: "O comunicado oficial já não contém uma imagem compatível.",
+  cover_unavailable: "Não foi possível ler a imagem oficial. Tente novamente ou salve sem capa.",
+  cover_changed: "A imagem mudou na fonte. Recarregue a prévia antes de usá-la.",
+  cover_storage: "Não foi possível guardar a capa. Confira a migração de capa ou salve sem ela.",
   evidence: "A geração envia o título, o trecho e o idioma do candidato, além dos fatos que você incluir, ao modelo de IA configurado.",
   generate: "Gerar sugestão", regenerate: "Substituir sugestão", generating: "Gerando…", save: "Criar rascunho", saving: "Criando…",
   review: "Confira as duas versões na fonte original e edite os textos antes de criar o rascunho.",
@@ -68,6 +80,9 @@ export default function EditorialAssist({ candidate, disabled }: { candidate: Ca
   const labels = (candidate.kind === "news" ? newsCopy(locale).categories : scheduleCopy(locale).categories) as Record<string, string>;
   const linked = candidate.draft_news_id || candidate.draft_event_id;
   const [facts, setFacts] = useState("");
+  const [coverHash, setCoverHash] = useState<string | null>(null);
+  const xReference = Boolean(candidate.external_id && /^x:\d+$/.test(candidate.external_id));
+  const sourceHasCover = candidate.kind === "news" && Boolean(ygReportUrl(candidate.source_url));
   const [suggestion, setSuggestion] = useState<GeneratedEditorialSuggestion | null>(null);
   const [saved, setSaved] = useState<SavedEditorialDraft | null>(null);
   const [busy, setBusy] = useState<Operation | null>(null);
@@ -106,7 +121,9 @@ export default function EditorialAssist({ candidate, disabled }: { candidate: Ca
   }
   function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (suggestion) void assist("save", { runId: suggestion.runId, suggestion: suggestion.suggestion });
+    if (suggestion) void assist("save", {
+      runId: suggestion.runId, suggestion: suggestion.suggestion, ...(coverHash ? { coverHash } : {}),
+    });
   }
 
   const fieldLabels = { title_pt: c.titlePt, summary_pt: c.summaryPt, title_en: c.titleEn, summary_en: c.summaryEn };
@@ -118,11 +135,11 @@ export default function EditorialAssist({ candidate, disabled }: { candidate: Ca
         href={(candidate.kind === "news" ? "/admin/news" : "/admin/schedule") + "?edit=" + encodeURIComponent(draftId)}>{c.open} →</Link>
     </div> : <div className="mt-4 space-y-4">
       <p className="text-xs leading-5 text-zinc-400">{c.evidence}</p>
-      <Field label={c.facts}>
+      <Field label={xReference ? c.xFacts : c.facts}>
         <textarea className={inputClass} rows={2} value={facts} maxLength={FACTS_LIMIT} disabled={Boolean(busy) || disabled}
           onChange={event => setFacts(event.target.value)} />
       </Field>
-      <button type="button" className={primaryClass} disabled={Boolean(busy) || disabled}
+      <button type="button" className={primaryClass} disabled={Boolean(busy) || disabled || (xReference && !facts.trim())}
         onClick={() => void assist("generate", { facts })}>{busy === "generate" ? c.generating : suggestion ? c.regenerate : c.generate}</button>
       {error && <p role="alert" className="text-sm text-red-300">{Object.hasOwn(c, error) ? c[error as keyof typeof c] : c.database_error}</p>}
       {suggestion && <form onSubmit={create} className="space-y-3 border-t border-white/10 pt-4">
@@ -142,6 +159,7 @@ export default function EditorialAssist({ candidate, disabled }: { candidate: Ca
                 : <textarea className={inputClass} value={suggestion.suggestion[field]} required maxLength={SUMMARY_LIMIT} rows={3} onChange={event => change(field, event.target.value)} />}
             </Field>)}
           </div>)}
+          {sourceHasCover && <div className="sm:col-span-2"><SourceCover candidateId={candidate.id} disabled={Boolean(busy) || disabled} selectedHash={coverHash} onSelect={setCoverHash} /></div>}
           <button type="submit" className={primaryClass + " justify-self-start sm:col-span-2"}>{busy === "save" ? c.saving : c.save}</button>
         </fieldset>
       </form>}

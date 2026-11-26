@@ -2,9 +2,12 @@ import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { requireActiveAdmin } from "@/lib/admin/requireActiveAdmin";
 import { isUuid, readObject, textValue } from "@/lib/admin/news/model";
+import { isCoverHash, uploadYgDraftCover } from "@/lib/admin/editorial/attach-cover";
 import { isCandidateKind } from "@/lib/admin/editorial/model";
 import { editorialAiEnabled, editorialGatewayToken, generateEditorialSuggestion } from "@/lib/admin/editorial/assist-gateway";
 import { editorialDraftSlug, FACTS_LIMIT, parseEditorialSuggestion, PROMPT_VERSION } from "@/lib/admin/editorial/assist-model";
+
+export const maxDuration = 45;
 
 function reply(body: unknown, status = 200) {
   return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -38,7 +41,7 @@ export async function POST(request: NextRequest) {
   const db = admin.supabase;
   try {
     const { data: candidate, error } = await db.from("editorial_candidates")
-      .select("id,kind,original_title,original_excerpt,original_language").eq("id", input.id).maybeSingle();
+      .select("id,kind,original_title,original_excerpt,original_language,source_published_at,external_id,source_id,source_url,status,updated_at,draft_news_id,draft_event_id").eq("id", input.id).maybeSingle();
     if (error) return databaseError(error);
     if (!candidate || !isCandidateKind(candidate.kind)) return fail("candidate_unavailable", 409);
     const expected = { p_candidate: candidate.id, p_expected_updated_at: input.expectedUpdatedAt };
@@ -46,11 +49,30 @@ export async function POST(request: NextRequest) {
     if (input.action === "save") {
       const suggestion = parseEditorialSuggestion(input.suggestion, candidate.kind);
       if (!isUuid(input.runId) || !suggestion) return fail("invalid_request");
-      const saved = await db.rpc("save_editorial_ai_draft", {
-        ...expected, p_run: input.runId, p_slug: editorialDraftSlug(suggestion),
-        p_category: suggestion.category, p_title_pt: suggestion.title_pt, p_title_en: suggestion.title_en,
-        p_summary_pt: suggestion.summary_pt, p_summary_en: suggestion.summary_en,
-      });
+      const draftId = candidate.draft_news_id ?? candidate.draft_event_id;
+      if (isUuid(draftId)) return reply({ draft: { id: draftId, kind: candidate.kind, existing: true } });
+      const slug = editorialDraftSlug(suggestion);
+      const params = { ...expected, p_run: input.runId };
+      let saved;
+      if (input.coverHash !== undefined) {
+        if (!isCoverHash(input.coverHash) || candidate.kind !== "news") return fail("invalid_request");
+        if (candidate.status !== "accepted" || candidate.updated_at !== input.expectedUpdatedAt) return fail("candidate_unavailable", 409);
+        const run = await db.from("editorial_ai_runs").select("id")
+          .eq("id", input.runId).eq("candidate_id", candidate.id).eq("operation", "combined").eq("status", "succeeded").maybeSingle();
+        if (run.error) return databaseError(run.error);
+        if (!run.data) return fail("candidate_unavailable", 409);
+        const cover = await uploadYgDraftCover(db, candidate, input.coverHash);
+        if ("error" in cover) return fail(cover.error!, cover.status);
+        saved = await db.rpc("save_editorial_ai_draft_with_cover", {
+          ...params, p_fields: { ...suggestion, slug }, p_cover_url: cover.url,
+        });
+      } else {
+        saved = await db.rpc("save_editorial_ai_draft", {
+          ...params, p_slug: slug,
+          p_category: suggestion.category, p_title_pt: suggestion.title_pt, p_title_en: suggestion.title_en,
+          p_summary_pt: suggestion.summary_pt, p_summary_en: suggestion.summary_en,
+        });
+      }
       if (saved.error) return databaseError(saved.error);
       const data = readObject(saved.data);
       if (data?.state === "draft" && isUuid(data.id)) {
@@ -63,6 +85,7 @@ export async function POST(request: NextRequest) {
 
     const facts = textValue(input.facts, FACTS_LIMIT);
     if (facts === null) return fail("invalid_request");
+    if (typeof candidate.external_id === "string" && /^x:\d+$/.test(candidate.external_id) && !facts) return fail("x_facts_required");
     if (!editorialAiEnabled()) return fail("ai_disabled", 503);
     const token = editorialGatewayToken(request.headers.get("x-vercel-oidc-token"));
     if (!token) return fail("ai_auth", 503);
@@ -74,6 +97,7 @@ export async function POST(request: NextRequest) {
       title: candidate.original_title.slice(0, 250),
       excerpt: candidate.original_excerpt?.slice(0, 500) ?? null,
       language: candidate.original_language?.slice(0, 35) ?? null,
+      sourcePublicationDate: candidate.source_published_at?.slice(0, 10) ?? null,
       facts,
     };
     const inputHash = createHash("sha256").update(JSON.stringify([PROMPT_VERSION, candidate.id, evidence])).digest("hex");
