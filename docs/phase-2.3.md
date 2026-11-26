@@ -136,15 +136,59 @@ official-evidence requirement. Return the item to draft to reschedule, then
 review/publish again and check history. Verify all-day or time-TBA events do
 not invent a clock time. Test fixture URLs/names are for homologation only.
 
-Status: implementation and automated tests complete, authenticated owner
-validation pending. No SQL migration beyond Phase 2.3.1 is required.
+Status: owner confirmed Schedule administration works in homologation; the
+provided screenshot shows a saved draft and its original Asia/Seoul time.
+Public publication is checked separately in Phase 2.3.4. No new SQL required.
+
+## Phase 2.3.4 — Public News and Events
+     
+- Public `/news` feed with a featured story, chronological articles, bilingual
+  search, category/Era/member filters, and pagination. Detail pages at
+  `/news/[slug]` show the bilingual summary/body, optional cover, credits,
+  attribution sources, and existing public members/Watch videos.
+- Public `/schedule` provides Upcoming, Calendar and History views, bilingual
+  search and category/Era/member/activity-status filters. Monthly calendar
+  preserves the original local calendar dates and includes overlapping multi-day
+  events. The monthly view displays up to 200 matching events with a visible
+  filter/refinement notice; lists are paginated.
+- `/schedule/[slug]` shows date/time precision, original IANA zone and
+  visitor-zone conversion for timed events, activity status, venue, official
+  link and public relations. Untimed events retain their local calendar dates
+  and never receive fabricated times. Date-only list grouping uses the current
+  UTC calendar day; exact timed list grouping uses UTC instants.
+- All public queries use the anonymous publishable-key role (even for signed-in
+  admins), explicit published status and publication date, uncached request-time
+  reads, and existing RLS. Unpublished or missing slugs are not found; private
+  discovery, AI and audit records are not read. Remote covers use HTTPS
+  direct browser loading with a branded fallback, not a server-side proxy.
+- No production deployment, SQL change, automatic fetching, AI, Home integration,
+  or change to existing Watch/Members in this step. Preview pages stay noindex
+  until release.
+
+### Owner acceptance of public pages
+
+1. Open the new Preview News page. The existing published test article must
+   appear in the featured area; open its detail and verify both languages,
+   cover and linked test attribution. Check search/filter.
+2. Open Events in the same Preview. Draft events must not appear, even when
+   an administrator is logged in. Publish the clearly labeled test event using
+   the admin workflow and verify its listing, details and December calendar.
+3. A 2026-12-01 18:00 Asia/Seoul timed test event displays 06:00 in the
+   America/Sao_Paulo timezone. Check all-day/time-TBA display and event status.
+4. Return a test item to draft and verify it disappears from the public list
+   and cannot be opened by its slug. Publish again if more testing is needed.
+5. Check English/Portuguese, desktop/mobile, existing public pages and admin.
+   Keep the synthetic content and test source in the test database only.
+
+Status: implementation, TypeScript, targeted lint and 58 automated tests
+complete; Preview acceptance pending.
 
 ## Remaining delivery
 
 1. Editorial database schema and RLS — completed in homologation.
 2. News administration and review workflow — validated publication; owner approved progression.
-3. Events administration, official sources, time zones and status — implemented, interactive owner validation pending.
-4. Public bilingual news feed, article detail, and event schedule.
+3. Events administration, official sources, time zones and status — owner confirmed in homologation.
+4. Public bilingual news feed, article detail, and event schedule — implemented; Preview acceptance pending.
 5. Editorial center and approved-source discovery, deduplication and curation.
 6. Opt-in server-only AI assistance; structured suggestions, translations/summaries, reuse, shared cost cap, no automatic publication.
 7. Home latest-news and upcoming-events sections, preserving current layout and localization.
