@@ -316,6 +316,25 @@ The public News and Events pages carry a noindex directive in Preview.
 Production deployments allow indexing and include both editorial landing
 pages in the existing public sitemap. The administrative metadata is unchanged.
 
+### On-demand discovery of official events
+
+- Events management has **Find new events**. The CHOOM tour dates page and
+  YG's Coachella 2027 announcement are the initial sources. The search is
+  administered on demand and lists upcoming performances separately, even when
+  events share an official announcement. It requires no X or AI credentials.
+- **Review and edit** prefills the existing draft editor with bilingual text,
+  local date, location, source URL, and a time when explicitly announced and
+  resolvable in the event's time zone. Save the draft, confirm and attach the
+  official source, then use the existing review, approval and publication flow.
+- Existing imports are recognized by their deterministic slug or by matching
+  official URL, date and location. A repeated search makes no database writes.
+  Shows, broadcasts and appearances outside the two supported sources can use
+  the manual workflow while further sources are evaluated.
+- In Preview, run both searches in Events management. Open a dated tour show
+  and a Coachella performance. Check the populated fields, the time-to-be-
+  announced state, and the original link. Save a test draft and run the search
+  again to verify the result opens the saved event.
+
 ### Production rollout after owner approval
 
 1. Verify the Production deployment's Supabase project, confirm backup or

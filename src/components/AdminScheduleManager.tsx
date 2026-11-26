@@ -4,9 +4,10 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } 
 import Link from "next/link";
 import { useAdminLocale } from "@/components/AdminLocaleProvider";
 import { AdminConfirmationDialog, useAdminConfirmation, type ConfirmAction } from "@/components/AdminConfirmation";
-import { allowedTransitions, editableStatus, NEWS_STATUSES, PAGE_SIZE, SOURCE_KINDS, type EditorialSource, type NewsCatalogs, type NewsStatus, type RelatedVideo, type SourceKind } from "@/lib/admin/news/model";
+import { allowedTransitions, canonicalSourceUrl, editableStatus, NEWS_STATUSES, PAGE_SIZE, SOURCE_KINDS, type EditorialSource, type NewsCatalogs, type NewsStatus, type RelatedVideo, type SourceKind } from "@/lib/admin/news/model";
 import { blankEvent, eventFields, eventReviewReady, EVENT_CATEGORIES, EVENT_STATUSES, TIME_KINDS, isOfficialSourceKind, localTimeCandidates, localEventClock, type EventCategory, type EventStatus, type EventDetail, type EventFields, type EventList, type EventAudit, type Occurrence, type TimeKind } from "@/lib/admin/schedule/model";
 import { scheduleCopy, scheduleError, type ScheduleCopy } from "@/lib/admin/schedule/messages";
+import { EVENT_PROVIDERS, type EventProvider, type EventSuggestion } from "@/lib/admin/schedule/discovery";
 
 const fieldClass="w-full rounded-lg border border-white/10 bg-[#101116] px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-purple-400/70 focus:outline-none disabled:opacity-60";
 const buttonClass="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-zinc-300 transition hover:border-purple-400/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-40";
@@ -48,6 +49,8 @@ export default function AdminScheduleManager({initialList,catalogs:initialCatalo
   const [filters,setFilters]=useState<Filters>({q:"",status:"",category:"",eventStatus:"",month:""});
   const [applied,setApplied]=useState<Filters>(filters);
   const [editor,setEditor]=useState<EventDetail|null|undefined>(initialDetail);
+  const [discoveredFields,setDiscoveredFields]=useState<EventFields>();
+  const [savedDiscoveries,setSavedDiscoveries]=useState<Record<string,string>>({});
   const [dirty,setDirty]=useState(false);
   const [listBusy,setListBusy]=useState(false);
   const [error,setError]=useState("");
@@ -55,7 +58,7 @@ export default function AdminScheduleManager({initialList,catalogs:initialCatalo
   const [editorBusy,setEditorBusy]=useState(false);
   const confirmation=useAdminConfirmation();
   const editorTop=useRef<HTMLDivElement>(null);
-  const editorIdentity=editor===undefined?null:editor?.event.id??"new";
+  const editorIdentity=editor===undefined?null:editor?.event.id??discoveredFields?.slug??"new";
   useEffect(()=>{
     if(editorIdentity) editorTop.current?.scrollIntoView({behavior:"smooth",block:"start"});
   },[editorIdentity]);
@@ -72,18 +75,28 @@ export default function AdminScheduleManager({initialList,catalogs:initialCatalo
   async function openEvent(id:string){
     if(!(await allowSwitch()))return;
     setListBusy(true);setError("");
-    try{setEditor(await api<EventDetail>({id}));setDirty(false);setNotice("");}
+    try{setEditor(await api<EventDetail>({id}));setDiscoveredFields(undefined);setDirty(false);setNotice("");}
     catch(e){setError(errorCode(e));}finally{setListBusy(false);}
   }
-  async function newEvent(){if(await allowSwitch()){setEditor(null);setDirty(false);setError("");setNotice("");}}
-  async function closeEditor(){if(await allowSwitch()){setEditor(undefined);setDirty(false);setNotice("");}}
+  async function newEvent(fields?:EventFields){
+    if(!(await allowSwitch()))return;
+    setDiscoveredFields(fields);
+    setEditor(null);
+    setDirty(false);
+    setError("");
+    setNotice("");
+  }
+  async function closeEditor(){if(await allowSwitch()){setEditor(undefined);setDiscoveredFields(undefined);setDirty(false);setNotice("");}}
   async function refreshAfterMutation(id:string,message:string){
     const result=await api<EventDetail>({id});
     setEditor(result);
+    if(discoveredFields) {
+      setSavedDiscoveries(previous=>({...previous,[discoveredFields.slug]:id}));
+    }
     setNotice(message);
     await getList(applied,Math.min(list.page,totalPages));
   }
-  const editorKey=editor?editor.event.id+":"+editor.event.updated_at:"new";
+  const editorKey=editor?editor.event.id+":"+editor.event.updated_at:editorIdentity;
 
   return <main className="min-h-screen bg-[#08090d] px-5 py-10 text-white md:px-6 md:py-12">
     <div className="mx-auto max-w-7xl">
@@ -95,6 +108,9 @@ export default function AdminScheduleManager({initialList,catalogs:initialCatalo
           <button type="button" onClick={()=>void newEvent()} disabled={editorBusy||listBusy} className={primaryClass}>+ {c.create}</button>
         </div>
       </header>
+
+      <EventDiscovery copy={copy} locale={locale} disabled={listBusy||editorBusy} savedDiscoveries={savedDiscoveries}
+        onChoose={suggestion=>suggestion.existingId ? openEvent(suggestion.existingId) : newEvent(suggestion.fields)} />
 
       <section className="mt-7">
         <form onSubmit={(e)=>{e.preventDefault();void getList(filters,1);}} className={`${panelClass} grid grid-cols-1 items-end gap-3 md:grid-cols-3`}>
@@ -132,7 +148,7 @@ export default function AdminScheduleManager({initialList,catalogs:initialCatalo
 
       {editor!==undefined&&<div ref={editorTop} className="mt-8 scroll-mt-24">
         {notice&&<p role="status" className="mb-3 rounded-lg border border-green-400/20 bg-green-500/10 p-3 text-sm text-green-300">{notice}</p>}
-        <EventEditor key={editorKey} detail={editor} catalogs={catalogs} copy={copy} locale={locale}
+        <EventEditor key={editorKey} detail={editor} discoveredFields={discoveredFields} catalogs={catalogs} copy={copy} locale={locale}
           onDirty={setDirty} onBusy={setEditorBusy} close={()=>void closeEditor()} onChanged={refreshAfterMutation} confirmAction={confirmation.confirm}
           onSourceRegistered={source=>setCatalogs(previous=>({...previous,sources:[...previous.sources.filter(v=>v.id!==source.id),source].sort((a,b)=>a.name.localeCompare(b.name))}))}/>
       </div>}
@@ -141,21 +157,96 @@ export default function AdminScheduleManager({initialList,catalogs:initialCatalo
   </main>;
 }
 
-type EditorProps={detail:EventDetail|null;catalogs:NewsCatalogs;copy:ScheduleCopy;locale:string;onDirty:(value:boolean)=>void;onBusy:(value:boolean)=>void;close:()=>void;onChanged:(id:string,message:string)=>Promise<void>;onSourceRegistered:(source:EditorialSource)=>void;confirmAction:ConfirmAction};
-function EventEditor({detail,catalogs,copy,locale,onDirty,onBusy,close,onChanged,onSourceRegistered,confirmAction}:EditorProps){
+function EventDiscovery({copy,locale,disabled,savedDiscoveries,onChoose}:{
+  copy:ScheduleCopy;
+  locale:string;
+  disabled:boolean;
+  savedDiscoveries:Record<string,string>;
+  onChoose:(suggestion:EventSuggestion)=>Promise<void>;
+}){
+  const c=copy.text;
+  const [provider,setProvider]=useState<EventProvider>("choom");
+  const [items,setItems]=useState<EventSuggestion[]|null>(null);
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState("");
+
+  async function search(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    setItems(null);
+    try {
+      const result=await api<{suggestions:EventSuggestion[]}>({view:"discover",provider});
+      setItems(result.suggestions);
+    } catch (error) {
+      setError(errorCode(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <details className={panelClass+" mt-7"}>
+    <summary className="cursor-pointer text-sm font-bold text-purple-200">{c.findEvents}</summary>
+    <form onSubmit={search} className="mt-4">
+      <fieldset disabled={disabled||busy} className="flex flex-wrap items-end gap-3">
+        <div className="min-w-48 flex-1">
+          <Field label={c.eventDiscoverySource}>
+            <select className={fieldClass} value={provider} onChange={event=>{
+              setProvider(event.target.value as EventProvider);
+              setItems(null);
+              setError("");
+            }}>
+              {EVENT_PROVIDERS.map(value=><option key={value} value={value}>{value==="choom"?"BABYMONSTER WORLD TOUR [CHOOM]":"Coachella 2027 · YG Entertainment"}</option>)}
+            </select>
+          </Field>
+        </div>
+        <button type="submit" className={primaryClass}>{busy?c.loading:c.findEvents}</button>
+      </fieldset>
+    </form>
+    {error&&<p role="alert" className="mt-3 text-sm text-red-300">{scheduleError(copy,error)}</p>}
+    {items?.length===0&&<p role="status" className="mt-3 text-sm text-zinc-400">{c.noUpcomingDiscoveries}</p>}
+    {Boolean(items?.length)&&<ul className="mt-4 divide-y divide-white/10 rounded-lg border border-white/10">
+      {items?.map(suggestion=>{
+        const {fields}=suggestion;
+        const existingId=suggestion.existingId??savedDiscoveries[fields.slug]??null;
+        return <li key={fields.slug} className="flex flex-wrap items-center justify-between gap-3 p-3">
+          <div className="min-w-0">
+            <p className="break-words text-sm font-semibold">{locale==="pt-BR"?fields.title_pt:fields.title_en}</p>
+            <p className="mt-1 text-xs text-zinc-400">
+              {[dateLabel(fields.starts_on,locale), fields.start_time||copy.timeKinds.time_tba, fields.timezone].filter(Boolean).join(" · ")}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <a href={fields.official_event_url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-purple-300 hover:underline">{c.openEventSource}</a>
+            <button type="button" className={buttonClass} disabled={busy||disabled}
+              onClick={()=>void onChoose({...suggestion,existingId})}>{existingId?c.openSavedEvent:c.reviewFoundEvent}</button>
+          </div>
+        </li>;
+      })}
+    </ul>}
+  </details>;
+}
+
+type EditorProps={detail:EventDetail|null;discoveredFields?:EventFields;catalogs:NewsCatalogs;copy:ScheduleCopy;locale:string;onDirty:(value:boolean)=>void;onBusy:(value:boolean)=>void;close:()=>void;onChanged:(id:string,message:string)=>Promise<void>;onSourceRegistered:(source:EditorialSource)=>void;confirmAction:ConfirmAction};
+function EventEditor({detail,discoveredFields,catalogs,copy,locale,onDirty,onBusy,close,onChanged,onSourceRegistered,confirmAction}:EditorProps){
   const c=copy.text;
   const event=detail?.event;
-  const baseline=useMemo(()=>event?eventFields(event):blankEvent(),[event]);
+  const baseline=useMemo(()=>event?eventFields(event):discoveredFields??blankEvent(),[event,discoveredFields]);
+  const suggestedSourceUrl=discoveredFields?.official_event_url??"";
+  const needsDiscoveredSource=Boolean(suggestedSourceUrl&&!detail?.sources.some(link=>link.official_evidence||link.source_url===suggestedSourceUrl));
+  const ygSource=needsDiscoveredSource?catalogs.sources.find(source=>
+    source.is_active&&source.source_kind==="official_group"&&canonicalSourceUrl(source.homepage_url)==="https://ygfamily.com/"
+  ):undefined;
   const [form,setForm]=useState<EventFields>(baseline);
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState("");
   const [error,setError]=useState("");
-  const [sourceId,setSourceId]=useState("");
-  const [sourceUrl,setSourceUrl]=useState("");
+  const [sourceId,setSourceId]=useState(ygSource?.id??"");
+  const [sourceUrl,setSourceUrl]=useState(needsDiscoveredSource?suggestedSourceUrl:"");
   const [officialEvidence,setOfficialEvidence]=useState(false);
-  const [sourceName,setSourceName]=useState("");
-  const [homepage,setHomepage]=useState("");
-  const [kind,setKind]=useState<SourceKind>("manual");
+  const [sourceName,setSourceName]=useState(needsDiscoveredSource&&!ygSource?"YG Entertainment":"");
+  const [homepage,setHomepage]=useState(needsDiscoveredSource&&!ygSource?"https://ygfamily.com/":"");
+  const [kind,setKind]=useState<SourceKind>(needsDiscoveredSource?"official_group":"manual");
   const [videoSearch,setVideoSearch]=useState("");
   const [videoResults,setVideoResults]=useState<RelatedVideo[]>([]);
   const [searched,setSearched]=useState(false);

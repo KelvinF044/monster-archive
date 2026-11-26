@@ -4,6 +4,8 @@ import { canTransition, canonicalSourceUrl, editableStatus, isNewsStatus, isSour
 import { loadNewsCatalogs, searchNewsVideos, type AdminDatabase } from "@/lib/admin/news/queries";
 import { isOfficialSourceKind, parseEvent } from "@/lib/admin/schedule/model";
 import { loadEventDetail, loadEventList } from "@/lib/admin/schedule/queries";
+import { discoverEvents } from "@/lib/admin/schedule/discover-events";
+import { isEventProvider } from "@/lib/admin/schedule/discovery";
 
 const response = (data:unknown,status=200) => NextResponse.json(data,{status,headers:{"Cache-Control":"no-store"}});
 const fail = (error:string,status=400) => response({error},status);
@@ -21,6 +23,12 @@ export async function GET(request:NextRequest){
   if(!admin) return fail("unauthorized",401);
   try{
     const p=request.nextUrl.searchParams;
+    if (p.get("view") === "discover") {
+      const provider = p.get("provider");
+      if (!isEventProvider(provider)) return fail("invalid_request");
+      const suggestions = await discoverEvents(admin.supabase, provider);
+      return suggestions ? response({ suggestions }) : fail("discovery_unavailable", 422);
+    }
     if(p.get("view")==="catalogs") return response(await loadNewsCatalogs(admin.supabase));
     if(p.get("view")==="videos") return response({videos:await searchNewsVideos(admin.supabase,p.get("q")??"")});
     const id=p.get("id");

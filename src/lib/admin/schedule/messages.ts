@@ -2,10 +2,13 @@ import { newsCopy } from "../news/messages";
 import type { EventCategory, EventStatus, TimeKind } from "./model";
 const en = {
   heading:"Events management",intro:"Manage the official calendar, local dates and times, sources and each editorial review stage.",
+  findEvents:"Find new events",eventDiscoverySource:"Official source",openEventSource:"Open source",
+  noUpcomingDiscoveries:"This source lists no upcoming events.",reviewFoundEvent:"Review and edit",openSavedEvent:"Open saved event",
+  discovery_unavailable:"Unable to read this official schedule. Check the source or try again later.",
   total:"Events",create:"New event",empty:"No events found. Create a draft to get started.",untitled:"Untitled event draft",draft:"New event draft",details:"Event details",
   discardConfirm:"Discard unsaved event changes?", featured:"Feature this event", manualNote:"Use the official announced information and your own bilingual summary.",
   sourceUrl:"Official announcement or source URL", sourcesHelp:"Attach evidence from the shared source registry. Publication requires an official source that confirms the event.",
-  publishConfirm:"Publish this approved event in the testing environment? The public calendar will be connected in a later step.",
+  publishConfirm:"Publish this approved event on the public calendar of this environment?",
   approveConfirm:"Confirm that you have reviewed both languages, the local date and time, the time zone and the official evidence.",
   archiveConfirm:"Archive this event? It will no longer be publicly visible.",returnConfirm:"Return to draft? The event will leave the public state until reviewed again.",rejectConfirm:"Reject this event?",
   locked:"This event is read-only. Return it to draft to revise its details or evidence.",locked_error:"Return the event to draft before editing it.",
@@ -30,10 +33,13 @@ const en = {
 type ExtraCopy={ [K in keyof typeof en]: string };
 const pt:ExtraCopy={
   heading:"Gerenciamento de eventos",intro:"Gerencie a agenda oficial, datas e horários locais, fontes e cada etapa da revisão editorial.",
+  findEvents:"Buscar novos eventos",eventDiscoverySource:"Fonte oficial",openEventSource:"Abrir fonte",
+  noUpcomingDiscoveries:"Esta fonte não lista próximos eventos.",reviewFoundEvent:"Revisar e editar",openSavedEvent:"Abrir evento cadastrado",
+  discovery_unavailable:"Não foi possível consultar esta agenda oficial. Confira a fonte ou tente novamente mais tarde.",
   total:"Eventos",create:"Novo evento",empty:"Nenhum evento encontrado. Crie um rascunho para começar.",untitled:"Rascunho de evento sem título",draft:"Novo rascunho de evento",details:"Detalhes do evento",
   discardConfirm:"Descartar alterações não salvas do evento?",featured:"Destacar este evento",manualNote:"Utilize as informações anunciadas oficialmente e escreva seu próprio resumo bilíngue.",
   sourceUrl:"URL do anúncio oficial ou fonte",sourcesHelp:"Vincule uma evidência do cadastro compartilhado. A publicação exige uma fonte oficial que confirme o evento.",
-  publishConfirm:"Publicar este evento aprovado na homologação? O calendário público será conectado em uma etapa posterior.",
+  publishConfirm:"Publicar este evento aprovado na agenda pública deste ambiente?",
   approveConfirm:"Confirme que revisou os dois idiomas, a data e o horário locais, o fuso e a evidência oficial.",
   archiveConfirm:"Arquivar este evento? Ele deixará de ser publicamente visível.",returnConfirm:"Voltar ao rascunho? O evento sairá do estado público até nova revisão.",rejectConfirm:"Rejeitar este evento?",
   locked:"Este evento está bloqueado para edição. Volte ao rascunho para revisar os detalhes ou as fontes.",locked_error:"Volte ao rascunho antes de editar o evento.",
