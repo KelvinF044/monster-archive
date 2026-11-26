@@ -3,7 +3,7 @@ import { requireActiveAdmin } from "@/lib/admin/requireActiveAdmin";
 import { getSource, insertCandidate, listCandidates, listSources, sourceFields } from "@/lib/admin/editorial/repository";
 import { FEED_SCAN_LIMIT, isCandidateKind, isCandidateStatus, matchesFeedTerm, parseDiscovery, parseSource } from "@/lib/admin/editorial/model";
 import { discoverNews } from "@/lib/admin/editorial/news-discovery";
-import { isNewsProvider } from "@/lib/admin/editorial/publishers";
+import { isNewsProvider, isPressProvider, PRESS_ARCHIVE_PAGE_LIMIT } from "@/lib/admin/editorial/publishers";
 import { readFeed } from "@/lib/admin/editorial/read-feed";
 import { isUuid, readObject, textValue } from "@/lib/admin/news/model";
 
@@ -45,7 +45,10 @@ export async function POST(request: NextRequest) {
     const db = admin.supabase;
     if (input.action === "discover_news") {
       if (!isNewsProvider(input.provider) || (input.provider === "rss" && !isUuid(input.sourceId))) return fail("invalid_request");
-      const result = await discoverNews(db, input.provider, isUuid(input.sourceId) ? input.sourceId : null);
+      const page = input.page ?? 1;
+      if (typeof page !== "number" || !Number.isInteger(page) || page < 1 || page > PRESS_ARCHIVE_PAGE_LIMIT ||
+          (!isPressProvider(input.provider) && page !== 1)) return fail("invalid_request");
+      const result = await discoverNews(db, input.provider, isUuid(input.sourceId) ? input.sourceId : null, page);
       return "error" in result ? fail(result.error!, result.status) : reply(result);
     }
 

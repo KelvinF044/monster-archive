@@ -36,7 +36,7 @@ export type Candidate = Discovery & {
   updated_at: string;
 };
 export type Queue = { candidates: Candidate[]; page: number; total: number };
-export type ScanResult = { added: number; duplicates: number; matches: number; truncated: boolean; failures?: number };
+export type ScanResult = { added: number; duplicates: number; matches: number; truncated: boolean; failures?: number; scope?: "archive" | "feed" };
 
 export const QUEUE_PAGE_SIZE = 20;
 export const FEED_SCAN_LIMIT = 25;

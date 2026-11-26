@@ -126,6 +126,8 @@ export default function AdminEditorialCenter({ sources, queue, failed }: Props) 
         {message && c[message]}
         {scan && <>
           <p>{c.matches} {scan.matches} · {c.added} {scan.added} · {c.duplicates} {scan.duplicates}</p>
+          {scan.scope === "feed" && scan.matches === 0 && <p className="mt-1">{c.feedNoMatches}</p>}
+          {scan.scope === "archive" && scan.matches === 0 && <p className="mt-1">{c.archiveNoMatches}</p>}
           {scan.truncated && <p className="mt-1">{c.scanLimit}</p>}
           {!!scan.failures && <p className="mt-1 text-amber-300">{c.scanFailures} {scan.failures}</p>}
         </>}

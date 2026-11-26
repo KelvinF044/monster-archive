@@ -1,3 +1,7 @@
+export const PRESS_ARCHIVE_PAGE_LIMIT = 20;
+export type PressProvider = "korea-herald" | "korea-times";
+export const isPressProvider = (value: unknown): value is PressProvider => value === "korea-herald" || value === "korea-times";
+
 export const NEWS_PROVIDERS = ["yg", "korea-herald", "korea-times", "x", "rss"] as const;
 export type NewsProvider = typeof NEWS_PROVIDERS[number];
 
@@ -37,6 +41,12 @@ export function discoveryUrlAliases(canonical: string) {
     const path = new URL(yg).pathname;
     return ["https", "http"].flatMap(scheme => ["ygfamily.com", "www.ygfamily.com"].flatMap(host =>
       ["", "/"].map(suffix => scheme + "://" + host + path + suffix)));
+  }
+  const url = new URL(canonical);
+  const host = url.hostname.replace(/^(?:www|m)\./, "");
+  if (host === "koreaherald.com" && /^\/article\/\d+\/?$/.test(url.pathname)) {
+    const path = url.pathname.replace(/\/$/, "");
+    return ["www.", "m.", ""].flatMap(prefix => ["", "/"].map(suffix => "https://" + prefix + host + path + suffix));
   }
   const id = xPostId(canonical);
   if (id) {

@@ -3,8 +3,9 @@ import { readObject } from "../news/model";
 import type { AdminDatabase } from "../news/queries";
 import { DEFAULT_BAND_FILTER, FEED_SCAN_LIMIT, matchesFeedTerm, parseDiscovery, type Discovery } from "./model";
 import { getSource, insertCandidate, listSources, sourceFields } from "./repository";
-import { NEWS_PRESETS, type NewsProvider } from "./publishers";
-import { readFeed } from "./read-feed";
+import { isPressProvider, NEWS_PRESETS, type NewsProvider, type PressProvider } from "./publishers";
+import { parseHeraldArchive, parseTimesArchive, pressArchiveUrl } from "./press-archive";
+import { readFeed, readPublicBytes } from "./read-feed";
 import { readYgNews } from "./read-yg";
 
 type Preset = Exclude<NewsProvider, "rss">;
@@ -28,6 +29,10 @@ async function presetSource(db: AdminDatabase, provider: Preset) {
   return result.data;
 }
 
+class XRequestError extends Error {
+  constructor(readonly status: number) { super("X search unavailable"); }
+}
+
 async function readXAppearances(token: string): Promise<Discovery[]> {
   const url = new URL("https://api.x.com/2/tweets/search/recent");
   url.search = new URLSearchParams({
@@ -39,7 +44,7 @@ async function readXAppearances(token: string): Promise<Discovery[]> {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store", redirect: "error", signal: AbortSignal.timeout(8000),
   });
-  if (!response.ok) throw new Error("X search unavailable");
+  if (!response.ok) throw new XRequestError(response.status);
   const result = readObject(await response.json());
   if (!result) throw new Error("Invalid X response");
   const posts = Array.isArray(result.data) ? result.data.slice(0, 10) : [];
@@ -59,7 +64,15 @@ async function readXAppearances(token: string): Promise<Discovery[]> {
   });
 }
 
-export async function discoverNews(db: AdminDatabase, provider: NewsProvider, sourceId: string | null) {
+async function searchPressArchive(provider: PressProvider, page: number) {
+  const url = pressArchiveUrl(provider, page);
+  const isHerald = provider === "korea-herald";
+  const bytes = await readPublicBytes(url, isHerald ? "text/html" : "application/json");
+  const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  return isHerald ? parseHeraldArchive(text) : parseTimesArchive(JSON.parse(text));
+}
+
+export async function discoverNews(db: AdminDatabase, provider: NewsProvider, sourceId: string | null, page = 1) {
   const token = provider === "x" ? process.env.EDITORIAL_X_BEARER_TOKEN?.trim() : undefined;
   if (provider === "x" && !token) return { error: "x_setup", status: 503 } as const;
   const source = provider === "rss" && sourceId ? await getSource(db, sourceId)
@@ -67,6 +80,7 @@ export async function discoverNews(db: AdminDatabase, provider: NewsProvider, so
   if (!source?.is_active) return { error: "inactive_source", status: 409 } as const;
 
   let items: Discovery[], failures = 0;
+  let scope: "archive" | "feed" | undefined;
   try {
     if (provider === "yg") {
       const result = await readYgNews();
@@ -75,12 +89,26 @@ export async function discoverNews(db: AdminDatabase, provider: NewsProvider, so
     } else if (provider === "x") {
       if (!token) return { error: "x_setup", status: 503 } as const;
       items = await readXAppearances(token);
+    } else if (isPressProvider(provider)) {
+      try {
+        items = await searchPressArchive(provider, page);
+        scope = "archive";
+      } catch (error) {
+        if (page !== 1) throw error;
+        items = (await readFeed(NEWS_PRESETS[provider].feed_url)).filter(item => matchesFeedTerm(item, DEFAULT_BAND_FILTER));
+        scope = "feed";
+      }
     } else {
-      const feed = provider === "rss" ? source.discovery_method === "rss" && source.feed_url : NEWS_PRESETS[provider].feed_url;
-      if (!feed) return { error: "invalid_source", status: 400 } as const;
-      items = (await readFeed(feed)).filter(item => matchesFeedTerm(item, DEFAULT_BAND_FILTER));
+      if (source.discovery_method !== "rss" || !source.feed_url) return { error: "invalid_source", status: 400 } as const;
+      items = (await readFeed(source.feed_url)).filter(item => matchesFeedTerm(item, DEFAULT_BAND_FILTER));
+      scope = "feed";
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof XRequestError) {
+      if (error.status === 401 || error.status === 403) return { error: "x_access", status: 422 } as const;
+      if (error.status === 402) return { error: "x_credits", status: 422 } as const;
+      if (error.status === 429) return { error: "x_rate_limit", status: 429 } as const;
+    }
     return { error: provider === "x" ? "x_error" : "publisher_error", status: 422 } as const;
   }
 
@@ -99,5 +127,5 @@ export async function discoverNews(db: AdminDatabase, provider: NewsProvider, so
   const saved = await db.from("editorial_sources").update({ last_scanned_at: new Date().toISOString() })
     .eq("id", source.id).eq("updated_at", source.updated_at);
   if (saved.error) failures++;
-  return { added, duplicates, matches: items.length, truncated: items.length > FEED_SCAN_LIMIT, failures };
+  return { added, duplicates, matches: items.length, truncated: items.length > FEED_SCAN_LIMIT, failures, ...(scope ? { scope } : {}) };
 }

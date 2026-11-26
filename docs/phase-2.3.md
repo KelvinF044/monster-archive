@@ -259,8 +259,10 @@ The owner verified live bilingual generation and linked attribution on
 
 - YG official reports are read from the public English Reports listing.
   The scan filters the latest page for BABYMONSTER and reads matching reports
-  for the title, date, and a short excerpt. The Korea Herald K-pop feed and
-  The Korea Times Entertainment feed are included, alongside registered feeds.
+  for the title, date, and a short excerpt. The Korea Herald and The Korea Times
+  search their archives page by page. The first page can fall back to the latest
+  feed if archive search is unavailable. Registered RSS and Atom feeds remain
+  available.
 - Matches are queued as pending. Source URLs already linked to archive entries
   and URLs already in the queue are skipped. YG hostname aliases are handled.
   Different publisher URLs can still describe the same story and are reviewed
@@ -279,6 +281,9 @@ The owner verified live bilingual generation and linked attribution on
   `monster-archive-test` to enable saving imported covers. The search, preview
   and existing text-only workflows operate on the previous schema. Optionally
   run `supabase/checks/phase_2_3_6_discovery_covers.sql` in the test SQL Editor.
+  If the Preview image loads but the upload fails, use the read-only
+  `supabase/checks/phase_2_3_6_cover_environment.sql` to verify the bucket,
+  insert policy and draft function in the Supabase project linked to Preview.
 
 ## Remaining delivery
 

@@ -1,5 +1,6 @@
 import "server-only";
 import type { AdminDatabase } from "../news/queries";
+import { coverStorageResult } from "./cover-storage-result";
 import { getSource } from "./repository";
 import { ygReportUrl } from "./publishers";
 import { readYgCover } from "./read-yg";
@@ -19,13 +20,12 @@ export async function uploadYgDraftCover(db: AdminDatabase, candidate: { id: str
   const bucket = db.storage.from("archive-images");
   const result = await bucket.upload(path, cover.bytes, { contentType: cover.mime, upsert: false, cacheControl: "3600" });
   if (result.error) {
-    const status = "statusCode" in result.error ? String(result.error.statusCode) : "";
-    const message = result.error.message.toLowerCase();
-    // The path is tied to the candidate and content hash. A retry can reuse
-    // an earlier upload without replacing pixels or deleting a live cover.
-    if (status !== "409" && !(status === "400" && /already exists|duplicate/.test(message))) {
-      console.warn("Editorial cover storage failed", { status });
-      return { error: "cover_storage", status: 503 } as const;
+    const error = result.error;
+    const reason = coverStorageResult(error);
+    // Only a known duplicate may reuse a previously uploaded file.
+    if (reason !== "existing") {
+      console.warn("Editorial cover storage failed", { status: error.status, reason });
+      return { error: reason, status: 503 } as const;
     }
   }
   return { url: bucket.getPublicUrl(path).data.publicUrl };

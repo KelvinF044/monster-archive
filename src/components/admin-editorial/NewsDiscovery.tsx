@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useAdminLocale } from "@/components/AdminLocaleProvider";
 import type { DiscoverySource } from "@/lib/admin/editorial/model";
-import { NEWS_PROVIDERS, type NewsProvider } from "@/lib/admin/editorial/publishers";
+import { isPressProvider, NEWS_PROVIDERS, PRESS_ARCHIVE_PAGE_LIMIT, type NewsProvider } from "@/lib/admin/editorial/publishers";
 import { Field, inputClass, panelClass, primaryClass } from "./Controls";
 
 export default function NewsDiscovery({ sources, busy, submit }: {
@@ -14,6 +14,7 @@ export default function NewsDiscovery({ sources, busy, submit }: {
   const { locale } = useAdminLocale();
   const pt = locale === "pt-BR";
   const [provider, setProvider] = useState<NewsProvider>("yg");
+  const press = isPressProvider(provider);
   const feeds = sources.filter(source => source.is_active && source.discovery_method === "rss" && source.feed_url);
   const labels: Record<NewsProvider, string> = {
     yg: pt ? "YG Entertainment (oficial)" : "YG Entertainment (official)",
@@ -26,7 +27,7 @@ export default function NewsDiscovery({ sources, busy, submit }: {
   function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    void submit({ action: "discover_news", provider, ...(provider === "rss" ? { sourceId: data.get("sourceId") } : {}) });
+    void submit({ action: "discover_news", provider, ...(provider === "rss" ? { sourceId: data.get("sourceId") } : {}), ...(press ? { page: Number(data.get("page")) } : {}) });
   }
 
   return <details className={panelClass}>
@@ -38,6 +39,10 @@ export default function NewsDiscovery({ sources, busy, submit }: {
             {NEWS_PROVIDERS.map(value => <option key={value} value={value}>{labels[value]}</option>)}
           </select>
         </Field>
+        {press && <Field label={pt ? "Página do acervo" : "Archive page"}>
+          <input key={provider} type="number" className={inputClass} name="page" defaultValue={1}
+            min={1} max={PRESS_ARCHIVE_PAGE_LIMIT} required />
+        </Field>}
         {provider === "rss" && <Field label={pt ? "Fonte cadastrada" : "Registered source"}>
           <select className={inputClass} name="sourceId" required defaultValue="">
             <option value="" disabled>{pt ? "Selecione uma fonte" : "Select a source"}</option>
@@ -48,6 +53,10 @@ export default function NewsDiscovery({ sources, busy, submit }: {
           {busy ? (pt ? "Buscando…" : "Searching…") : (pt ? "Buscar BABYMONSTER" : "Find BABYMONSTER")}
         </button>
       </fieldset>
+      {press && <p className="mt-3 text-sm text-zinc-400">
+        {pt ? "Consulte as matérias do jornal. Aumente a página para encontrar outras publicações do acervo."
+          : "Search the publisher’s articles. Increase the page to check other archive results."}
+      </p>}
       {provider === "x" && <p className="mt-3 text-sm text-zinc-400">
         {pt ? "Consulta publicações recentes da conta oficial. A busca usa a API do X e pode consumir créditos dela."
           : "Searches recent posts from the official account. The request uses the X API and may consume its credits."}

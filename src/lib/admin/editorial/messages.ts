@@ -18,8 +18,13 @@ const en = {
   goNews: "Open News management", goEvents: "Open Events management",
   acceptedHint: "Use the original source when preparing a draft.",
   noDate: "Date unavailable", added: "Added", duplicates: "Duplicates skipped", matches: "Matching items",
+  feedNoMatches: "The current feed has no matching articles. It only includes recent publications.",
+  archiveNoMatches: "No matching articles on this archive page.",
   scanFailures: "Items that could not be processed",
   x_setup: "X search requires the server-side EDITORIAL_X_BEARER_TOKEN credential.",
+  x_access: "X denied API access. Check the App Bearer Token and its access to Recent Search.",
+  x_credits: "X did not authorize this request with the available credits.",
+  x_rate_limit: "X is temporarily rate limiting this search. Try again later.",
   x_error: "X did not return results. Check the API credential, credits and request limits.",
   publisher_error: "The selected publisher could not be read. Try again or add a candidate manually.",
   scanLimit: "Only the first 25 matching feed entries were processed. Use a more specific keyword to check others.",
@@ -50,8 +55,13 @@ const pt: { [K in keyof typeof en]: string } = {
   goNews: "Abrir gerenciamento de Notícias", goEvents: "Abrir gerenciamento de Eventos",
   acceptedHint: "Use a fonte original ao preparar o rascunho.",
   noDate: "Data indisponível", added: "Adicionados", duplicates: "Duplicados ignorados", matches: "Itens encontrados",
+  feedNoMatches: "O feed atual não trouxe matérias relacionadas. Ele reúne apenas publicações recentes.",
+  archiveNoMatches: "Nenhuma matéria relacionada nesta página do acervo.",
   scanFailures: "Itens que não puderam ser processados",
   x_setup: "A busca no X requer a credencial EDITORIAL_X_BEARER_TOKEN no servidor.",
+  x_access: "O X negou acesso à API. Confira o Bearer Token do aplicativo e o acesso à busca recente.",
+  x_credits: "O X não autorizou esta consulta com os créditos disponíveis.",
+  x_rate_limit: "O X limitou temporariamente a busca. Tente novamente mais tarde.",
   x_error: "O X não retornou resultados. Confira a credencial da API, os créditos e os limites de consulta.",
   publisher_error: "Não foi possível ler a fonte selecionada. Tente novamente ou adicione um candidato manualmente.",
   scanLimit: "A busca processou os primeiros 25 itens encontrados. Use uma palavra-chave mais específica para buscar outros.",
@@ -73,4 +83,4 @@ export function editorialAdminCopy(locale: string) {
   return { text: isPt ? pt : en, kinds, statuses };
 }
 export type EditorialCopy = ReturnType<typeof editorialAdminCopy>;
-export type EditorialError = "database_error" | "unauthorized" | "invalid_request" | "invalid_source" | "source_duplicate" | "inactive_source" | "invalid_candidate" | "candidate_duplicate" | "stale" | "feed_error" | "scan_partial" | "x_setup" | "x_error" | "publisher_error";
+export type EditorialError = "database_error" | "unauthorized" | "invalid_request" | "invalid_source" | "source_duplicate" | "inactive_source" | "invalid_candidate" | "candidate_duplicate" | "stale" | "feed_error" | "scan_partial" | "x_setup" | "x_access" | "x_credits" | "x_rate_limit" | "x_error" | "publisher_error";
