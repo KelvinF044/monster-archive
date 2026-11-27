@@ -38,13 +38,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const editorialPages: MetadataRoute.Sitemap = isEditorialIndexable
+  const productionPages: MetadataRoute.Sitemap = isEditorialIndexable
     ? [
         { url: `${SITE_URL}/news`, changeFrequency: "weekly", priority: 0.8 },
         { url: `${SITE_URL}/schedule`, changeFrequency: "weekly", priority: 0.8 },
+        { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.6 },
+        { url: `${SITE_URL}/about/support`, changeFrequency: "monthly", priority: 0.5 },
       ]
     : [];
-  const fallbackSitemap = [...basePages, ...editorialPages, ...memberPages];
+  const fallbackSitemap = [...basePages, ...productionPages, ...memberPages];
 
   try {
     const supabase = await createClient();

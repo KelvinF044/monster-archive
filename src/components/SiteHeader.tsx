@@ -168,7 +168,7 @@ function DesktopNavigationItem({
 
   if (!item.children?.length) {
     return (
-      <Link href={item.href} className={linkClass}>
+      <Link href={item.href} className={linkClass} aria-current={pathname === item.href ? "page" : undefined}>
         {item.label}
       </Link>
     );
@@ -297,7 +297,7 @@ export default function SiteHeader({
     {
       id: "about",
       label: dictionary.navigation.about,
-      href: "/#about",
+      href: "/about",
     },
   ];
 
