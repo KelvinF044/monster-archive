@@ -26,6 +26,10 @@ export default function SupportPage() {
 
 async function SupportContent() {
   const { about, support } = projectCopy[await getLocale()];
+  const configuredUrl = process.env.SUPPORT_KOFI_URL?.trim();
+  const supportUrl = configuredUrl && /^https:\/\/(?:www\.)?ko-fi\.com\/[a-z0-9_-]+\/?$/i.test(configuredUrl)
+    ? configuredUrl
+    : null;
 
   return (
     <>
@@ -44,11 +48,22 @@ async function SupportContent() {
       </section>
 
       <section className="mt-12 rounded-2xl border border-purple-400/30 bg-purple-500/5 p-6 sm:p-8" aria-labelledby="support-availability">
-        <h2 id="support-availability" className="text-xl font-black">{support.availabilityTitle}</h2>
-        <p className="mt-2 max-w-xl text-base leading-7 text-zinc-300">{support.availabilityDescription}</p>
-        <Link href="/about" className={`${projectButton} mt-5`}>
-          {about.title}
-        </Link>
+        <h2 id="support-availability" className="text-xl font-black">
+          {supportUrl ? support.contributeTitle : support.availabilityTitle}
+        </h2>
+        <p className="mt-2 max-w-xl text-base leading-7 text-zinc-300">
+          {supportUrl ? support.contributeDescription : support.availabilityDescription}
+        </p>
+        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+          {supportUrl && (
+            <a href={supportUrl} className={projectButton} rel="noreferrer">
+              {support.contributeLink}
+            </a>
+          )}
+          <Link href="/about" className="rounded-sm text-sm font-semibold text-purple-200 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-purple-400">
+            {about.title}
+          </Link>
+        </div>
       </section>
     </>
   );

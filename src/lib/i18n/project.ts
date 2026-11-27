@@ -20,6 +20,9 @@ type ProjectCopy = {
     priorities: { title: string; description: string }[];
     availabilityTitle: string;
     availabilityDescription: string;
+    contributeTitle: string;
+    contributeDescription: string;
+    contributeLink: string;
   };
 };
 
@@ -51,6 +54,9 @@ export const projectCopy = {
       ],
       availabilityTitle: "Contributions are currently unavailable",
       availabilityDescription: "You can already use the archive and share it with other BABYMONSTER fans.",
+      contributeTitle: "Make a one-time contribution",
+      contributeDescription: "You’ll continue to the project’s Ko-fi page to make a voluntary, one-time payment. Everyone can use the archive for free.",
+      contributeLink: "Support on Ko-fi",
     },
   },
   "pt-BR": {
@@ -80,6 +86,9 @@ export const projectCopy = {
       ],
       availabilityTitle: "Contribuições ainda estão indisponíveis",
       availabilityDescription: "Você já pode usar o acervo e compartilhá-lo com outros fãs do BABYMONSTER.",
+      contributeTitle: "Faça uma contribuição avulsa",
+      contributeDescription: "Você seguirá para a página do projeto no Ko-fi para fazer uma contribuição voluntária e avulsa. O acervo continua gratuito para todos.",
+      contributeLink: "Apoiar no Ko-fi",
     },
   },
 } satisfies Record<Locale, ProjectCopy>;
