@@ -319,7 +319,9 @@ pages in the existing public sitemap. The administrative metadata is unchanged.
 ### On-demand discovery of official events
 
 - Events management has **Find new events**. The CHOOM tour dates page and
-  YG's Coachella 2027 announcement are the initial sources. The search is
+  YG's Coachella 2027 announcement remain available. The default source is
+  YG's official BABYMONSTER calendar, which is read for the current and next
+  two calendar months in Seoul. The search is
   administered on demand and lists upcoming performances separately, even when
   events share an official announcement. It requires no X or AI credentials.
 - **Review and edit** prefills the existing draft editor with bilingual text,
@@ -328,10 +330,13 @@ pages in the existing public sitemap. The administrative metadata is unchanged.
   official source, then use the existing review, approval and publication flow.
 - Existing imports are recognized by their deterministic slug or by matching
   official URL, date and location. A repeated search makes no database writes.
-  Shows, broadcasts and appearances outside the two supported sources can use
-  the manual workflow while further sources are evaluated.
-- In Preview, run both searches in Events management. Open a dated tour show
-  and a Coachella performance. Check the populated fields, the time-to-be-
+  The YG calendar uses the official entry ID for shows and broadcasts, so
+  distinct programs can be imported on the same day. Known CHOOM shows and
+  Coachella performances share the same slug across sources. Commitments
+  outside the supported sources can use **New event** to add a manual draft.
+- In Preview, try all three sources in Events management. Open a tour show,
+  a Coachella performance and a result from the official YG
+  calendar when available. Check the populated fields, the time-to-be-
   announced state, and the original link. Save a test draft and run the search
   again to verify the result opens the saved event.
 

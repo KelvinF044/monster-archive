@@ -34,7 +34,6 @@ export function parseChoomSchedule(html: string): EventFields[] {
     const venue = clean($(row).find(".left .item2").first().text());
     if (!city || !venue) continue;
 
-    const timezone = tourTimeZones[city.toUpperCase()] ?? "";
     for (const date of $(row).find(".right .item4 p").toArray()) {
       const raw = clean($(date).text());
       const match = raw.match(/^(\d{4})\.(\d{2})\.(\d{2})\.\s*\([a-z]{3}\)(?:\s+(\d{1,2})(?::([0-5]\d))?\s*(AM|PM))?$/i);
@@ -45,26 +44,37 @@ export function parseChoomSchedule(html: string): EventFields[] {
       if (!validDate(startsOn) || (hours && (Number(hours) < 1 || Number(hours) > 12))) continue;
       const hour = hours ? (Number(hours) % 12) + (period.toUpperCase() === "PM" ? 12 : 0) : null;
       const clock = hour === null ? "" : `${String(hour).padStart(2, "0")}:${minutes ?? "00"}`;
-      const startTime = clock && timezone && localTimeCandidates(startsOn, clock, timezone).length === 1 ? clock : "";
-      events.push({
-        ...blankEvent(),
-        slug: `babymonster-choom-${slugify(city)}-${startsOn}`,
-        title_pt: `BABYMONSTER WORLD TOUR [CHOOM] em ${city}`,
-        title_en: `BABYMONSTER WORLD TOUR [CHOOM] in ${city}`,
-        summary_pt: `O BABYMONSTER apresenta a turnê CHOOM em ${venue}, ${city}.`,
-        summary_en: `BABYMONSTER brings the CHOOM world tour to ${venue} in ${city}.`,
-        category: "concert",
-        location: city,
-        venue_name: venue,
-        official_event_url: EVENT_SOURCE_URLS.choom,
-        starts_on: startsOn,
-        start_time: startTime,
-        timezone,
-        time_kind: startTime ? "timed" : "time_tba",
-      });
+      events.push(choomEvent(city, venue, startsOn, clock));
     }
   }
   return validatedEvents(events);
+}
+
+export function choomEvent(city: string, venue: string, startsOn: string, clock: string, source: string = EVENT_SOURCE_URLS.choom): EventFields {
+  const timezone = tourTimeZones[city.toUpperCase()] ?? "";
+  return {
+    ...eventTime(startsOn, clock, timezone),
+    slug: `babymonster-choom-${slugify(city)}-${startsOn}`,
+    title_pt: `BABYMONSTER WORLD TOUR [CHOOM] em ${city}`,
+    title_en: `BABYMONSTER WORLD TOUR [CHOOM] in ${city}`,
+    summary_pt: `O BABYMONSTER apresenta a turnê CHOOM em ${venue}, ${city}.`,
+    summary_en: `BABYMONSTER brings the CHOOM world tour to ${venue} in ${city}.`,
+    category: "concert",
+    location: city,
+    venue_name: venue,
+    official_event_url: source,
+  };
+}
+
+export function eventTime(date: string, clock: string, timezone: string): EventFields {
+  const startTime = clock && timezone && localTimeCandidates(date, clock, timezone).length === 1 ? clock : "";
+  return {
+    ...blankEvent(),
+    starts_on: date,
+    start_time: startTime,
+    timezone,
+    time_kind: startTime ? "timed" : "time_tba",
+  };
 }
 
 export function parseCoachellaAnnouncement(html: string): EventFields[] {

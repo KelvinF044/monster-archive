@@ -54,3 +54,45 @@ test("event discovery accepts configured providers only and fails on ambiguous t
     "2027.01.08. (FRI) 6PM", "2027.01.08. (FRI) 8PM",
   ])), /duplicate/);
 });
+
+test("YG calendar requests the current Seoul month and next two, across a year boundary", async () => {
+  const { ygScheduleMonths } = await import("../src/lib/admin/schedule/yg-schedule.ts");
+  const results = ygScheduleMonths(new Date("2026-11-30T16:00:00Z"));
+  assert.deepEqual(results.map(row => row.period), ["2026-12", "2027-01", "2027-02"]);
+  assert.equal(results[1].url, "https://ygfamily.com/api/artist/schedule/list/319/2027/1");
+});
+
+test("YG calendar identifies music shows and distinct same-day radio appearances", async () => {
+  const { parseYgSchedule } = await import("../src/lib/admin/schedule/yg-schedule.ts");
+  const event = { artistId: 319, place: "", date: "2026-11-04", time: "15:20", isDisplay: true };
+  const results = parseYgSchedule([
+    { ...event, id: 1, type: "tv", title: "SBS 인기가요" },
+    { ...event, id: 2, type: "radio", title: "MBC FM4U 정오의 희망곡 김신영입니다" },
+    { ...event, id: 3, type: "radio", title: "SBS 파워FM 웬디의 영스트리트" },
+    { ...event, id: 4, type: "tv", title: "2026 MAMA AWARDS", place: "KYOCERA DOME OSAKA" },
+    { ...event, id: 5, type: "tv", title: "Hidden", isDisplay: false },
+    { ...event, id: 6, type: "tv", title: "KBS 뮤직뱅크 (취소)" },
+    { ...event, id: 7, type: "tv", title: "Another artist", artistId: 320 },
+  ], "2026-11");
+  assert.deepEqual(results.map(row => row.category), ["music_show", "broadcast", "broadcast", "awards"]);
+  assert.equal(new Set(results.map(row => row.slug)).size, 4);
+  assert.equal(results[0].title_en, "BABYMONSTER — SBS Inkigayo");
+  assert.equal(parseEvent(results[0]).fields.starts_at, "2026-11-04T06:20:00.000Z");
+  assert.equal(results[3].time_kind, "time_tba");
+  assert.equal(results[3].timezone, "");
+});
+
+test("a show in the official calendar has the same slug as the dedicated tour source", async () => {
+  const { parseYgSchedule } = await import("../src/lib/admin/schedule/yg-schedule.ts");
+  const official = parseYgSchedule([{
+    id: 4576, artistId: 319, title: "2026-27 BABYMONSTER WORLD TOUR [춤 (CHOOM)] IN SINGAPORE",
+    place: "SINGAPORE INDOOR STADIUM", date: "2026-11-28", time: "18:00", type: "concert", isDisplay: true,
+  }], "2026-11")[0];
+  const tour = parseChoomSchedule(tourStop("SINGAPORE", "SINGAPORE INDOOR STADIUM", ["2026.11.28. (SAT) 6PM"]))[0];
+  assert.equal(official.slug, tour.slug);
+  assert.equal(official.timezone, "Asia/Singapore");
+  assert.equal(official.official_event_url, EVENT_SOURCE_URLS["yg-schedule"]);
+  assert.deepEqual(parseYgSchedule([], "2027-02"), []);
+  assert.throws(() => parseYgSchedule({ data: [] }, "2027-02"), /Invalid YG schedule response/);
+  assert.throws(() => parseYgSchedule([{ format: "unknown" }], "2027-02"), /Unrecognized/);
+});

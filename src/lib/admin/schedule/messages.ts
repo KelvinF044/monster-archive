@@ -2,6 +2,7 @@ import { newsCopy } from "../news/messages";
 import type { EventCategory, EventStatus, TimeKind } from "./model";
 const en = {
   heading:"Events management",intro:"Manage the official calendar, local dates and times, sources and each editorial review stage.",
+  ygSchedule:"Official BABYMONSTER schedule (YG)",schedulePartial:"YG did not return every month. The available results are shown below.",
   findEvents:"Find new events",eventDiscoverySource:"Official source",openEventSource:"Open source",
   noUpcomingDiscoveries:"This source lists no upcoming events.",reviewFoundEvent:"Review and edit",openSavedEvent:"Open saved event",
   discovery_unavailable:"Unable to read this official schedule. Check the source or try again later.",
@@ -33,6 +34,7 @@ const en = {
 type ExtraCopy={ [K in keyof typeof en]: string };
 const pt:ExtraCopy={
   heading:"Gerenciamento de eventos",intro:"Gerencie a agenda oficial, datas e horários locais, fontes e cada etapa da revisão editorial.",
+  ygSchedule:"Agenda oficial do BABYMONSTER (YG)",schedulePartial:"A YG não retornou todos os meses. A lista mostra os resultados disponíveis.",
   findEvents:"Buscar novos eventos",eventDiscoverySource:"Fonte oficial",openEventSource:"Abrir fonte",
   noUpcomingDiscoveries:"Esta fonte não lista próximos eventos.",reviewFoundEvent:"Revisar e editar",openSavedEvent:"Abrir evento cadastrado",
   discovery_unavailable:"Não foi possível consultar esta agenda oficial. Confira a fonte ou tente novamente mais tarde.",

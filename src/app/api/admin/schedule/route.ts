@@ -26,8 +26,8 @@ export async function GET(request:NextRequest){
     if (p.get("view") === "discover") {
       const provider = p.get("provider");
       if (!isEventProvider(provider)) return fail("invalid_request");
-      const suggestions = await discoverEvents(admin.supabase, provider);
-      return suggestions ? response({ suggestions }) : fail("discovery_unavailable", 422);
+      const result = await discoverEvents(admin.supabase, provider);
+      return result ? response(result) : fail("discovery_unavailable", 422);
     }
     if(p.get("view")==="catalogs") return response(await loadNewsCatalogs(admin.supabase));
     if(p.get("view")==="videos") return response({videos:await searchNewsVideos(admin.supabase,p.get("q")??"")});

@@ -7,7 +7,7 @@ import { AdminConfirmationDialog, useAdminConfirmation, type ConfirmAction } fro
 import { allowedTransitions, canonicalSourceUrl, editableStatus, NEWS_STATUSES, PAGE_SIZE, SOURCE_KINDS, type EditorialSource, type NewsCatalogs, type NewsStatus, type RelatedVideo, type SourceKind } from "@/lib/admin/news/model";
 import { blankEvent, eventFields, eventReviewReady, EVENT_CATEGORIES, EVENT_STATUSES, TIME_KINDS, isOfficialSourceKind, localTimeCandidates, localEventClock, type EventCategory, type EventStatus, type EventDetail, type EventFields, type EventList, type EventAudit, type Occurrence, type TimeKind } from "@/lib/admin/schedule/model";
 import { scheduleCopy, scheduleError, type ScheduleCopy } from "@/lib/admin/schedule/messages";
-import { EVENT_PROVIDERS, type EventProvider, type EventSuggestion } from "@/lib/admin/schedule/discovery";
+import { EVENT_PROVIDERS, type EventDiscoveryResult, type EventProvider, type EventSuggestion } from "@/lib/admin/schedule/discovery";
 
 const fieldClass="w-full rounded-lg border border-white/10 bg-[#101116] px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-purple-400/70 focus:outline-none disabled:opacity-60";
 const buttonClass="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-zinc-300 transition hover:border-purple-400/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-40";
@@ -165,8 +165,14 @@ function EventDiscovery({copy,locale,disabled,savedDiscoveries,onChoose}:{
   onChoose:(suggestion:EventSuggestion)=>Promise<void>;
 }){
   const c=copy.text;
-  const [provider,setProvider]=useState<EventProvider>("choom");
-  const [items,setItems]=useState<EventSuggestion[]|null>(null);
+  const [provider,setProvider]=useState<EventProvider>("yg-schedule");
+  const [result,setResult]=useState<EventDiscoveryResult|null>(null);
+  const items=result?.suggestions;
+  const providerLabels:Record<EventProvider,string>={
+    "yg-schedule":c.ygSchedule,
+    choom:"BABYMONSTER WORLD TOUR [CHOOM]",
+    coachella:"Coachella 2027 · YG Entertainment",
+  };
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState("");
 
@@ -174,10 +180,9 @@ function EventDiscovery({copy,locale,disabled,savedDiscoveries,onChoose}:{
     event.preventDefault();
     setBusy(true);
     setError("");
-    setItems(null);
+    setResult(null);
     try {
-      const result=await api<{suggestions:EventSuggestion[]}>({view:"discover",provider});
-      setItems(result.suggestions);
+      setResult(await api<EventDiscoveryResult>({view:"discover",provider}));
     } catch (error) {
       setError(errorCode(error));
     } finally {
@@ -193,10 +198,10 @@ function EventDiscovery({copy,locale,disabled,savedDiscoveries,onChoose}:{
           <Field label={c.eventDiscoverySource}>
             <select className={fieldClass} value={provider} onChange={event=>{
               setProvider(event.target.value as EventProvider);
-              setItems(null);
+              setResult(null);
               setError("");
             }}>
-              {EVENT_PROVIDERS.map(value=><option key={value} value={value}>{value==="choom"?"BABYMONSTER WORLD TOUR [CHOOM]":"Coachella 2027 · YG Entertainment"}</option>)}
+              {EVENT_PROVIDERS.map(value=><option key={value} value={value}>{providerLabels[value]}</option>)}
             </select>
           </Field>
         </div>
@@ -204,7 +209,8 @@ function EventDiscovery({copy,locale,disabled,savedDiscoveries,onChoose}:{
       </fieldset>
     </form>
     {error&&<p role="alert" className="mt-3 text-sm text-red-300">{scheduleError(copy,error)}</p>}
-    {items?.length===0&&<p role="status" className="mt-3 text-sm text-zinc-400">{c.noUpcomingDiscoveries}</p>}
+    {result?.incomplete&&<p role="status" className="mt-3 text-sm text-amber-300">{c.schedulePartial}</p>}
+    {!result?.incomplete&&items?.length===0&&<p role="status" className="mt-3 text-sm text-zinc-400">{c.noUpcomingDiscoveries}</p>}
     {Boolean(items?.length)&&<ul className="mt-4 divide-y divide-white/10 rounded-lg border border-white/10">
       {items?.map(suggestion=>{
         const {fields}=suggestion;
