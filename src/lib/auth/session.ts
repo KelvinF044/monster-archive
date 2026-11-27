@@ -1,7 +1,9 @@
+import { connection } from "next/server";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export const getSessionClaims = cache(async () => {
+  await connection();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   return error || typeof data?.claims.sub !== "string" ? null : data.claims;
