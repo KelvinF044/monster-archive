@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { useLanguage } from "@/components/LanguageProvider";
 import { watchCollections } from "@/data/watch";
@@ -130,33 +130,131 @@ function LanguageSwitcher({
   );
 }
 
-export default function SiteHeader() {
+type NavigationLink = {
+  href: string;
+  label: string;
+};
+
+type NavigationItem = NavigationLink & {
+  id: string;
+  children?: NavigationLink[];
+};
+
+function matchesPath(pathname: string, href: string) {
+  return href === "/"
+    ? pathname === "/"
+    : !href.includes("#") && (pathname === href || pathname.startsWith(href + "/"));
+}
+
+function DesktopNavigationItem({
+  item,
+  pathname,
+  open,
+  onOpenChange,
+}: {
+  item: NavigationItem;
+  pathname: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const triggerRef = useRef<HTMLAnchorElement>(null);
+  const active =
+    matchesPath(pathname, item.href) ||
+    Boolean(item.children?.some((entry) => matchesPath(pathname, entry.href)));
+
+  const linkClass = `block w-full whitespace-nowrap px-1 text-center text-sm font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-purple-400 ${
+    active ? "text-purple-400" : "text-zinc-400 hover:text-white"
+  }`;
+
+  if (!item.children?.length) {
+    return (
+      <Link href={item.href} className={linkClass}>
+        {item.label}
+      </Link>
+    );
+  }
+
+  const id = `desktop-${item.id}-menu`;
+
+  return (
+    <div
+      className="relative flex h-full items-center justify-center"
+      onMouseEnter={() => onOpenChange(true)}
+      onMouseLeave={(event) => {
+        if (!event.currentTarget.contains(document.activeElement)) onOpenChange(false);
+      }}
+      onFocusCapture={() => onOpenChange(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          onOpenChange(false);
+        }
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.stopPropagation();
+          triggerRef.current?.focus();
+          onOpenChange(false);
+        }
+      }}
+    >
+      <Link
+        ref={triggerRef}
+        href={item.href}
+        aria-current={pathname === item.href ? "page" : undefined}
+        aria-expanded={open}
+        aria-controls={id}
+        className={linkClass}
+        onClick={() => onOpenChange(false)}
+      >
+        {item.label}
+      </Link>
+      <div
+        className={`absolute left-1/2 top-full z-[70] w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 pt-2 transition-all duration-200 ${
+          open
+            ? "visible translate-y-0 opacity-100"
+            : "invisible pointer-events-none translate-y-2 opacity-0"
+        }`}
+      >
+        <ul
+          id={id}
+          aria-label={item.label}
+          className="overflow-hidden rounded-lg border border-white/10 bg-[#08090d] py-1 shadow-2xl shadow-black/50"
+        >
+          {item.children.map((entry) => {
+            const selected = matchesPath(pathname, entry.href);
+            return (
+              <li key={entry.href}>
+                <Link
+                  href={entry.href}
+                  aria-current={pathname === entry.href ? "page" : undefined}
+                  onClick={() => onOpenChange(false)}
+                  className={`block whitespace-nowrap px-5 py-2.5 text-center text-xs transition focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-purple-400 ${
+                    selected
+                      ? "bg-purple-500/25 font-bold text-white"
+                      : "text-white/80 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  {entry.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+export default function SiteHeader({
+  memberLinks,
+}: {
+  memberLinks: { slug: string; name: string }[];
+}) {
   const pathname = usePathname();
-
   const [menuOpen, setMenuOpen] = useState(false);
-  const [watchMenuOpen, setWatchMenuOpen] = useState(false);
-  const [mobileWatchOpen, setMobileWatchOpen] = useState(false);
-
+  const [desktopGroup, setDesktopGroup] = useState<string | null>(null);
+  const [mobileGroup, setMobileGroup] = useState<string | null>(null);
   const { locale, setLocale, dictionary } = useLanguage();
-
-  const navigation = [
-    {
-      label: dictionary.navigation.home,
-      href: "/",
-    },
-    {
-      label: dictionary.navigation.members,
-      href: "/members",
-    },
-    {
-      label: dictionary.navigation.watch,
-      href: "/watch",
-    },
-    {
-      label: dictionary.navigation.about,
-      href: "/#about",
-    },
-  ];
 
   const categoryFilterKeys = {
     MV: "musicVideos",
@@ -168,69 +266,49 @@ export default function SiteHeader() {
     Awards: "awards",
   } as const;
 
-  const watchCategoryLinks = watchCollections.map((collection) => ({
-    slug: collection.slug,
-    category: collection.category,
-    label:
-      dictionary.watch.filters[
-        categoryFilterKeys[collection.category]
+  const navigation: NavigationItem[] = [
+    {
+      id: "home",
+      label: dictionary.navigation.home,
+      href: "/",
+      children: [
+        { label: dictionary.navigation.news, href: "/news" },
+        { label: dictionary.navigation.events, href: "/schedule" },
       ],
-  }));
-
-  function isActive(href: string) {
-    if (href === "/") {
-      return pathname === "/";
-    }
-
-    if (href === "/members") {
-      return pathname.startsWith("/members");
-    }
-
-    if (href === "/watch") {
-      return pathname.startsWith("/watch");
-    }
-
-    return false;
-  }
-
-  function isCategoryActive(slug: string) {
-    const categoryPath = `/watch/${slug}`;
-
-    return (
-      pathname === categoryPath ||
-      pathname.startsWith(`${categoryPath}/`)
-    );
-  }
-
-  function linkClass(href: string) {
-    const base =
-      "block w-full whitespace-nowrap px-1 text-center text-sm font-medium transition-colors duration-200";
-
-    return `${base} ${
-      isActive(href)
-        ? "text-purple-400"
-        : "text-zinc-400 hover:text-white"
-    }`;
-  }
+    },
+    {
+      id: "members",
+      label: dictionary.navigation.members,
+      href: "/members",
+      children: memberLinks.map((member) => ({
+        label: member.name,
+        href: `/members/${member.slug}`,
+      })),
+    },
+    {
+      id: "watch",
+      label: dictionary.navigation.watch,
+      href: "/watch",
+      children: watchCollections.map((collection) => ({
+        href: `/watch/${collection.slug}`,
+        label: dictionary.watch.filters[categoryFilterKeys[collection.category]],
+      })),
+    },
+    {
+      id: "about",
+      label: dictionary.navigation.about,
+      href: "/#about",
+    },
+  ];
 
   function closeMobileNavigation() {
     setMenuOpen(false);
-    setMobileWatchOpen(false);
-  }
-
-  function closeWatchDropdown() {
-    setWatchMenuOpen(false);
+    setMobileGroup(null);
   }
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#08090d]/95 text-white backdrop-blur-xl">
-
-      {/* HEADER */}
-
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_360px_minmax(0,1fr)]">
-
-        {/* LOGO */}
-
         <Link
           href="/"
           onClick={closeMobileNavigation}
@@ -239,280 +317,114 @@ export default function SiteHeader() {
           MONSTER<span className="text-purple-400">.</span>
         </Link>
 
-        {/* DESKTOP NAVIGATION */}
-
-        <nav className="hidden h-full w-[360px] grid-cols-4 items-center lg:grid lg:justify-self-center">
-
-          <Link
-            href="/"
-            aria-current={isActive("/") ? "page" : undefined}
-            className={linkClass("/")}
-          >
-            {navigation[0].label}
-          </Link>
-
-          <Link
-            href="/members"
-            aria-current={
-              isActive("/members") ? "page" : undefined
-            }
-            className={linkClass("/members")}
-          >
-            {navigation[1].label}
-          </Link>
-
-          {/* WATCH DROPDOWN */}
-
-          <div
-            className="relative flex h-full items-center justify-center"
-            onMouseEnter={() => setWatchMenuOpen(true)}
-            onMouseLeave={closeWatchDropdown}
-            onFocusCapture={() => setWatchMenuOpen(true)}
-            onBlur={(event) => {
-              const nextTarget =
-                event.relatedTarget as Node | null;
-
-              if (
-                !nextTarget ||
-                !event.currentTarget.contains(nextTarget)
-              ) {
-                closeWatchDropdown();
+        <nav
+          aria-label={locale === "pt-BR" ? "Navegação principal" : "Main navigation"}
+          className="hidden h-full w-[360px] grid-cols-4 items-center lg:grid lg:justify-self-center"
+        >
+          {navigation.map((item) => (
+            <DesktopNavigationItem
+              key={item.id}
+              item={item}
+              pathname={pathname}
+              open={desktopGroup === item.id}
+              onOpenChange={(open) =>
+                setDesktopGroup((current) => open ? item.id : current === item.id ? null : current)
               }
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                closeWatchDropdown();
-              }
-            }}
-          >
-            <Link
-              href="/watch"
-              aria-current={
-                isActive("/watch") ? "page" : undefined
-              }
-              aria-haspopup="menu"
-              aria-expanded={watchMenuOpen}
-              aria-controls="desktop-watch-menu"
-              className={linkClass("/watch")}
-              onClick={closeWatchDropdown}
-            >
-              {navigation[2].label}
-            </Link>
-
-            {/* DESKTOP CATEGORY LIST */}
-
-            <div
-              className={`absolute left-1/2 top-full z-[70] w-48 -translate-x-1/2 pt-2 transition-all duration-200 ${
-                watchMenuOpen
-                  ? "visible translate-y-0 opacity-100"
-                  : "invisible pointer-events-none translate-y-2 opacity-0"
-              }`}
-            >
-              <div
-                id="desktop-watch-menu"
-                role="menu"
-                aria-label="Watch categories"
-                className="overflow-hidden rounded-lg border border-white/10 bg-[#08090d] py-2 shadow-2xl shadow-black/50"
-              >
-                {watchCategoryLinks.map((item) => {
-                  const selected = isCategoryActive(item.slug);
-
-                  return (
-                    <Link
-                      key={item.slug}
-                      href={`/watch/${item.slug}`}
-                      role="menuitem"
-                      onClick={closeWatchDropdown}
-                      className={`block px-4 py-3 text-left text-xs transition ${
-                        selected
-                          ? "bg-purple-500/25 font-bold text-white"
-                          : "text-white/80 hover:bg-white/5 hover:text-white"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <Link
-            href="/#about"
-            className={linkClass("/#about")}
-          >
-            {navigation[3].label}
-          </Link>
-
+            />
+          ))}
         </nav>
 
-        {/* RIGHT SIDE */}
-
         <div className="flex items-center gap-3 lg:justify-self-end">
-
           <span className="hidden whitespace-nowrap text-xs font-bold tracking-wider text-zinc-500 xl:block">
             {dictionary.navigation.globalArchive}
           </span>
-
-          <LanguageSwitcher
-            locale={locale}
-            onChange={setLocale}
-          />
-
-          {/* MOBILE MENU BUTTON */}
-
+          <LanguageSwitcher locale={locale} onChange={setLocale} />
           <button
             type="button"
             onClick={() => {
               setMenuOpen((previous) => !previous);
-              setMobileWatchOpen(false);
+              setMobileGroup(null);
             }}
-            aria-label={
-              menuOpen
-                ? "Close navigation menu"
-                : "Open navigation menu"
-            }
+            aria-label={locale === "pt-BR"
+              ? (menuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação")
+              : (menuOpen ? "Close navigation menu" : "Open navigation menu")}
             aria-expanded={menuOpen}
+            aria-controls="mobile-site-navigation"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 text-xl text-white transition hover:border-purple-400/50 hover:bg-white/10 lg:hidden"
           >
             {menuOpen ? "×" : "☰"}
           </button>
-
         </div>
       </div>
 
-      {/* MOBILE NAVIGATION */}
-
       {menuOpen && (
-        <nav className="border-t border-white/10 bg-[#08090d] px-6 py-5 lg:hidden">
-
-          <div className="mx-auto flex max-w-7xl flex-col gap-5">
-
-            <Link
-              href="/"
-              onClick={closeMobileNavigation}
-              aria-current={isActive("/") ? "page" : undefined}
-              className={`text-sm font-medium transition-colors ${
-                isActive("/")
-                  ? "text-purple-400"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              {navigation[0].label}
-            </Link>
-
-            <Link
-              href="/members"
-              onClick={closeMobileNavigation}
-              aria-current={
-                isActive("/members") ? "page" : undefined
-              }
-              className={`text-sm font-medium transition-colors ${
-                isActive("/members")
-                  ? "text-purple-400"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              {navigation[1].label}
-            </Link>
-
-            {/* MOBILE WATCH */}
-
-            <div className="flex flex-col gap-3">
-
-              <div className="flex items-center justify-between gap-4">
-
-                <Link
-                  href="/watch"
-                  onClick={closeMobileNavigation}
-                  aria-current={
-                    isActive("/watch") ? "page" : undefined
-                  }
-                  className={`text-sm font-medium transition-colors ${
-                    isActive("/watch")
-                      ? "text-purple-400"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  {navigation[2].label}
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMobileWatchOpen((previous) => !previous)
-                  }
-                  aria-label={
-                    locale === "pt-BR"
-                      ? "Abrir categorias de vídeos"
-                      : "Open Watch categories"
-                  }
-                  aria-expanded={mobileWatchOpen}
-                  aria-controls="mobile-watch-categories"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-zinc-400 transition hover:border-purple-400/50 hover:text-white"
-                >
-                  <svg
-                    className={`h-4 w-4 transition-transform ${
-                      mobileWatchOpen ? "rotate-180" : ""
-                    }`}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden="true"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-
-              </div>
-
-              {/* MOBILE CATEGORY LIST - NO CONTAINER */}
-
-              {mobileWatchOpen && (
-                <div
-                  id="mobile-watch-categories"
-                  className="flex flex-col py-1"
-                >
-                  {watchCategoryLinks.map((item) => {
-                    const selected = isCategoryActive(item.slug);
-
-                    return (
-                      <Link
-                        key={item.slug}
-                        href={`/watch/${item.slug}`}
-                        onClick={closeMobileNavigation}
-                        className={`block rounded-md px-4 py-3 text-xs transition ${
-                          selected
-                            ? "bg-purple-500/25 font-bold text-white"
-                            : "text-white/80 hover:bg-white/5 hover:text-white"
-                        }`}
+        <nav
+          id="mobile-site-navigation"
+          aria-label={locale === "pt-BR" ? "Navegação principal" : "Main navigation"}
+          className="max-h-[calc(100dvh-5rem)] overflow-y-auto border-t border-white/10 bg-[#08090d] px-6 py-5 lg:hidden"
+        >
+          <div className="mx-auto flex max-w-7xl flex-col gap-4">
+            {navigation.map((item) => {
+              const expanded = mobileGroup === item.id;
+              const active = matchesPath(pathname, item.href) ||
+                item.children?.some((entry) => matchesPath(pathname, entry.href));
+              const groupId = `mobile-${item.id}-menu`;
+              return (
+                <div key={item.id}>
+                  <div className="flex min-h-9 items-center justify-between gap-4">
+                    <Link
+                      href={item.href}
+                      aria-current={pathname === item.href ? "page" : undefined}
+                      onClick={closeMobileNavigation}
+                      className={`text-sm font-medium transition-colors ${active ? "text-purple-400" : "text-zinc-400 hover:text-white"}`}
+                    >
+                      {item.label}
+                    </Link>
+                    {!!item.children?.length && (
+                      <button
+                        type="button"
+                        onClick={() => setMobileGroup((current) => current === item.id ? null : item.id)}
+                        aria-expanded={expanded}
+                        aria-controls={groupId}
+                        aria-label={locale === "pt-BR" ? `${expanded ? "Recolher" : "Expandir"} ${item.label}` : `${expanded ? "Collapse" : "Expand"} ${item.label}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-zinc-400 transition hover:border-purple-400/50 hover:text-white"
                       >
-                        {item.label}
-                      </Link>
-                    );
-                  })}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"
+                          className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`}>
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  {item.children && (
+                    <ul id={groupId} hidden={!expanded} className="mt-2 w-fit max-w-full rounded-lg border border-white/10 py-1">
+                      {item.children.map((entry) => (
+                        <li key={entry.href}>
+                          <Link
+                            href={entry.href}
+                            aria-current={pathname === entry.href ? "page" : undefined}
+                            onClick={closeMobileNavigation}
+                            className={`block whitespace-nowrap px-5 py-2.5 text-center text-xs transition ${
+                              matchesPath(pathname, entry.href)
+                                ? "bg-purple-500/25 font-bold text-white"
+                                : "text-white/80 hover:bg-white/5 hover:text-white"
+                            }`}
+                          >
+                            {entry.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-              )}
-
-            </div>
-
-            <Link
-              href="/#about"
-              onClick={closeMobileNavigation}
-              className="text-sm font-medium text-zinc-400 transition-colors hover:text-white"
-            >
-              {navigation[3].label}
-            </Link>
-
+              );
+            })}
             <div className="border-t border-white/10 pt-4 text-[10px] font-bold tracking-widest text-zinc-600">
               {dictionary.navigation.globalArchive}
             </div>
-
           </div>
         </nav>
       )}
-
     </header>
   );
 }

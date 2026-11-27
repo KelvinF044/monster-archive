@@ -7,6 +7,8 @@ import HomeCatalog, {
   type HomeCollection,
 } from "@/components/HomeCatalog";
 import HomeAboutFooter from "@/components/HomeAboutFooter";
+import HomeEditorial from "@/components/HomeEditorial";
+import { homeNews, homeEvents } from "@/lib/editorial/data";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -95,6 +97,10 @@ async function HomeContent() {
     <main className="min-h-screen bg-[#08090d] text-white">
       <HomeHero heroImage={heroImage} />
 
+      <Suspense fallback={null}>
+        <HomeEditorialContent />
+      </Suspense>
+
       <HomeCatalog
         collections={collections}
         collectionsError={collectionsError}
@@ -102,5 +108,17 @@ async function HomeContent() {
 
       <HomeAboutFooter />
     </main>
+  );
+}
+
+async function HomeEditorialContent() {
+  const now = new Date();
+  const [news, events] = await Promise.allSettled([homeNews(now), homeEvents(now)]);
+
+  return (
+    <HomeEditorial
+      news={news.status === "fulfilled" ? news.value : null}
+      events={events.status === "fulfilled" ? events.value : null}
+    />
   );
 }
