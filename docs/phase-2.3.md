@@ -1,6 +1,6 @@
 # Phase 2.3 — News & Events
 
-Roadmap 3.0: phase 2.2 (Eras and Smart Import) was released on 2026-11-25. Phase 2.3 is developed in isolation from production. All existing Watch, members, admin, and localization behavior must remain compatible.
+Roadmap 3.0 records the release of Phase 2.2 (Eras and Smart Import) on 2026-11-25 and Phase 2.3 (News & Events) on 2026-11-27. Phase 2.3 was built and tested in an isolated Preview environment before release.
 
 ## Initial navigation delivery
 
@@ -359,7 +359,7 @@ and `monster-archive-br`. Each project had all 44 events in draft status,
 with bilingual titles and summaries and a link to an official source.
 Anonymous reads returned zero events and source links from this batch.
 
-### Production rollout after owner approval
+### Production rollout
 
 1. Verify the Production deployment's Supabase project, confirm backup or
    recovery access, and confirm which of these migrations are pending. Apply
@@ -383,13 +383,20 @@ Anonymous reads returned zero events and source links from this batch.
    `EDITORIAL_AI_ENABLED=true` for Production and verify the AI Gateway
    credentials through the existing server-side credential path. X continues
    with manual candidates while automatic discovery awaits credits.
-4. Merge the verified release to `main`, wait for the Production deployment
-   in Vercel, then check Home, News, Events, Watch and Members. Confirm the
-   administrator pages require sign-in and the public editorial pages
-   render without a data error. Empty News and Events lists are expected
-   until an administrator publishes the first real items.
+4. After owner approval, [PR #7](https://github.com/KelvinF044/monster-archive/pull/7)
+   was merged into `main` on 2026-11-27. The [Production deployment](https://vercel.com/kelvinf044/monster-archive/BAWmSjpXpSydkAgybUvhBUj9NvqD)
+   reached Ready and served `www.themonsterarchive.com`.
 
-## Remaining delivery
+Production verification covered Home editorial section order, bilingual News
+and Events, calendar and history views, Watch, Members, the sitemap and the
+Editorial Center sign-in redirect. News and Events had zero published items
+at release. The 44 historical events remained private drafts.
+
+`EDITORIAL_AI_ENABLED=true` was set for Production using the existing AI
+Gateway authentication path. An authenticated suggestion in Production
+remains to be verified. X discovery still depends on API credits.
+
+## Delivery status
 
 1. Editorial database schema and RLS — validated in homologation and Production.
 2. News administration and review workflow — validated publication; owner approved progression.
@@ -399,6 +406,6 @@ Anonymous reads returned zero events and source links from this batch.
 6. AI draft assistance and YG imported covers — owner verified in Preview. Journal archive search is implemented. Live X discovery remains pending API credits.
 7. Home latest-news and upcoming-events sections — owner approved the layout in Preview.
 8. Historical agenda — 44 private drafts verified in each environment.
-9. Production website release — pending approval to merge to `main` and post-deploy validation.
+9. Production website release — live and verified on 2026-11-27.
 
 Keep About/Support the Creator, Community, and future phases out of scope.
