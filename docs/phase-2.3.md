@@ -340,6 +340,21 @@ pages in the existing public sitemap. The administrative metadata is unchanged.
   announced state, and the original link. Save a test draft and run the search
   again to verify the result opens the saved event.
 
+### Historical agenda drafts
+
+The backfill covers local dates from 2026-05-27 through 2026-11-26. It
+contains 44 official calendar records: 23 concerts, 12 music shows,
+7 broadcasts, 1 festival and 1 award show. CHOOM stops were checked
+against the tour listing. The 12 August Chiba start time follows
+[the dedicated Japan announcement](https://yg-babymonster-official.jp/live/2026-2027_worldtour_in_japan/).
+
+Apply `202611270001_seed_agenda_history_drafts.sql` to the test project and
+again to Production after the editorial schema migrations. It inserts
+only draft events and official source links. A repeated run skips existing
+rows, preserves changes made by editors and reports the number of new
+drafts. The batch contains no homologation fixtures. Events appear in the
+public history only after they pass editorial review and are published.
+
 ### Production rollout after owner approval
 
 1. Verify the Production deployment's Supabase project, confirm backup or
@@ -348,6 +363,7 @@ pages in the existing public sitemap. The administrative metadata is unchanged.
    - `supabase/migrations/202611250001_editorial_news_schedule.sql`
    - `supabase/migrations/202611260001_editorial_ai_assistance.sql`
    - `supabase/migrations/202611260002_editorial_discovery_covers.sql`
+   - `supabase/migrations/202611270001_seed_agenda_history_drafts.sql`
 2. Run the read-only checks `supabase/checks/phase_2_3_1_structure.sql` and
    `supabase/checks/phase_2_3_6_cover_environment.sql`. Expect 12 editorial
    tables with RLS enabled and three `true` values for covers. The
