@@ -408,4 +408,21 @@ remains to be verified. X discovery still depends on API credits.
 8. Historical agenda — 44 private drafts verified in each environment.
 9. Production website release — live and verified on 2026-11-27.
 
-Keep About/Support the Creator, Community, and future phases out of scope.
+## Post-release check and handoff
+
+The owner verified the production Home and the 44 historical drafts in the
+administrative schedule on 2026-11-27. The Singapore CHOOM event for
+2026-11-28 could not advance from review because its linked YG source was
+classified as a reference. The official calendar confirmed the date and time.
+The existing source link was corrected in production. A rolled-back approval
+check passed. The event remains in review for the owner's approval.
+
+The administrative shortcut for confirming an existing source is tracked as
+a separate Phase 2.3 fix. Production editorial AI is enabled and its first
+authenticated suggestion remains to be verified. Automatic X discovery
+depends on API credits.
+
+Roadmap 3.0 continues with Phase 2.4, About the Project and Support the
+Creator, in a separate project chat. The existing bilingual Preview and draft
+PR #8 are the starting point for that discussion. The support method is
+pending the owner's decision. Community is Phase 2.5.
