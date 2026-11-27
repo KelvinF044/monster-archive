@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
+import AdminCommunityAccountActivity from "@/components/AdminCommunityAccountActivity";
 import AdminCommunityProfiles from "@/components/AdminCommunityProfiles";
-import { getCommunityProfileDirectory } from "@/lib/admin/community-profiles/data";
-import { directoryHref } from "@/lib/admin/community-profiles/model";
+import { getCommunityAccountActivity, getCommunityProfileDirectory } from "@/lib/admin/community-profiles/data";
+import { accountActivityHref, directoryHref } from "@/lib/admin/community-profiles/model";
 import { getAccount } from "@/lib/auth/session";
 
 export default async function CommunityProfilesPage({ searchParams }: {
-  searchParams: Promise<{ q?: string; sort?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; page?: string; view?: string }>;
 }) {
   const account = await getAccount();
   if (!account) redirect("/login?next=profiles");
@@ -15,10 +16,18 @@ export default async function CommunityProfilesPage({ searchParams }: {
   const search = typeof query.q === "string" ? query.q.trim().slice(0, 80) : "";
   const sort = query.sort === "oldest" ? "oldest" : "newest";
   const page = Number(query.page ?? 1);
-  if (!Number.isSafeInteger(page) || page < 1 || page > 100000) redirect(directoryHref({ sort, search }));
+  const activityView = query.view === "activity";
+  if (!Number.isSafeInteger(page) || page < 1 || page > 100000) {
+    redirect(activityView ? accountActivityHref() : directoryHref({ sort, search }));
+  }
+  if (activityView) {
+    const activity = await getCommunityAccountActivity(page);
+    if (page > 1 && activity?.events.length === 0) redirect(accountActivityHref());
+    return <AdminCommunityAccountActivity activity={activity} page={page} />;
+  }
 
   const directory = await getCommunityProfileDirectory(search, sort, page);
   if (page > 1 && directory?.entries.length === 0) redirect(directoryHref({ sort, search }));
 
-  return <AdminCommunityProfiles directory={directory} search={search} sort={sort} page={page} />;
+  return <AdminCommunityProfiles actorId={account.claims.sub} directory={directory} search={search} sort={sort} page={page} />;
 }

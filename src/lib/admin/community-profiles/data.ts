@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
-import { profileDirectoryPageSize, type ProfileDirectoryEntry, type ProfileSort } from "./model";
+import { profileDirectoryPageSize, type AccountAdminEvent, type ProfileDirectoryEntry, type ProfileSort } from "./model";
 
 export async function getCommunityProfileDirectory(search: string, sort: ProfileSort, page: number) {
   const db = await createClient();
@@ -14,4 +14,13 @@ export async function getCommunityProfileDirectory(search: string, sort: Profile
 
   const entries = data as ProfileDirectoryEntry[];
   return { entries: entries.slice(0, profileDirectoryPageSize), hasNext: entries.length > profileDirectoryPageSize };
+}
+
+export async function getCommunityAccountActivity(page: number) {
+  const db = await createClient();
+  const { data, error } = await db.rpc("get_admin_community_account_events", { page_number: page });
+  if (error || !Array.isArray(data)) return null;
+
+  const events = data as AccountAdminEvent[];
+  return { events: events.slice(0, profileDirectoryPageSize), hasNext: events.length > profileDirectoryPageSize };
 }

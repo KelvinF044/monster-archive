@@ -181,3 +181,53 @@ com o link aberto no mesmo navegador que fez a solicitação.
   perfil público e excluir a conta são operações distintas.
 - Migração `20261127220825_admin_community_profiles.sql` e verificação
   `supabase/checks/phase_2_5_admin_community_profiles.sql` em homologação.
+
+## Controle administrativo de contas
+
+- A partir de Gerenciar conta, administradores ativos podem suspender uma
+  conta por horas ou dias com um motivo. A suspensão usa o prazo do Supabase
+  Auth e pode ser revogada. Sessões já abertas perdem acesso às ações privadas
+  enquanto o prazo estiver ativo. O perfil e as listas publicados continuam
+  sujeitos aos controles de visibilidade e moderação existentes.
+- Mudanças entre Membro, Moderador e Administrador usam os papéis existentes.
+  A conta precisa estar ativa e com e-mail confirmado para receber um cargo
+  de equipe. As ações protegem a própria conta do administrador e o último
+  administrador ativo. Para suspender ou excluir outro administrador,
+  primeiro altere o cargo.
+- Remover perfil apaga a página de perfil e suas preferências de
+  compartilhamento. Excluir conta também remove o login e os dados associados,
+  como listas, favoritos e histórico. As duas ações exigem digitar o @usuário
+  atual ou, para excluir um cadastro sem perfil, o identificador da conta.
+  O histórico administrativo e os registros de denúncias são preservados
+  para acompanhamento.
+- Histórico de ações exibe o administrador responsável, a conta afetada,
+  o motivo, a hora, a mudança de cargo e o prazo quando houver.
+- Migração `20261127224933_community_account_controls.sql` e verificação
+  `supabase/checks/phase_2_5_community_account_controls.sql`.
+
+## Configuração do e-mail oficial sem custo de envio inicial
+
+1. No Resend, adicionar `themonsterarchive.com` ao plano Free. Na data da
+   verificação, o plano anuncia até 100 e-mails por dia e 3.000 por mês.
+   O envio padrão do Supabase é voltado a testes e limita os destinatários.
+2. Publicar no Porkbun os registros de verificação e envio exibidos pelo
+   Resend e aguardar a indicação de domínio verificado. O domínio do site
+   usa DNS externo ao Vercel. Manter os registros atuais do site.
+3. Criar no Resend uma chave de envio restrita ao domínio. No Supabase Auth
+   do projeto oficial, ativar SMTP personalizado com host `smtp.resend.com`,
+   porta `465`, usuário `resend`, nome `MONSTER ARCHIVE` e remetente
+   `contas@themonsterarchive.com`. Inserir a chave como senha diretamente
+   no campo do Supabase.
+4. Aplicar os modelos em `supabase/templates/confirmation.html` e
+   `supabase/templates/recovery.html`. Assuntos sugeridos:
+   **Confirme seu e-mail / Confirm your email · MONSTER ARCHIVE** e
+   **Redefina sua senha / Reset your password · MONSTER ARCHIVE**.
+   Novos cadastros guardam o idioma escolhido. Para contas anteriores sem
+   essa preferência, o corpo inclui as duas versões. Os dois modelos
+   mantêm `{{ .ConfirmationURL }}`.
+5. Conferir o remetente e testar abertura dos links de cadastro e
+   recuperação usando uma conta de teste autorizada. Verificar os limites
+   de envio no Supabase e no Resend. A ativação externa depende de acesso
+   autenticado ao Resend, ao DNS do Porkbun e ao projeto oficial do Supabase.
+
+[Plano Resend](https://resend.com/pricing) · [SMTP Resend no Supabase](https://resend.com/docs/send-with-supabase-smtp) · [Configuração Supabase](https://supabase.com/docs/guides/auth/auth-smtp)

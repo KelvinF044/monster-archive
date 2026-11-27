@@ -6,7 +6,10 @@ export const getSessionClaims = cache(async () => {
   await connection();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
-  return error || typeof data?.claims.sub !== "string" ? null : data.claims;
+  if (error || typeof data?.claims.sub !== "string") return null;
+
+  const { data: enabled, error: accountError } = await supabase.rpc("community_account_enabled");
+  return !accountError && enabled === true ? data.claims : null;
 });
 
 export const getAccount = cache(async () => {

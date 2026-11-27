@@ -8,7 +8,7 @@ export type ProfileDirectoryEntry = {
   registered_at: string | null;
   confirmed: boolean;
   suspended_until: string | null;
-  account_role: "admin" | "moderator" | "member";
+  account_role: AccountRole;
   handle: string | null;
   display_name: string | null;
   bio: string | null;
@@ -26,4 +26,28 @@ export function directoryHref({ sort, search, page = 1 }: { sort: ProfileSort; s
   if (sort === "oldest") params.set("sort", sort);
   if (page > 1) params.set("page", String(page));
   return params.size ? `${profilesHref}?${params}` : profilesHref;
+}
+
+export const accountRoles = ["member", "moderator", "admin"] as const;
+export const accountOperations = ["suspend", "revoke", "role", "remove_profile", "delete_account"] as const;
+export type AccountRole = (typeof accountRoles)[number];
+export type AccountOperation = (typeof accountOperations)[number];
+export type AccountControlResult = "saved" | "unchanged" | "stale" | "invalid" | "ineligible" | "protected" | "unavailable" | "owns_files" | "failed";
+export type AccountControlState = { result?: AccountControlResult };
+export type AccountAdminEvent = {
+  id: string;
+  actor_id: string;
+  actor_name: string | null;
+  target_id: string;
+  target_handle: string | null;
+  operation: AccountOperation;
+  reason: string;
+  previous_role: AccountRole;
+  new_role: AccountRole | null;
+  effective_until: string | null;
+  created_at: string;
+};
+
+export function accountActivityHref(page = 1) {
+  return `${profilesHref}?view=activity${page > 1 ? `&page=${page}` : ""}`;
 }

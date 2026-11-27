@@ -3,11 +3,13 @@
 import Form from "next/form";
 import Link from "next/link";
 import { useActionState, useState } from "react";
+import AdminCommunityAccountControls from "@/components/AdminCommunityAccountControls";
 import { useLanguage } from "@/components/LanguageProvider";
 import { updateCommunityProfile } from "@/lib/admin/community-profiles/actions";
 import type { getCommunityProfileDirectory } from "@/lib/admin/community-profiles/data";
+import { communityAccountControlMessages } from "@/lib/admin/community-profiles/control-messages";
 import { communityProfileAdminMessages } from "@/lib/admin/community-profiles/messages";
-import { directoryHref, profilesHref, type ProfileDirectoryEntry, type ProfileSort } from "@/lib/admin/community-profiles/model";
+import { accountActivityHref, directoryHref, profilesHref, type ProfileDirectoryEntry, type ProfileSort } from "@/lib/admin/community-profiles/model";
 
 const field = "w-full min-w-0 rounded-lg border border-white/20 bg-[#111019] px-3 py-2.5 text-sm text-white focus-visible:outline-2 focus-visible:outline-purple-400";
 const button = "rounded-lg border border-white/15 px-4 py-2.5 text-sm font-bold text-white hover:border-purple-400 focus-visible:outline-2 focus-visible:outline-purple-400 disabled:opacity-60";
@@ -59,7 +61,8 @@ function ProfileEditor({ entry, dateTime }: { entry: ProfileDirectoryEntry; date
   );
 }
 
-export default function AdminCommunityProfiles({ directory, search, sort, page }: {
+export default function AdminCommunityProfiles({ actorId, directory, search, sort, page }: {
+  actorId: string;
   directory: Awaited<ReturnType<typeof getCommunityProfileDirectory>>;
   search: string;
   sort: ProfileSort;
@@ -72,7 +75,10 @@ export default function AdminCommunityProfiles({ directory, search, sort, page }
   return (
     <main className="community-surface min-h-[65vh] text-white">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
-        <h1 className="text-3xl font-black sm:text-4xl">{copy.title}</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-3xl font-black sm:text-4xl">{copy.title}</h1>
+          <Link href={accountActivityHref()} className={button}>{communityAccountControlMessages(locale).audit}</Link>
+        </div>
 
         <div className="my-6 flex flex-wrap items-end gap-4">
           <Form action={profilesHref} prefetch={false} className="flex w-full max-w-md items-end gap-2">
@@ -119,6 +125,7 @@ export default function AdminCommunityProfiles({ directory, search, sort, page }
                   )}
                 </div>
                 {entry.handle && <ProfileEditor entry={entry} dateTime={dateTime} />}
+                {entry.account_id !== actorId && <AdminCommunityAccountControls entry={entry} />}
               </li>
             ))}
           </ul>

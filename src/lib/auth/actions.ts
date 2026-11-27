@@ -6,9 +6,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { afterLogin, authCallbackUrl, RECOVERY_COOKIE } from "./redirects";
 import { getSessionClaims } from "./session";
+import { getLocale } from "@/lib/i18n/server";
 
 export type AuthState = {
-  error?: "invalidLogin" | "unconfirmed" | "invalidInput" | "unavailable" | "rateLimit" | "passwordPolicy" | "invalidLink";
+  error?: "invalidLogin" | "suspended" | "unconfirmed" | "invalidInput" | "unavailable" | "rateLimit" | "passwordPolicy" | "invalidLink";
   success?: "signupSent" | "resetSent" | "resent";
   email?: string;
 };
@@ -42,6 +43,7 @@ export async function signIn(_: AuthState, form: FormData): Promise<AuthState> {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error?.code === "email_not_confirmed") return { error: "unconfirmed", email };
   if (error?.code === "invalid_credentials") return { error: "invalidLogin" };
+  if (error?.code === "user_banned") return { error: "suspended" };
   if (error) return failed(error.code, error.status);
   redirect(afterLogin(form.get("next")));
 }
@@ -59,7 +61,7 @@ export async function signUp(_: AuthState, form: FormData): Promise<AuthState> {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo, data: { display_name: displayName } },
+    options: { emailRedirectTo, data: { display_name: displayName, locale: await getLocale() } },
   });
 
   if (error && error.code !== "user_already_exists" && error.code !== "email_exists") {
