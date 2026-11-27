@@ -70,7 +70,7 @@ export default function AccountForm({
   const button = login ? copy.login : signup ? copy.signup : forgot ? copy.sendLink : copy.updatePassword;
 
   return (
-    <main className="flex min-h-[calc(100svh-5rem)] justify-center bg-[#08090d] px-4 py-12 text-white sm:py-16">
+    <main className="auth-screen flex min-h-[calc(100svh-5rem)] justify-center px-4 py-12 text-white sm:py-16">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <p className="text-3xl font-black tracking-[0.18em]">MONSTER<span className="text-purple-400">.</span></p>
@@ -78,7 +78,7 @@ export default function AccountForm({
           {(signup || forgot) && <p className="mt-3 text-sm text-zinc-400">{signup ? copy.signupHelp : copy.forgotHelp}</p>}
         </div>
 
-        <div className="space-y-5 rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-7">
+        <div className="auth-card space-y-5 rounded-2xl border p-5 sm:p-7">
           {invalidLink && <Feedback state={{ error: "invalidLink" }} />}
           {!state.success && (
             <form action={submit} className="space-y-5">

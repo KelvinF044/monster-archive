@@ -27,6 +27,15 @@ branch feat/community. A produção depende de aprovação do responsável pelo 
 - Use a migração `20261127152853_community_moderators.sql` e o teste transacional
   `supabase/checks/phase_2_5_1_moderator_roles.sql` em homologação.
 
+## Validação da Etapa 2.5.1 em 27/11/2026
+
+- Kelvin validou o login em desktop e celular, a chegada em Minha conta e o
+  redirecionamento para `/admin` pelo botão Gerenciar.
+- Kelvin confirmou o recebimento dos e-mails de cadastro e recuperação no
+  ambiente de homologação.
+- Login, cadastro, solicitação de recuperação e redefinição de senha usam o
+  mesmo fundo degradê. A personalização de Minha conta fica na Etapa 2.5.2.
+
 ## Validação do e-mail
 
 No painel de Auth do Supabase de homologação, confirmar o SMTP e o envio para
