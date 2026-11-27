@@ -5,32 +5,29 @@ import { createClient } from "@/lib/supabase/server";
 import AdminLogoutButton from "@/components/AdminLogoutButton";
 import { connection } from "next/server";
 import AdminText from "@/components/AdminText";
+import { authMessages } from "@/lib/auth/messages";
+import { getAccount } from "@/lib/auth/session";
+import { getLocale } from "@/lib/i18n/server";
 
 export default async function AdminDashboard() {
   await connection();
+  const account = await getAccount();
+  if (!account) redirect("/login?next=admin");
+  if (account.role === "member") redirect("/account?status=restricted");
+  if (account.role === "moderator") {
+    const copy = authMessages(await getLocale());
+    return (
+      <main className="mx-auto w-full max-w-3xl px-6 py-12 text-white">
+        <h1 className="text-3xl font-black">{copy.moderator}</h1>
+        <p className="mt-4 text-sm text-zinc-400">{copy.moderatorDescription}</p>
+        <Link href="/account" className="mt-6 inline-block text-sm font-semibold text-purple-300 hover:underline">
+          {copy.account}
+        </Link>
+      </main>
+    );
+  }
+
   const supabase = await createClient();
-
-  // 1. Validate the authenticated user.
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-
-  const userId = claimsData?.claims?.sub;
-
-  if (claimsError || !userId) {
-    redirect("/admin/login");
-  }
-
-  // 2. Confirm administrator authorization in the database.
-  const { data: admin, error: adminError } = await supabase
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .maybeSingle();
-
-  if (adminError || !admin) {
-    redirect("/admin/login?access=denied");
-  }
 
   // 3. Load dashboard statistics.
   const [videosResult, collectionsResult, membersResult] =

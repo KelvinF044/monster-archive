@@ -25,7 +25,7 @@ export default function AdminLogoutButton({
       return;
     }
 
-    router.replace("/admin/login");
+    router.replace("/login");
     router.refresh();
   }
 
