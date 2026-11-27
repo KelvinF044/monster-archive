@@ -415,7 +415,8 @@ administrative schedule on 2026-11-27. The Singapore CHOOM event for
 2026-11-28 could not advance from review because its linked YG source was
 classified as a reference. The official calendar confirmed the date and time.
 The existing source link was corrected in production. A rolled-back approval
-check passed. The event remains in review for the owner's approval.
+check passed. On 2026-11-27, the owner approved and published the event and
+confirmed it appeared under Upcoming Events on the production Home page.
 
 The administrative shortcut for confirming an existing source is tracked as
 a separate Phase 2.3 fix. Production editorial AI is enabled and its first
