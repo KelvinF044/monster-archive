@@ -348,12 +348,16 @@ contains 44 official calendar records: 23 concerts, 12 music shows,
 against the tour listing. The 12 August Chiba start time follows
 [the dedicated Japan announcement](https://yg-babymonster-official.jp/live/2026-2027_worldtour_in_japan/).
 
-Apply `202611270001_seed_agenda_history_drafts.sql` to the test project and
-again to Production after the editorial schema migrations. It inserts
-only draft events and official source links. A repeated run skips existing
-rows, preserves changes made by editors and reports the number of new
-drafts. The batch contains no homologation fixtures. Events appear in the
-public history only after they pass editorial review and are published.
+`202611270001_seed_agenda_history_drafts.sql` inserts draft events and official
+source links. A repeated run skips existing rows, preserves changes made by
+editors and reports the number of new drafts. The batch contains no
+homologation fixtures. Events appear in the public history after editorial
+review and publication.
+
+On 2026-11-27, the seed was applied and verified in `monster-archive-test`
+and `monster-archive-br`. Each project had all 44 events in draft status,
+with bilingual titles and summaries and a link to an official source.
+Anonymous reads returned zero events and source links from this batch.
 
 ### Production rollout after owner approval
 
@@ -364,10 +368,17 @@ public history only after they pass editorial review and are published.
    - `supabase/migrations/202611260001_editorial_ai_assistance.sql`
    - `supabase/migrations/202611260002_editorial_discovery_covers.sql`
    - `supabase/migrations/202611270001_seed_agenda_history_drafts.sql`
+
+   All four migrations were applied to `monster-archive-br` on 2026-11-27.
+   The Supabase migration history identifies these runs by their migration
+   names with execution-time versions. Skip these files for this rollout.
 2. Run the read-only checks `supabase/checks/phase_2_3_1_structure.sql` and
    `supabase/checks/phase_2_3_6_cover_environment.sql`. Expect 12 editorial
-   tables with RLS enabled and three `true` values for covers. The
-   migrations do not copy test articles, events or sources to Production.
+   tables with RLS enabled and three `true` values for covers. After the AI
+   migration, an `expected_admin_insert` value of `false` for
+   `editorial_ai_runs` is intentional because writes use the checked RPCs.
+   These checks passed in Production on 2026-11-27. The migrations do not
+   copy test articles, events or sources to Production.
 3. Editorial AI is opt-in in Production. To enable it, set
    `EDITORIAL_AI_ENABLED=true` for Production and verify the AI Gateway
    credentials through the existing server-side credential path. X continues
@@ -380,13 +391,14 @@ public history only after they pass editorial review and are published.
 
 ## Remaining delivery
 
-1. Editorial database schema and RLS — completed in homologation.
+1. Editorial database schema and RLS — validated in homologation and Production.
 2. News administration and review workflow — validated publication; owner approved progression.
 3. Events administration, official sources, time zones and status — owner confirmed in homologation.
 4. Public bilingual news feed, article detail, and event schedule — owner approved the views in homologation.
 5. Editorial Center and approved-source discovery, deduplication and curation — owner approved in homologation.
 6. AI draft assistance and YG imported covers — owner verified in Preview. Journal archive search is implemented. Live X discovery remains pending API credits.
 7. Home latest-news and upcoming-events sections — owner approved the layout in Preview.
-8. Preview regression tests and owner approval; only then apply production migration and merge to main.
+8. Historical agenda — 44 private drafts verified in each environment.
+9. Production website release — pending approval to merge to `main` and post-deploy validation.
 
 Keep About/Support the Creator, Community, and future phases out of scope.
