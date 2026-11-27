@@ -91,3 +91,21 @@ com o link aberto no mesmo navegador que fez a solicitação.
   sem progresso, horário ou status de conclusão.
 - Migração `20261127181117_community_watch_history.sql` e verificação
   `phase_2_5_4_watch_history.sql` no Supabase de homologação.
+
+## Etapa 2.5.5 — Listas personalizadas
+
+- Kelvin confirmou o registro real do histórico no Preview. O aviso e o atalho
+  abaixo do player ficam reservados a administradores e moderadores ativos.
+  Cada membro acessa seus registros e controles na Minha Biblioteca.
+- A aba Listas permite criar listas privadas por padrão, editar nome e
+  descrição, reorganizar e remover vídeos e excluir uma lista com confirmação.
+- Adicionar à lista fica na página de um vídeo do Watch, para membros
+  autenticados. Um vídeo aparece uma única vez em cada lista.
+- Tornar a lista pública ativa um link compartilhável. Cada lista tem sua
+  própria visibilidade, independente do perfil, e mostra a visitantes apenas
+  os vídeos publicados em coleções ativas. Voltar para privada retira o acesso
+  pelo link.
+- Migração `20261127203430_community_lists.sql` e verificação
+  `phase_2_5_5_lists.sql` no Supabase de homologação.
+- CLIK CLAK e BILLIONAIRE estão publicados no catálogo de homologação
+  como amostras para testar a ordenação.
