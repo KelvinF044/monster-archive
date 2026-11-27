@@ -19,6 +19,8 @@ const ptBR: Record<string, string> = {
   "Dashboard": "Painel",
   "Dashboard.": "Painel.",
   "Moderation": "Moderação",
+  "Community profiles": "Perfis da comunidade",
+  "Manage community profiles": "Gerencie os perfis da comunidade",
   "Review community reports": "Analise denúncias da comunidade",
   "Archive overview": "Visão geral do arquivo",
   "Watch Videos": "Vídeos da Watch",

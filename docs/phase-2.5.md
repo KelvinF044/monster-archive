@@ -142,6 +142,42 @@ com o link aberto no mesmo navegador que fez a solicitação.
   papéis simulados em uma execução local do build.
 - Build, lint e os 80 testes do repositório passaram. Os seis roteiros SQL
   da Fase 2.5 passaram no Supabase de homologação com transações revertidas.
-- Ainda falta confirmar no Preview a retomada com reprodução real do YouTube
-  e a abertura dos links reais de confirmação e recuperação de conta.
-  A etapa 2.5.8 depende da aprovação do responsável antes da publicação.
+- A etapa 2.5.8 depende da aprovação do responsável antes da publicação.
+
+### Retorno da homologação
+
+- Kelvin confirmou no Preview que a retomada acompanha a última posição
+  assistida no player real do YouTube e que os links de confirmação de
+  cadastro abrem corretamente. A abertura do link de recuperação até a
+  atualização da senha ainda pode ser conferida.
+- Os textos e as datas da fila de Moderação usam o contexto do seletor de
+  idiomas. As consultas e a verificação de acesso continuam no servidor.
+
+### Remetente dos e-mails de autenticação
+
+- A configuração pertence a cada projeto Supabase. Para enviar como
+  MONSTER ARCHIVE no projeto oficial, configurar SMTP próprio com um
+  endereço do domínio verificado e personalizar os modelos de confirmação
+  e recuperação no Supabase Auth. Preservar `{{ .ConfirmationURL }}` em
+  ambos os modelos para manter o fluxo de autenticação já homologado.
+- Validar o remetente, o texto e o destino dos links com um endereço de
+  teste autorizado antes de abrir o cadastro ao público.
+- Referências: [SMTP personalizado](https://supabase.com/docs/guides/auth/auth-smtp)
+  e [modelos de e-mail](https://supabase.com/docs/guides/auth/auth-email-templates).
+
+## Perfis da comunidade no painel
+
+- O menu e o painel de administração levam a `/admin/profiles`. A área
+  exige um administrador ativo na rota, nas consultas e nas edições.
+- A lista inclui cadastros sem perfil, ordena pela data de cadastro e
+  busca por nome ou @usuário. Exibe papel, visibilidade do perfil,
+  confirmação de e-mail e a data de fim de uma suspensão existente.
+- Administradores podem editar nome de exibição e bio. A operação verifica
+  se esses campos mudaram desde que o formulário foi aberto e registra
+  autor, conta afetada, data e campos alterados.
+- A evolução proposta inclui suspensões reversíveis em horas ou dias
+  com motivo e expiração, gestão de cargos com proteção do último
+  administrador ativo e exclusão com confirmação explícita. Remover o
+  perfil público e excluir a conta são operações distintas.
+- Migração `20261127220825_admin_community_profiles.sql` e verificação
+  `supabase/checks/phase_2_5_admin_community_profiles.sql` em homologação.

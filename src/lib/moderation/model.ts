@@ -10,3 +10,10 @@ export type ReportKind = "profile" | "list";
 export type ReportStatus = "sent" | "duplicate" | "limited" | "unavailable" | "self" | "invalid" | "error";
 export type ReportState = { result?: ReportStatus };
 export const moderationHref = "/admin/moderation";
+
+export function queueHref(status: ReportFilter, page = 1) {
+  const params = new URLSearchParams();
+  if (status !== "pending") params.set("status", status);
+  if (page > 1) params.set("page", String(page));
+  return params.size ? `${moderationHref}?${params}` : moderationHref;
+}

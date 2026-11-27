@@ -6,6 +6,7 @@ import AdminLogoutButton from "@/components/AdminLogoutButton";
 import { connection } from "next/server";
 import AdminText from "@/components/AdminText";
 import { getAccount } from "@/lib/auth/session";
+import { profilesHref } from "@/lib/admin/community-profiles/model";
 import { moderationHref } from "@/lib/moderation/model";
 
 export default async function AdminDashboard() {
@@ -78,6 +79,9 @@ export default async function AdminDashboard() {
               <AdminText>VIEW WEBSITE ↗</AdminText>
             </Link>
 
+            <Link href={profilesHref} className="rounded-lg border border-purple-400/35 px-4 py-3 text-xs font-bold text-purple-200 hover:border-purple-400">
+              <AdminText>Community profiles</AdminText>
+            </Link>
             <AdminLogoutButton />
           </div>
 
