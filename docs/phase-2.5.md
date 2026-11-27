@@ -128,3 +128,20 @@ com o link aberto no mesmo navegador que fez a solicitação.
   e permanece privado até que ele escolha publicá-lo.
 - Migração `20261127210334_community_moderation.sql` e verificação
   `supabase/checks/phase_2_5_6_moderation.sql` em homologação.
+
+## Etapa 2.5.7 — Validação integrada em homologação
+
+- Kelvin aprovou a tela de Moderação no Preview e identificou que o conteúdo
+  da fila permanecia no idioma anterior ao usar o seletor. O seletor agora
+  atualiza também os componentes de servidor da rota ativa.
+- A verificação em navegador alternou PT-BR e inglês nos dois sentidos sem
+  recarga manual. Cobriu Moderação em desktop e celular, filtros e histórico
+  de decisões, navegação de volta e preservação de uma nota em edição.
+  Também cobriu login, cadastro, recuperação, conta, perfil público, Watch,
+  favoritos, histórico e listas. A interface em navegador usou dados e
+  papéis simulados em uma execução local do build.
+- Build, lint e os 80 testes do repositório passaram. Os seis roteiros SQL
+  da Fase 2.5 passaram no Supabase de homologação com transações revertidas.
+- Ainda falta confirmar no Preview a retomada com reprodução real do YouTube
+  e a abertura dos links reais de confirmação e recuperação de conta.
+  A etapa 2.5.8 depende da aprovação do responsável antes da publicação.

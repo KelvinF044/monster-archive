@@ -12,6 +12,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Use um chat do projeto por fase. Resolva e valide as pendências da fase
   atual antes de iniciar a implementação da seguinte.
+- Ao validar páginas públicas e administrativas, alterne entre todos os
+  idiomas cadastrados pelo seletor, com a página aberta e sem recarregar
+  manualmente. Confira também textos renderizados no servidor.
 - Ao encerrar uma fase, atualize o Roadmap 3.0 com a entrega, a validação, o
   estado da publicação e as pendências que permanecerem. Entregue neste chat
   o título do próximo chat e o texto completo de abertura para o responsável
