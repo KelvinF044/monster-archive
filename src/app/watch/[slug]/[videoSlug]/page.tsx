@@ -13,6 +13,7 @@ import { historyMessages } from "@/lib/history/messages";
 import { historyHref } from "@/lib/history/model";
 import YouTubePlayer from "@/components/YouTubePlayer";
 import { watchVideos } from "@/data/watch";
+import { headers } from "next/headers";
 import { connection } from "next/server";
 import { getDictionary } from "@/lib/i18n/server";
 import type { Locale } from "@/lib/i18n/config";
@@ -169,6 +170,11 @@ export default async function VideoPage({ params, searchParams }: PageProps) {
   const canSeeStaffDetails = account?.role === "admin" || account?.role === "moderator";
   const favoriteCopy = favoritesMessages(locale);
   const watchPath = `/watch/${slug}/${videoSlug}`;
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("host");
+  const origin = host && /^(?:[a-z0-9.-]+)(?::[0-9]+)?$/i.test(host)
+    ? `${requestHeaders.get("x-forwarded-proto") === "http" ? "http" : "https"}://${host}`
+    : undefined;
 
   // 4. Formatar a data no idioma selecionado
   const formattedDate = formatLocalizedDate(
@@ -204,6 +210,8 @@ export default async function VideoPage({ params, searchParams }: PageProps) {
         {/* YOUTUBE PLAYER */}
 
         <YouTubePlayer
+          key={`${watchPath}:${history?.startSeconds ?? 0}`}
+          origin={origin}
           videoId={video.youtube_video_id}
           title={video.title}
           expectedPath={watchPath}

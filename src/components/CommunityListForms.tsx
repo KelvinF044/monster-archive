@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useActionState, useEffect, useRef, useState } from "react";
 
+import { moderationMessages } from "@/lib/moderation/messages";
 import { useLanguage } from "@/components/LanguageProvider";
 import { deleteList, saveList, updateListItem } from "@/lib/lists/actions";
 import type { VideoList } from "@/lib/lists/data";
@@ -39,12 +41,14 @@ export function ListMetadataForm({ list }: { list?: VideoList }) {
         {copy.description}
         <textarea className={field} name="description" rows={2} maxLength={400} value={description} onChange={(event) => setDescription(event.currentTarget.value)} />
       </label>
-      {list && (
+      {list && (list.moderation_hidden ? (
+        <p className="text-sm text-zinc-300">{moderationMessages(locale).blocked}</p>
+      ) : (
         <label className="flex items-center gap-2 text-sm text-zinc-200">
           <input name="public" type="checkbox" checked={isPublic} onChange={(event) => setIsPublic(event.currentTarget.checked)} className="accent-purple-400" />
           {copy.visibility}
         </label>
-      )}
+      ))}
       <button type="submit" className={primary} disabled={pending}>{list ? copy.save : copy.create}</button>
       <ListFeedback state={state} />
     </form>
@@ -58,8 +62,47 @@ export function AddToListPicker({ videoId, choices }: {
   const { locale } = useLanguage();
   const copy = listsMessages(locale);
   const [state, submit, pending] = useActionState(updateListItem, {});
+  const pathname = usePathname();
+  const pickerRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const picker = pickerRef.current;
+    if (!picker) return;
+    function close() {
+      picker?.removeAttribute("open");
+    }
+    function dismissOutside(event: Event) {
+      if (event.target instanceof Node && !picker?.contains(event.target)) close();
+    }
+    function dismissOnEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape" || !picker?.open) return;
+      close();
+      picker.querySelector("summary")?.focus();
+    }
+    let frame: number;
+    function dismissOnIframeFocus() {
+      frame = requestAnimationFrame(() => {
+        if (document.activeElement instanceof HTMLIFrameElement) close();
+      });
+    }
+    document.addEventListener("pointerdown", dismissOutside, true);
+    document.addEventListener("focusin", dismissOutside);
+    document.addEventListener("keydown", dismissOnEscape);
+    window.addEventListener("blur", dismissOnIframeFocus);
+    window.addEventListener("pagehide", close);
+    return () => {
+      close();
+      cancelAnimationFrame(frame);
+      document.removeEventListener("pointerdown", dismissOutside, true);
+      document.removeEventListener("focusin", dismissOutside);
+      document.removeEventListener("keydown", dismissOnEscape);
+      window.removeEventListener("blur", dismissOnIframeFocus);
+      window.removeEventListener("pagehide", close);
+    };
+  }, [pathname]);
+
   return (
-    <details className="relative">
+    <details ref={pickerRef} className="relative">
       <summary className={`cursor-pointer list-none ${button}`}>{copy.addToList}</summary>
       <div className="z-10 mt-2 w-64 max-w-[calc(100vw-3rem)] rounded-xl border border-white/15 bg-[#181421] p-4 shadow-xl shadow-black/45 sm:absolute sm:right-0">
         {!choices ? <p role="alert" className="text-sm text-red-200">{copy.loadError}</p> : choices.length ? (

@@ -6,7 +6,8 @@ import CommunityProfileCard from "@/components/CommunityProfileCard";
 
 import { useLanguage } from "@/components/LanguageProvider";
 import { saveProfile } from "@/lib/profiles/actions";
-import type { ProfileCatalog } from "@/lib/profiles/data";
+import type { OwnedProfile, ProfileCatalog } from "@/lib/profiles/data";
+import { moderationMessages } from "@/lib/moderation/messages";
 import { historyMessages } from "@/lib/history/messages";
 import { profileMessages } from "@/lib/profiles/messages";
 import { themeStyles, type Profile, type Sharing, type Theme } from "@/lib/profiles/model";
@@ -38,7 +39,7 @@ function ProfileSelect({ label, name, value, options, empty, archived, change }:
 export default function CommunityProfileForm({
   profile, sharing, catalog, fallbackName, children,
 }: {
-  profile: Profile | null;
+  profile: OwnedProfile | null;
   sharing: Sharing | null;
   catalog: ProfileCatalog;
   fallbackName: string;
@@ -127,12 +128,12 @@ export default function CommunityProfileForm({
             <h3 className="font-bold">{copy.privacy}</h3>
             <label className={labelStyle}>
               {copy.visibility}
-              <select name="visibility" value={values.visibility} onChange={(event) => update("visibility", event.currentTarget.value)} className={fieldStyle}>
+              <select name="visibility" value={profile?.moderation_hidden ? "private" : values.visibility} onChange={(event) => update("visibility", event.currentTarget.value)} disabled={profile?.moderation_hidden} className={fieldStyle}>
                 <option value="private">{copy.private}</option>
                 <option value="public">{copy.public}</option>
               </select>
             </label>
-            <p className="text-sm leading-relaxed text-zinc-400">{copy.privacyHint}</p>
+            <p className="text-sm leading-relaxed text-zinc-400">{profile?.moderation_hidden ? moderationMessages(locale).blocked : copy.privacyHint}</p>
             <label className="flex items-center gap-2 text-sm"><input name="shareFavorites" type="checkbox" checked={values.shareFavorites} onChange={(event) => update("shareFavorites", event.currentTarget.checked)} className="accent-purple-400" />{copy.favorites}</label>
             <label className="flex items-center gap-2 text-sm"><input name="shareHistory" type="checkbox" checked={values.shareHistory} onChange={(event) => update("shareHistory", event.currentTarget.checked)} className="accent-purple-400" />{copy.history}</label>
             <p className="text-sm leading-relaxed text-zinc-400">{historyMessages(locale).privacyHint}</p>

@@ -3,13 +3,13 @@ import "server-only";
 import type { FavoriteCard } from "@/lib/favorites/data";
 import { createClient } from "@/lib/supabase/server";
 
-export type VideoList = { id: string; title: string; description: string; is_public: boolean };
+export type VideoList = { id: string; title: string; description: string; is_public: boolean; moderation_hidden: boolean };
 type ListVideo = { video_id: string; position: number } & (FavoriteCard | {
   video_slug: null; title: null; youtube_video_id: null; thumbnail_url: null; thumbnail_alt: null; collection_slug: null;
 });
 type SharedList = { title: string; description: string; videos: FavoriteCard[] };
 
-const fields = "id,title,description,is_public";
+const fields = "id,title,description,is_public,moderation_hidden";
 const selectorPageSize = 250;
 
 export async function getListChoices(userId: string) {

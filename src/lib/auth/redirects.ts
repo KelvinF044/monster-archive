@@ -4,6 +4,7 @@ export const RECOVERY_COOKIE = "monster_password_recovery";
 
 export function afterLogin(next: unknown) {
   if (next === "admin") return "/admin";
+  if (next === "moderation") return "/admin/moderation";
   if (next === "library") return "/library";
   if (typeof next === "string" && /^\/watch\/[a-z0-9-]{1,120}\/[a-z0-9-]{1,160}$/.test(next)) return next;
   return "/account";

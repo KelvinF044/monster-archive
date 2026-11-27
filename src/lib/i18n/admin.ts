@@ -18,6 +18,8 @@ const ptBR: Record<string, string> = {
   "Watch": "Vídeos",
   "Dashboard": "Painel",
   "Dashboard.": "Painel.",
+  "Moderation": "Moderação",
+  "Review community reports": "Analise denúncias da comunidade",
   "Archive overview": "Visão geral do arquivo",
   "Watch Videos": "Vídeos da Watch",
   "Browse and edit registered videos": "Consulte e edite os vídeos cadastrados",

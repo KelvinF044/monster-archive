@@ -2,20 +2,26 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { queueHistoryWrite } from "@/lib/history/client";
 import { maxPositionSeconds } from "@/lib/history/model";
 
 type YouTubePlayerProps = {
   videoId: string;
   title: string;
   expectedPath: string;
+  origin?: string;
   startSeconds?: number;
   history?: { videoId: string; version: number };
 };
 
-type Player = { getCurrentTime: () => number };
+type Player = { getCurrentTime: () => number; getPlayerState: () => number };
+type PlayerEvent = { target: Player };
 type YouTubeApi = {
   Player: new (iframe: HTMLIFrameElement, config: {
-    events: { onStateChange: (event: { data: number; target: Player }) => void };
+    events: {
+      onReady: (event: PlayerEvent) => void;
+      onStateChange: (event: PlayerEvent & { data: number }) => void;
+    };
   }) => Player;
   PlayerState: { PLAYING: number; PAUSED: number; ENDED: number };
 };
@@ -49,9 +55,11 @@ function loadYouTubeApi() {
 }
 
 export default function YouTubePlayer({
-  videoId, title, expectedPath, startSeconds = 0, history,
+  videoId, title, expectedPath, origin, startSeconds = 0, history,
 }: YouTubePlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const connectionRef = useRef<{ iframe: HTMLIFrameElement; readyPlayer?: Player }>(null);
+  const onPlayerStateRef = useRef<((player: Player, state: number) => void) | null>(null);
   const pathname = usePathname();
   const trackedVideo = history?.videoId;
   const version = history?.version;
@@ -61,74 +69,102 @@ export default function YouTubePlayer({
     if (!iframe || !trackedVideo || version === undefined || pathname !== expectedPath) return;
 
     let player: Player | undefined;
-    let playing = false;
     let watched = false;
     let completed = false;
     let disposed = false;
     let inactive = false;
     let lastRecord = "";
-    let pending = Promise.resolve();
-    let timer: ReturnType<typeof setInterval> | undefined;
+    let lastPosition: number | undefined;
 
     function report() {
       if (!player || !watched || inactive) return;
       const position = Math.floor(player.getCurrentTime());
-      if (!Number.isFinite(position) || position < 0 || position > maxPositionSeconds) return;
-      const record = `${position}:${completed}`;
+      if (Number.isFinite(position) && position >= 0 && position <= maxPositionSeconds) {
+        lastPosition = position;
+      }
+      if (lastPosition === undefined) return;
+      const record = `${lastPosition}:${completed}`;
       if (record === lastRecord) return;
       lastRecord = record;
 
-      const body = JSON.stringify({ videoId: trackedVideo, version, position, completed });
-      pending = pending.then(async () => {
+      const body = JSON.stringify({ videoId: trackedVideo, version, position: lastPosition, completed });
+      queueHistoryWrite(async () => {
         if (inactive) return;
-        const response = await fetch("/api/history", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body,
-          keepalive: true,
-        });
-        if (response.status === 401 || response.status === 409) {
-          inactive = true;
-          clearInterval(timer);
-        } else if (!response.ok && lastRecord === record) {
-          lastRecord = "";
+        try {
+          const response = await fetch("/api/history", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body,
+            keepalive: true,
+          });
+          if (response.status === 401 || response.status === 409) {
+            inactive = true;
+            clearInterval(timer);
+          } else if (!response.ok && lastRecord === record) {
+            lastRecord = "";
+          }
+        } catch {
+          if (lastRecord === record) lastRecord = "";
         }
-      }).catch(() => {
-        if (lastRecord === record) lastRecord = "";
       });
     }
 
+    function flushWhenHidden() {
+      if (document.visibilityState === "hidden") report();
+    }
+
+    const timer = setInterval(report, HISTORY_INTERVAL_MS);
     void loadYouTubeApi().then((api) => {
       if (disposed) return;
-      player = new api.Player(iframe, {
+      const { PLAYING, PAUSED, ENDED } = api.PlayerState;
+      onPlayerStateRef.current = (target, state) => {
+        player = target;
+        if (state === PLAYING) {
+          watched = true;
+          completed = false;
+          report();
+        } else if (state === ENDED && watched) {
+          completed = true;
+          report();
+        } else if (state === PAUSED) {
+          report();
+        }
+      };
+
+      // Next.js can hide and restore the same iframe during client navigation.
+      // Keep one IFrame API binding per element and reconnect its listeners.
+      const existing = connectionRef.current;
+      if (existing?.iframe === iframe) {
+        const readyPlayer = existing.readyPlayer;
+        if (readyPlayer?.getPlayerState) onPlayerStateRef.current(readyPlayer, readyPlayer.getPlayerState());
+        return;
+      }
+
+      const binding: { iframe: HTMLIFrameElement; readyPlayer?: Player } = { iframe };
+      connectionRef.current = binding;
+      new api.Player(iframe, {
         events: {
+          onReady: ({ target }) => {
+            binding.readyPlayer = target;
+            if (connectionRef.current === binding) onPlayerStateRef.current?.(target, target.getPlayerState());
+          },
           onStateChange: ({ data, target }) => {
-            if (disposed || inactive) return;
-            player = target;
-            clearInterval(timer);
-            playing = data === api.PlayerState.PLAYING;
-            if (playing) {
-              watched = true;
-              completed = false;
-              report();
-              timer = setInterval(report, HISTORY_INTERVAL_MS);
-            } else if (data === api.PlayerState.ENDED && watched) {
-              completed = true;
-              report();
-            } else if (data === api.PlayerState.PAUSED) {
-              report();
-            }
+            binding.readyPlayer = target;
+            if (connectionRef.current === binding) onPlayerStateRef.current?.(target, data);
           },
         },
       });
     }).catch(() => { /* Playback works independently of history. */ });
 
     window.addEventListener("pagehide", report);
+    document.addEventListener("visibilitychange", flushWhenHidden);
     return () => {
+      report();
       disposed = true;
-      if (playing) report();
+      onPlayerStateRef.current = null;
       clearInterval(timer);
       window.removeEventListener("pagehide", report);
+      document.removeEventListener("visibilitychange", flushWhenHidden);
     };
   }, [expectedPath, pathname, trackedVideo, version]);
 
@@ -146,6 +182,7 @@ export default function YouTubePlayer({
   }, [expectedPath, pathname]);
 
   const params = new URLSearchParams({ enablejsapi: "1" });
+  if (origin) params.set("origin", origin);
   if (startSeconds > 0) params.set("start", String(startSeconds));
 
   return (

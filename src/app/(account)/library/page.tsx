@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { ListMetadataForm } from "@/components/CommunityListForms";
 import FavoriteVideoCards from "@/components/FavoriteVideoCards";
+import RefreshLibraryHistory from "@/components/RefreshLibraryHistory";
 import HistoryCommandButton from "@/components/HistoryCommandButton";
 import { authMessages } from "@/lib/auth/messages";
 import { getSessionClaims } from "@/lib/auth/session";
@@ -78,6 +79,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
               ) : <p className="rounded-xl border border-white/10 bg-[#15111d] p-6 text-sm text-zinc-300">{listsCopy.empty}</p>}
             </div>
           )}
+          {historyTab && <RefreshLibraryHistory />}
           {history && (
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3 rounded-xl border border-white/10 bg-[#15111d] p-4">
               <p className="py-2 text-sm text-zinc-300">{history.paused ? historyCopy.paused : historyCopy.active}</p>

@@ -19,7 +19,7 @@ branch feat/community. A produção depende de aprovação do responsável pelo 
   para o mesmo formulário, preservando o retorno ao painel.
 - O membro entra em Minha conta. O botão Gerenciar aparece na conta de
   administradores e moderadores ativos. Para o moderador, `/admin` abre a
-  área de moderação. A fila de denúncias integra a Etapa 2.5.6.
+  fila de denúncias da Etapa 2.5.6.
 - A condição de administrador continua sendo determinada em `admin_users`.
   A condição de moderador é determinada em `community_moderators`. A sessão
   comum pode consultar apenas a própria associação ativa e as APIs
@@ -109,3 +109,22 @@ com o link aberto no mesmo navegador que fez a solicitação.
   `phase_2_5_5_lists.sql` no Supabase de homologação.
 - CLIK CLAK e BILLIONAIRE estão publicados no catálogo de homologação
   como amostras para testar a ordenação.
+
+
+## Etapa 2.5.6 — Moderação
+
+- Kelvin validou as listas no Preview. O seletor Adicionar à lista fecha ao
+  clicar fora, pressionar Esc ou sair da página do vídeo.
+- O player envia o ponto mais recente ao pausar, sair ou ocultar a aba.
+  A Minha Biblioteca atualiza a posição depois que o envio termina,
+  inclusive em navegações pelo botão Voltar.
+- Membros autenticados podem denunciar perfis e listas públicas de outras
+  contas. Uma conta pode ter uma denúncia pendente por conteúdo, com limite
+  de 12 denúncias por hora.
+- Administradores e moderadores ativos acessam a fila em `/admin/moderation`.
+  Eles podem resolver, descartar ou ocultar o conteúdo e registrar a decisão.
+  As decisões registram data, papel da equipe e nota interna opcional.
+- Ao retirar a restrição, o conteúdo volta a poder ser publicado pelo autor
+  e permanece privado até que ele escolha publicá-lo.
+- Migração `20261127210334_community_moderation.sql` e verificação
+  `supabase/checks/phase_2_5_6_moderation.sql` em homologação.

@@ -34,6 +34,13 @@ const navigation: NavEntry[] = [
     match: (pathname) => pathname === "/admin",
   },
   {
+    href: "/admin/moderation",
+    label: "Moderation",
+    compactLabel: "M",
+    description: "Review community reports",
+    match: (pathname) => pathname === "/admin/moderation",
+  },
+  {
     id: "watch",
     label: "Watch",
     compactLabel: "W",

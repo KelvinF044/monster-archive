@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { FavoriteCard } from "@/lib/favorites/data";
 import type { Profile, Sharing } from "./model";
 
+export type OwnedProfile = Profile & { moderation_hidden: boolean };
+
 type ProfileDb = Awaited<ReturnType<typeof createClient>>;
 
 const fields = "handle,display_name,bio,avatar_member_id,bias_member_id,favorite_era_id,theme,is_public";
@@ -24,7 +26,7 @@ export type ProfileCatalog = NonNullable<Awaited<ReturnType<typeof getCatalog>>>
 export async function getOwnProfile(userId: string) {
   const db = await createClient();
   const [profile, sharing, catalog] = await Promise.all([
-    db.from("community_profiles").select(fields).eq("user_id", userId).maybeSingle<Profile>(),
+    db.from("community_profiles").select(`${fields},moderation_hidden`).eq("user_id", userId).maybeSingle<OwnedProfile>(),
     db.from("community_profile_settings")
       .select("share_favorites,share_history")
       .eq("user_id", userId).maybeSingle<Sharing>(),
