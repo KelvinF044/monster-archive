@@ -45,3 +45,19 @@ de redirecionamento permitidas para `/auth/callback`, incluindo o parâmetro
 confirmação e recuperação usam o link `ConfirmationURL` do Supabase.
 Validar confirmação, reenvio, recuperação e link expirado em PT-BR e inglês
 com o link aberto no mesmo navegador que fez a solicitação.
+
+
+## Etapa 2.5.2 — Perfis e privacidade
+
+- Em Minha conta o membro escolhe nome de exibição, @usuário, bio, avatar por
+  iniciais ou retrato de integrante, tema, bias e Era favorita.
+- O perfil nasce privado. O dono pode torná-lo público, ver como visitante e
+  compartilhar o link `/u/<usuário>`. O e-mail fica na conta autenticada.
+- Os controles de favoritos e histórico são independentes, vêm desativados
+  e serão usados pelas próximas etapas. A publicação do perfil é uma
+  condição adicional para exibir essas atividades.
+- Em 27/11/2026 Kelvin aprovou o degradê dos formulários no Preview e
+  autorizou avançar para perfis. A configuração de produção continua
+  condicionada à aprovação da fase.
+- Migração `20261127170112_community_profiles.sql` e verificação
+  `phase_2_5_2_profiles.sql` no Supabase de homologação.
