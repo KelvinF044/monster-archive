@@ -36,7 +36,7 @@ export default function CommunityProfileCard({
         </div>
         <div className="min-w-0">
           <Heading className="break-words text-3xl font-black sm:text-4xl">{name}</Heading>
-          {profile && <p className="mt-1 break-all text-sm text-white/80">@{profile.handle}</p>}
+          {profile?.handle && <p className="mt-1 break-all text-sm text-white/80">@{profile.handle}</p>}
         </div>
       </div>
       {profile?.bio && <p className="mt-6 whitespace-pre-wrap break-words text-sm leading-7 text-white/90">{profile.bio}</p>}

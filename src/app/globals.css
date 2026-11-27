@@ -47,3 +47,8 @@ body {
       linear-gradient(150deg, #1a1127 0%, #110d1c 50%, #08090d 100%);
   }
 }
+
+.community-surface {
+  background-color: #08090d;
+  background-image: radial-gradient(ellipse at 22% 0%, #211533 0%, #120e1b 36%, #08090d 76%);
+}

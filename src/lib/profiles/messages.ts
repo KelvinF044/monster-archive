@@ -2,6 +2,7 @@ import type { Locale } from "@/lib/i18n/config";
 
 const en = {
   yourProfile: "Your profile",
+  preview: "Profile preview",
   editProfile: "Edit profile",
   displayName: "Display name",
   handle: "Username",
@@ -22,7 +23,7 @@ const en = {
   private: "Private",
   public: "Public",
   privacyHint: "A public profile can be opened by anyone with its link. Your email stays in your account.",
-  sharingHint: "These preferences will apply when favorites and watch history are available. Sharing only applies while your profile is public.",
+  sharingHint: "Favorites are shared only while your profile is public. The history setting will apply when watch history is available.",
   favorites: "Show my favorites",
   history: "Show my watch history",
   viewPublic: "View as a visitor",
@@ -41,6 +42,7 @@ const en = {
 
 const pt: typeof en = {
   yourProfile: "Seu perfil",
+  preview: "Prévia do perfil",
   editProfile: "Editar perfil",
   displayName: "Nome de exibição",
   handle: "Nome de usuário",
@@ -61,7 +63,7 @@ const pt: typeof en = {
   private: "Privado",
   public: "Público",
   privacyHint: "Qualquer pessoa com o link pode abrir um perfil público. Seu e-mail fica na sua conta.",
-  sharingHint: "Estas preferências valem quando os favoritos e o histórico estiverem disponíveis. O compartilhamento só se aplica enquanto o perfil for público.",
+  sharingHint: "Os favoritos só são compartilhados enquanto seu perfil é público. A preferência de histórico valerá quando o recurso estiver disponível.",
   favorites: "Mostrar meus favoritos",
   history: "Mostrar meu histórico de vídeos",
   viewPublic: "Ver como visitante",

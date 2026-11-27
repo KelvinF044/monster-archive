@@ -55,7 +55,7 @@ export default function AccountForm({
   invalidLink,
 }: {
   variant: keyof typeof actions;
-  next?: "admin";
+  next?: string;
   invalidLink?: boolean;
 }) {
   const { locale } = useLanguage();

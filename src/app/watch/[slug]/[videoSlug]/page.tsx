@@ -2,6 +2,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import FavoriteButton from "@/components/FavoriteButton";
+import { getFavoriteVideoIds } from "@/lib/favorites/data";
+import { favoritesMessages } from "@/lib/favorites/messages";
+import { getSessionClaims } from "@/lib/auth/session";
 import YouTubePlayer from "@/components/YouTubePlayer";
 import { watchVideos } from "@/data/watch";
 import { connection } from "next/server";
@@ -151,6 +155,10 @@ export default async function VideoPage({ params }: PageProps) {
 
   if (!relationship) notFound();
 
+  const [claims, savedIds] = await Promise.all([getSessionClaims(), getFavoriteVideoIds([video.id])]);
+  const favoriteCopy = favoritesMessages(locale);
+  const watchPath = `/watch/${slug}/${videoSlug}`;
+
   // 4. Formatar a data no idioma selecionado
   const formattedDate = formatLocalizedDate(
     video.published_at,
@@ -166,9 +174,18 @@ export default async function VideoPage({ params }: PageProps) {
           {copy.archiveLabel}
         </p>
 
-        <h1 className="mb-8 text-3xl font-black leading-tight md:text-5xl">
-          {video.title}
-        </h1>
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-3xl font-black leading-tight md:text-5xl">{video.title}</h1>
+          {savedIds ? (
+            <FavoriteButton videoId={video.id} title={video.title} saved={savedIds.includes(video.id)} />
+          ) : !claims ? (
+            <Link href={`/login?next=${encodeURIComponent(watchPath)}`} prefetch={false} className="inline-flex min-h-10 items-center rounded-lg border border-purple-400/35 px-3.5 text-sm font-semibold text-purple-200 hover:bg-purple-500/15 focus-visible:outline-2 focus-visible:outline-purple-400">
+              {favoriteCopy.login}
+            </Link>
+          ) : (
+            <p className="text-sm text-zinc-400">{favoriteCopy.loadError}</p>
+          )}
+        </div>
 
         {/* YOUTUBE PLAYER */}
 

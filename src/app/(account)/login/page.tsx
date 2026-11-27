@@ -13,5 +13,6 @@ export default async function LoginPage({
   const invalidLink = status === "invalid-link";
   if (!invalidLink && await getSessionClaims()) redirect(afterLogin(next));
 
-  return <AccountForm variant="login" next={next === "admin" ? next : undefined} invalidLink={invalidLink} />;
+  const destination = afterLogin(next);
+  return <AccountForm variant="login" next={destination === "/account" ? undefined : next} invalidLink={invalidLink} />;
 }

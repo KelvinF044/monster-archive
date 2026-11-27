@@ -3,7 +3,10 @@ import { headers } from "next/headers";
 export const RECOVERY_COOKIE = "monster_password_recovery";
 
 export function afterLogin(next: unknown) {
-  return next === "admin" ? "/admin" : "/account";
+  if (next === "admin") return "/admin";
+  if (next === "library") return "/library";
+  if (typeof next === "string" && /^\/watch\/[a-z0-9-]{1,120}\/[a-z0-9-]{1,160}$/.test(next)) return next;
+  return "/account";
 }
 
 export async function authCallbackUrl() {

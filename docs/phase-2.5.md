@@ -61,3 +61,18 @@ com o link aberto no mesmo navegador que fez a solicitação.
   condicionada à aprovação da fase.
 - Migração `20261127170112_community_profiles.sql` e verificação
   `phase_2_5_2_profiles.sql` no Supabase de homologação.
+
+## Etapa 2.5.3 — Favoritos e Minha Biblioteca
+
+- A prévia do perfil responde ao avatar, tema e outros dados editáveis antes do
+  salvamento. A visibilidade e os links continuam baseados no perfil salvo.
+  Minha conta e o perfil público usam um degradê roxo discreto.
+- O botão de coração aparece nos cards de coleções e nas páginas de vídeo
+  para membros. Minha Biblioteca permite abrir e remover os vídeos favoritos.
+- Favoritos são únicos por conta e vídeo. A biblioteca mostra só vídeos
+  publicados que pertençam a uma coleção ativa.
+- O perfil público exibe os 24 favoritos mais recentes apenas quando a
+  visibilidade do perfil e a preferência de favoritos estiverem ativas.
+- Migração `20261127173939_community_favorites.sql` e verificação
+  `phase_2_5_3_favorites.sql` no Supabase de homologação.
+- O MV oficial CLIK CLAK serve de amostra no catálogo do Preview.

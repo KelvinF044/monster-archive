@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
+import FavoriteButton from "@/components/FavoriteButton";
 import YouTubeThumbnail from "@/components/YouTubeThumbnail";
 import type { Locale } from "@/lib/i18n/config";
 
@@ -33,6 +34,7 @@ type Props = {
   slug: string;
   videos: WatchVideo[];
   eras: WatchEra[];
+  savedIds: string[] | null;
   collectionGradient: string;
   locale: Locale;
   allLabel: string;
@@ -74,6 +76,7 @@ export default function WatchVideoGrid({
   slug,
   videos,
   eras,
+  savedIds,
   collectionGradient,
   locale,
   allLabel,
@@ -204,40 +207,46 @@ export default function WatchVideoGrid({
               normalizeLegacyEra(video.era);
 
             return (
-              <Link
-                key={video.id}
-                href={`/watch/${slug}/${video.slug}`}
-                className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] transition hover:-translate-y-1 hover:border-purple-400/50"
-              >
-                <YouTubeThumbnail
-                  videoId={video.youtube_video_id}
-                  thumbnailUrl={video.thumbnail_url}
-                  alt={video.thumbnail_alt || video.title}
-                  fallbackGradient={collectionGradient}
-                />
+              <article key={video.id} className="group relative min-w-0 rounded-xl border border-white/10 bg-white/[0.03] transition hover:-translate-y-1 hover:border-purple-400/50">
+                <Link
+                  href={`/watch/${slug}/${video.slug}`}
+                  className="block overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-purple-400"
+                >
+                  <YouTubeThumbnail
+                    videoId={video.youtube_video_id}
+                    thumbnailUrl={video.thumbnail_url}
+                    alt={video.thumbnail_alt || video.title}
+                    fallbackGradient={collectionGradient}
+                  />
 
-                <div className="p-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-[10px] font-bold tracking-widest text-purple-400">
-                      {formatLocalizedDate(video.published_at, locale)}
-                    </p>
+                  <div className="p-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-[10px] font-bold tracking-widest text-purple-400">
+                        {formatLocalizedDate(video.published_at, locale)}
+                      </p>
 
-                    {eraName && (
-                      <span className="rounded-full border border-purple-400/20 bg-purple-400/10 px-2 py-1 text-[9px] font-bold tracking-wider text-purple-300">
-                        {eraName}
-                      </span>
-                    )}
+                      {eraName && (
+                        <span className="rounded-full border border-purple-400/20 bg-purple-400/10 px-2 py-1 text-[9px] font-bold tracking-wider text-purple-300">
+                          {eraName}
+                        </span>
+                      )}
+                    </div>
+
+                    <h2 className="mt-3 text-lg font-black leading-snug">
+                      {video.title}
+                    </h2>
+
+                    <div className="mt-5 border-t border-white/10 pt-4 text-xs font-bold text-purple-400">
+                      {videoDetails}
+                    </div>
                   </div>
-
-                  <h2 className="mt-3 text-lg font-black leading-snug">
-                    {video.title}
-                  </h2>
-
-                  <div className="mt-5 border-t border-white/10 pt-4 text-xs font-bold text-purple-400">
-                    {videoDetails}
+                </Link>
+                {savedIds && (
+                  <div className="absolute top-3 right-3">
+                    <FavoriteButton videoId={video.id} title={video.title} saved={savedIds.includes(video.id)} compact />
                   </div>
-                </div>
-              </Link>
+                )}
+              </article>
             );
           })}
         </div>

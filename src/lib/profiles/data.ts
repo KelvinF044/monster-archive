@@ -2,6 +2,7 @@ import "server-only";
 
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import type { FavoriteCard } from "@/lib/favorites/data";
 import type { Profile, Sharing } from "./model";
 
 type ProfileDb = Awaited<ReturnType<typeof createClient>>;
@@ -49,7 +50,11 @@ export async function getPublicProfile(handle: string) {
   if (error) throw new Error("Unable to read public profile");
   if (!profile) return null;
 
-  const catalog = await getCatalog(db);
+  const [catalog, favorites] = await Promise.all([
+    getCatalog(db),
+    db.rpc("get_shared_community_favorites", { profile_handle: profile.handle }),
+  ]);
   if (!catalog) throw new Error("Unable to read profile catalog");
-  return { profile, catalog };
+  return { profile, catalog, favorites: Array.isArray(favorites.data) ? favorites.data as FavoriteCard[] : [] };
+
 }
