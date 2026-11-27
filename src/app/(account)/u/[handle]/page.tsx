@@ -15,8 +15,10 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   if (!result) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-12 text-white sm:px-6 sm:py-16">
-      <CommunityProfileCard profile={result.profile} catalog={result.catalog} locale={locale} heading="h1" />
+    <main className="min-h-[calc(100svh-5rem)] bg-[#08090d] text-white">
+      <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+        <CommunityProfileCard profile={result.profile} catalog={result.catalog} locale={locale} heading="h1" />
+      </div>
     </main>
   );
 }
