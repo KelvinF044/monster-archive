@@ -1,12 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getSessionClaims } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { themeStyles, validHandle } from "./model";
 
 export type ProfileState = {
-  result?: "saved" | "taken" | "invalid" | "unavailable";
+  result?: "taken" | "invalid" | "unavailable";
 };
 
 export async function saveProfile(_: ProfileState, form: FormData): Promise<ProfileState> {
@@ -46,5 +47,5 @@ export async function saveProfile(_: ProfileState, form: FormData): Promise<Prof
   if (error) return { result: "unavailable" };
 
   revalidatePath("/account");
-  return { result: "saved" };
+  redirect("/account?status=profile-saved");
 }

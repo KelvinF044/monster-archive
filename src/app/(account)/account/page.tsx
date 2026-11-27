@@ -30,7 +30,9 @@ export default async function AccountPage({
       ? copy.passwordUpdated
       : status === "restricted"
         ? copy.restricted
-        : null;
+        : status === "profile-saved"
+          ? profileCopy.saved
+          : null;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-9 text-white sm:px-6 sm:py-12">

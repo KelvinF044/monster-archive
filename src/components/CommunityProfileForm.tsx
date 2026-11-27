@@ -114,7 +114,7 @@ export default function CommunityProfileForm({
           <button type="submit" className="rounded-lg bg-purple-700 px-5 py-3 text-sm font-bold text-white hover:bg-purple-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-purple-400">
             {pending ? copy.saving : copy.save}
           </button>
-          {state.result && <p role={state.result === "saved" ? "status" : "alert"} className={state.result === "saved" ? "text-sm text-purple-200" : "text-sm text-red-200"}>{copy[state.result]}</p>}
+          {state.result && <p role="alert" className="text-sm text-red-200">{copy[state.result]}</p>}
         </div>
       </fieldset>
     </form>
