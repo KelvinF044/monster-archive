@@ -50,11 +50,16 @@ export async function getPublicProfile(handle: string) {
   if (error) throw new Error("Unable to read public profile");
   if (!profile) return null;
 
-  const [catalog, favorites] = await Promise.all([
+  const [catalog, favorites, history] = await Promise.all([
     getCatalog(db),
     db.rpc("get_shared_community_favorites", { profile_handle: profile.handle }),
+    db.rpc("get_shared_community_watch_history", { profile_handle: profile.handle }),
   ]);
   if (!catalog) throw new Error("Unable to read profile catalog");
-  return { profile, catalog, favorites: Array.isArray(favorites.data) ? favorites.data as FavoriteCard[] : [] };
+  return {
+    profile, catalog,
+    favorites: Array.isArray(favorites.data) ? favorites.data as FavoriteCard[] : [],
+    history: Array.isArray(history.data) ? history.data as FavoriteCard[] : [],
+  };
 
 }

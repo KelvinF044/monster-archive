@@ -5,7 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import FavoriteButton from "@/components/FavoriteButton";
 import { getFavoriteVideoIds } from "@/lib/favorites/data";
 import { favoritesMessages } from "@/lib/favorites/messages";
-import { getSessionClaims } from "@/lib/auth/session";
+import { getAccount } from "@/lib/auth/session";
+import { getWatchHistoryContext } from "@/lib/history/data";
+import { historyMessages } from "@/lib/history/messages";
+import { historyHref } from "@/lib/history/model";
 import YouTubePlayer from "@/components/YouTubePlayer";
 import { watchVideos } from "@/data/watch";
 import { connection } from "next/server";
@@ -13,6 +16,7 @@ import { getDictionary } from "@/lib/i18n/server";
 import type { Locale } from "@/lib/i18n/config";
 
 type PageProps = {
+  searchParams: Promise<{ resume?: string }>;
   params: Promise<{
     slug: string;
     videoSlug: string;
@@ -58,7 +62,7 @@ function formatLocalizedDate(
   ).format(date);
 }
 
-export default async function VideoPage({ params }: PageProps) {
+export default async function VideoPage({ params, searchParams }: PageProps) {
   await connection();
 
   const { slug, videoSlug } = await params;
@@ -155,7 +159,9 @@ export default async function VideoPage({ params }: PageProps) {
 
   if (!relationship) notFound();
 
-  const [claims, savedIds] = await Promise.all([getSessionClaims(), getFavoriteVideoIds([video.id])]);
+  const [account, savedIds, { resume }] = await Promise.all([getAccount(), getFavoriteVideoIds([video.id]), searchParams]);
+  const history = account ? await getWatchHistoryContext(account.claims.sub, video.id, resume === "1") : null;
+  const showArchiveStatus = account?.role === "admin" || account?.role === "moderator";
   const favoriteCopy = favoritesMessages(locale);
   const watchPath = `/watch/${slug}/${videoSlug}`;
 
@@ -178,7 +184,7 @@ export default async function VideoPage({ params }: PageProps) {
           <h1 className="text-3xl font-black leading-tight md:text-5xl">{video.title}</h1>
           {savedIds ? (
             <FavoriteButton videoId={video.id} title={video.title} saved={savedIds.includes(video.id)} />
-          ) : !claims ? (
+          ) : !account ? (
             <Link href={`/login?next=${encodeURIComponent(watchPath)}`} prefetch={false} className="inline-flex min-h-10 items-center rounded-lg border border-purple-400/35 px-3.5 text-sm font-semibold text-purple-200 hover:bg-purple-500/15 focus-visible:outline-2 focus-visible:outline-purple-400">
               {favoriteCopy.login}
             </Link>
@@ -192,8 +198,19 @@ export default async function VideoPage({ params }: PageProps) {
         <YouTubePlayer
           videoId={video.youtube_video_id}
           title={video.title}
-          expectedPath={`/watch/${slug}/${videoSlug}`}
+          expectedPath={watchPath}
+          startSeconds={history?.startSeconds}
+          history={history && !history.paused ? { videoId: video.id, version: history.version } : undefined}
         />
+
+        {history && (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-400">
+            <p>{history.paused ? historyMessages(locale).paused : historyMessages(locale).active}</p>
+            <Link href={historyHref} prefetch={false} className="font-semibold text-purple-200 hover:underline">
+              {historyMessages(locale).history}
+            </Link>
+          </div>
+        )}
 
         {/* VIDEO INFORMATION */}
 
@@ -241,15 +258,12 @@ export default async function VideoPage({ params }: PageProps) {
                 </p>
               </div>
 
-              <div>
-                <p className="text-[10px] font-bold tracking-widest text-zinc-600">
-                  {copy.archiveStatus}
-                </p>
-
-                <p className="mt-2 text-sm font-semibold text-green-400">
-                  {copy.published}
-                </p>
-              </div>
+              {showArchiveStatus && (
+                <div>
+                  <p className="text-[10px] font-bold tracking-widest text-zinc-600">{copy.archiveStatus}</p>
+                  <p className="mt-2 text-sm font-semibold text-green-400">{copy.published}</p>
+                </div>
+              )}
 
             </div>
 

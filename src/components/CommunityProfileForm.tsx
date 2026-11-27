@@ -7,6 +7,7 @@ import CommunityProfileCard from "@/components/CommunityProfileCard";
 import { useLanguage } from "@/components/LanguageProvider";
 import { saveProfile } from "@/lib/profiles/actions";
 import type { ProfileCatalog } from "@/lib/profiles/data";
+import { historyMessages } from "@/lib/history/messages";
 import { profileMessages } from "@/lib/profiles/messages";
 import { themeStyles, type Profile, type Sharing, type Theme } from "@/lib/profiles/model";
 
@@ -134,7 +135,7 @@ export default function CommunityProfileForm({
             <p className="text-sm leading-relaxed text-zinc-400">{copy.privacyHint}</p>
             <label className="flex items-center gap-2 text-sm"><input name="shareFavorites" type="checkbox" checked={values.shareFavorites} onChange={(event) => update("shareFavorites", event.currentTarget.checked)} className="accent-purple-400" />{copy.favorites}</label>
             <label className="flex items-center gap-2 text-sm"><input name="shareHistory" type="checkbox" checked={values.shareHistory} onChange={(event) => update("shareHistory", event.currentTarget.checked)} className="accent-purple-400" />{copy.history}</label>
-            <p className="text-sm leading-relaxed text-zinc-400">{copy.sharingHint}</p>
+            <p className="text-sm leading-relaxed text-zinc-400">{historyMessages(locale).privacyHint}</p>
           </fieldset>
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <button type="submit" className="rounded-lg bg-purple-700 px-5 py-3 text-sm font-bold text-white hover:bg-purple-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-purple-400">

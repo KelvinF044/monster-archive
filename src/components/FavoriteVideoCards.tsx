@@ -1,9 +1,16 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import FavoriteButton from "@/components/FavoriteButton";
 import YouTubeThumbnail from "@/components/YouTubeThumbnail";
 import type { FavoriteCard } from "@/lib/favorites/data";
 
-export default function FavoriteVideoCards({ cards, editable = false }: { cards: FavoriteCard[]; editable?: boolean }) {
+export default function FavoriteVideoCards<Card extends FavoriteCard>({
+  cards, editable = false, actions,
+}: {
+  cards: Card[];
+  editable?: boolean;
+  actions?: (video: Card) => ReactNode;
+}) {
   return (
     <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {cards.map((video) => (
@@ -17,6 +24,7 @@ export default function FavoriteVideoCards({ cards, editable = false }: { cards:
             />
             <h3 className="break-words px-4 pt-4 pb-3 text-sm font-bold hover:text-purple-200">{video.title}</h3>
           </Link>
+          {actions?.(video)}
           {editable && <div className="flex justify-end px-4 pb-4"><FavoriteButton videoId={video.video_id} title={video.title} saved compact /></div>}
         </li>
       ))}

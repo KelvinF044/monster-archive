@@ -76,3 +76,18 @@ com o link aberto no mesmo navegador que fez a solicitação.
 - Migração `20261127173939_community_favorites.sql` e verificação
   `phase_2_5_3_favorites.sql` no Supabase de homologação.
 - O MV oficial CLIK CLAK serve de amostra no catálogo do Preview.
+
+## Etapa 2.5.4 — Histórico
+
+- O bloco Status no arquivo é renderizado no Watch apenas para administradores
+  ou moderadores ativos. Data e fonte continuam visíveis no catálogo.
+- O player registra vídeos publicados após o evento de reprodução do YouTube.
+  O progresso é atualizado a cada 15 segundos e ao pausar ou sair.
+- A aba Histórico da Minha Biblioteca permite retomar um vídeo do ponto
+  salvo, pausar/retomar o registro, remover um item e limpar o histórico.
+  Alterações de registro e exclusões invalidam envios pendentes de abas antigas.
+- O histórico é privado por padrão. Quando o usuário tem perfil público e
+  ativa o compartilhamento, os 24 vídeos mais recentes aparecem no perfil,
+  sem progresso, horário ou status de conclusão.
+- Migração `20261127181117_community_watch_history.sql` e verificação
+  `phase_2_5_4_watch_history.sql` no Supabase de homologação.
