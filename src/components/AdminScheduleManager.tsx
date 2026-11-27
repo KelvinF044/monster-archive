@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAdminLocale } from "@/components/AdminLocaleProvider";
 import { AdminConfirmationDialog, useAdminConfirmation, type ConfirmAction } from "@/components/AdminConfirmation";
 import { allowedTransitions, canonicalSourceUrl, editableStatus, NEWS_STATUSES, PAGE_SIZE, SOURCE_KINDS, type EditorialSource, type NewsCatalogs, type NewsStatus, type RelatedVideo, type SourceKind } from "@/lib/admin/news/model";
-import { blankEvent, eventFields, eventReviewReady, EVENT_CATEGORIES, EVENT_STATUSES, TIME_KINDS, isOfficialSourceKind, localTimeCandidates, localEventClock, type EventCategory, type EventStatus, type EventDetail, type EventFields, type EventList, type EventAudit, type Occurrence, type TimeKind } from "@/lib/admin/schedule/model";
+import { blankEvent, eventFields, eventReviewReady, EVENT_CATEGORIES, EVENT_STATUSES, TIME_KINDS, isOfficialSourceKind, localTimeCandidates, localEventClock, type EventCategory, type EventStatus, type EventDetail, type EventFields, type EventList, type EventAudit, type EventSourceLink, type Occurrence, type TimeKind } from "@/lib/admin/schedule/model";
 import { scheduleCopy, scheduleError, type ScheduleCopy } from "@/lib/admin/schedule/messages";
 import { EVENT_PROVIDERS, type EventDiscoveryResult, type EventProvider, type EventSuggestion } from "@/lib/admin/schedule/discovery";
 
@@ -308,6 +308,10 @@ function EventEditor({detail,discoveredFields,catalogs,copy,locale,onDirty,onBus
       await onChanged(result.id,c.sourceAttached);setSourceUrl("");setOfficialEvidence(false);
     }catch(e){setError(errorCode(e));}finally{setPending(false);}
   }
+  async function confirmSource(linkId:string){
+    if(disabled||!event||!(await confirmAction(c.confirmSourcePrompt,c.confirmSource)))return;
+    await run({...common(),action:"confirm_source",link_id:linkId},c.sourceConfirmed);
+  }
   async function lookupVideos(){
     setPending(true);setError("");
     try{const result=await api<{videos:RelatedVideo[]}>({view:"videos",q:videoSearch});setVideoResults(result.videos);setSearched(true);}
@@ -331,9 +335,14 @@ function EventEditor({detail,discoveredFields,catalogs,copy,locale,onDirty,onBus
     return instant?<p className="text-[11px] text-purple-300">{c.utc}: {instant.replace("T"," ").replace(".000Z"," UTC")}</p>:null;
   }
   const activeSource=catalogs.sources.find(source=>source.id===sourceId);
-  const evidenceCount=detail?.sources.filter(link=>link.official_evidence&&isOfficialSourceKind(catalogs.sources.find(source=>source.id===link.source_id)?.source_kind)).length??0;
-  const ready=useMemo(()=>eventReviewReady(form,evidenceCount),[form,evidenceCount]);
-  const workflowMessage=event?.status==="published"?c.publishedWorkflow:event?.status==="approved"?c.approvedWorkflow:event?.status==="archived"?c.archivedWorkflow:event?.status==="rejected"?c.rejectedWorkflow:ready?c.ready:c.notReady;
+  function registrySource(link:EventSourceLink){
+    return catalogs.sources.find(source=>source.id===link.source_id);
+  }
+  const evidenceCount=detail?.sources.filter(link=>link.official_evidence&&isOfficialSourceKind(registrySource(link)?.source_kind)).length??0;
+  const validForReview=useMemo(()=>eventReviewReady(form,1),[form]);
+  const ready=validForReview&&evidenceCount>0;
+  const reviewMessage=ready?c.ready:validForReview?c.missingOfficialEvidence:c.notReady;
+  const workflowMessage=event?.status==="published"?c.publishedWorkflow:event?.status==="approved"?c.approvedWorkflow:event?.status==="archived"?c.archivedWorkflow:event?.status==="rejected"?c.rejectedWorkflow:reviewMessage;
   const workflowPositive=event?.status==="published"||event?.status==="approved"||(event?.status!=="archived"&&event?.status!=="rejected"&&ready);
   const transitionLabels:Record<NewsStatus,string>={draft:c.returnDraft,in_review:c.reviewStep,approved:c.approve,rejected:c.reject,published:c.publish,archived:c.archive};
   return <section className="rounded-xl border border-purple-400/20 bg-[#0d0e13] p-4 md:p-6">
@@ -395,7 +404,23 @@ function EventEditor({detail,discoveredFields,catalogs,copy,locale,onDirty,onBus
     {!event?<p className="mt-5 rounded-lg border border-white/10 p-4 text-xs text-zinc-400">{c.saveFirst}</p>:<>
       <section className={panelClass+" mt-5"}>
         <h3 className="text-sm font-black">{c.sources}</h3><p className="mt-2 text-xs leading-5 text-zinc-500">{c.sourcesHelp}</p>
-        <div className="mt-4 space-y-2">{detail.sources.length===0?<p className="text-sm text-zinc-500">{c.noSources}</p>:detail.sources.map(source=><div key={source.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 p-3"><div className="min-w-0"><p className="text-xs font-bold">{source.source_name} <span className={source.official_evidence?"text-green-300":"text-zinc-500"}>· {source.official_evidence?c.officialBadge:c.referenceBadge}</span></p><a href={source.source_url} target="_blank" rel="noreferrer" className="mt-1 block truncate text-xs text-purple-300 hover:underline">{source.source_url}</a></div>{!locked&&<button type="button" disabled={busy} onClick={()=>void run({...common(),action:"remove_source",link_id:source.id},c.relationSaved)} className={buttonClass}>{c.remove}</button>}</div>)}</div>
+        <div className="mt-4 space-y-2">
+          {detail.sources.length===0&&<p className="text-sm text-zinc-500">{c.noSources}</p>}
+          {detail.sources.map(source=>{
+            const registered=registrySource(source);
+            const canConfirm=!source.official_evidence&&registered?.is_active&&isOfficialSourceKind(registered.source_kind);
+            return <div key={source.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 p-3">
+              <div className="min-w-0">
+                <p className="text-xs font-bold">{source.source_name} <span className={source.official_evidence?"text-green-300":"text-zinc-500"}>· {source.official_evidence?c.officialBadge:c.referenceBadge}</span></p>
+                <a href={source.source_url} target="_blank" rel="noreferrer" className="mt-1 block truncate text-xs text-purple-300 hover:underline">{source.source_url}</a>
+              </div>
+              {!locked&&<div className="flex flex-wrap gap-2">
+                {canConfirm&&<button type="button" disabled={busy} onClick={()=>void confirmSource(source.id)} className={buttonClass}>{c.confirmSource}</button>}
+                <button type="button" disabled={busy} onClick={()=>void run({...common(),action:"remove_source",link_id:source.id},c.relationSaved)} className={buttonClass}>{c.remove}</button>
+              </div>}
+            </div>;
+          })}
+        </div>
         {!locked&&<>
           <div className="mt-4 grid items-end gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto]">
             <Field label={c.chooseSource}><select disabled={busy} value={sourceId} onChange={e=>{setSourceId(e.target.value);setOfficialEvidence(false);}} className={fieldClass}><option value="">{c.chooseSource}</option>{catalogs.sources.filter(v=>v.is_active).map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></Field>
