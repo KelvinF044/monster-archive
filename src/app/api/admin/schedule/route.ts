@@ -122,6 +122,21 @@ export async function POST(request:NextRequest){
       return error?dbFailure(error):response({id});
     }
 
+    if(body.action==="confirm_source"){
+      if(!isUuid(body.link_id)) return fail("invalid_request");
+      const link=await db.from("agenda_event_sources").select("id,source_id,official_evidence").eq("event_id",id).eq("id",body.link_id).maybeSingle();
+      if(link.error) return dbFailure(link.error);
+      if(!link.data) return fail("not_found",404);
+
+      const source=await db.from("editorial_sources").select("is_active,source_kind").eq("id",link.data.source_id).maybeSingle();
+      if(source.error) return dbFailure(source.error);
+      if(!source.data?.is_active||!isOfficialSourceKind(source.data.source_kind)) return fail("official_source_required",409);
+      if(link.data.official_evidence) return response({id});
+
+      const {data,error}=await db.from("agenda_event_sources").update({official_evidence:true}).eq("event_id",id).eq("id",link.data.id).eq("source_id",link.data.source_id).select("id").maybeSingle();
+      return error?dbFailure(error):data?response({id}):fail("stale",409);
+    }
+
     if(body.action==="remove_source"){
       if(!isUuid(body.link_id)) return fail("invalid_request");
       const {data,error}=await db.from("agenda_event_sources").delete().eq("event_id",id).eq("id",body.link_id).select("id").maybeSingle();
