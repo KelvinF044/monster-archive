@@ -42,7 +42,7 @@ No painel de Auth do Supabase de homologação, confirmar o SMTP e o envio para
 um destinatário de teste autorizado. Configurar o endereço do Preview nas URLs
 de redirecionamento permitidas para `/auth/callback`, incluindo o parâmetro
 `sb_flow_id` que o Supabase acrescenta durante o fluxo PKCE. Os modelos de
-confirmação e recuperação usam o link `ConfirmationURL` do Supabase.
+confirmação e recuperação usavam o link `ConfirmationURL` no primeiro Preview.
 Validar confirmação, reenvio, recuperação e link expirado em PT-BR e inglês
 com o link aberto no mesmo navegador que fez a solicitação.
 
@@ -166,8 +166,9 @@ com o link aberto no mesmo navegador que fez a solicitação.
 - A configuração pertence a cada projeto Supabase. Para enviar como
   MONSTER ARCHIVE no projeto oficial, configurar SMTP próprio com um
   endereço do domínio verificado e personalizar os modelos de confirmação
-  e recuperação no Supabase Auth. Preservar `{{ .ConfirmationURL }}` em
-  ambos os modelos para manter o fluxo de autenticação já homologado.
+  e recuperação no Supabase Auth. O modelo de recuperação mantém
+  `{{ .ConfirmationURL }}`. O modelo de cadastro usa a rota dedicada após
+  sua disponibilização no ambiente correspondente.
 - Validar o remetente, o texto e o destino dos links com um endereço de
   teste autorizado antes de abrir o cadastro ao público.
 - Referências: [SMTP personalizado](https://supabase.com/docs/guides/auth/auth-smtp)
