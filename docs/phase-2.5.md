@@ -256,9 +256,12 @@ com o link aberto no mesmo navegador que fez a solicitação.
   A verificação incluiu login, cadastro, recuperação, troca de idioma em
   português e inglês, redirecionamento das áreas restritas sem sessão e
   tratamento de links de autenticação inválidos.
-- A confirmação final dos e-mails e dos links reais de cadastro e
-  recuperação no domínio oficial está pendente. A classificação no Hotmail
-  fica em acompanhamento.
+- A página de confirmação em outro navegador foi publicada pelo PR #11.
+  Kelvin confirmou que salvou o novo modelo de cadastro em `monster-archive-br`.
+  As rotas de cadastro, confirmação e recuperação responderam em produção.
+- O encerramento depende de um cadastro real pelo novo e-mail de confirmação
+  e de uma recuperação de senha concluída no domínio oficial. A classificação
+  no Hotmail fica em acompanhamento.
 
 ### Confirmação aberta em outro navegador
 
