@@ -148,8 +148,15 @@ com o link aberto no mesmo navegador que fez a solicitação.
 
 - Kelvin confirmou no Preview que a retomada acompanha a última posição
   assistida no player real do YouTube e que os links de confirmação de
-  cadastro abrem corretamente. A abertura do link de recuperação até a
-  atualização da senha ainda pode ser conferida.
+  cadastro abrem corretamente. O fluxo de recuperação de senha também foi
+  confirmado, com recebimento do e-mail em cerca de um minuto.
+- Cadastro e recuperação abrem um formulário limpo ao voltar à tela. O
+  teste em navegador com respostas simuladas verificou reenvio de
+  confirmação, retorno pelo login, nova solicitação e retorno pelo
+  histórico do navegador em português e inglês.
+- Os três e-mails de confirmação de cadastro chegaram na pasta de spam
+  durante o teste de Kelvin. A tela indica essa pasta como local de busca.
+  A entrega na caixa de entrada continua pendente de verificação.
 - Os textos e as datas da fila de Moderação usam o contexto do seletor de
   idiomas. As consultas e a verificação de acesso continuam no servidor.
 
@@ -216,8 +223,8 @@ com o link aberto no mesmo navegador que fez a solicitação.
 3. Criar no Resend uma chave de envio restrita ao domínio. No Supabase Auth
    do projeto oficial, ativar SMTP personalizado com host `smtp.resend.com`,
    porta `465`, usuário `resend`, nome `MONSTER ARCHIVE` e remetente
-   `contas@themonsterarchive.com`. Inserir a chave como senha diretamente
-   no campo do Supabase.
+   `account@themonsterarchive.com`, configurado em homologação. Inserir a
+   chave como senha diretamente no campo do Supabase.
 4. Aplicar os modelos em `supabase/templates/confirmation.html` e
    `supabase/templates/recovery.html`. Assuntos sugeridos:
    **Confirme seu e-mail / Confirm your email · MONSTER ARCHIVE** e

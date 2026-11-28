@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useLayoutEffect, useState } from "react";
 
 import { useLanguage } from "@/components/LanguageProvider";
 import {
@@ -49,15 +49,27 @@ function Resend({ email }: { email: string }) {
   );
 }
 
-export default function AccountForm({
-  variant,
-  next,
-  invalidLink,
-}: {
+type AccountFormProps = {
   variant: keyof typeof actions;
   next?: string;
   invalidLink?: boolean;
-}) {
+};
+
+export default function AccountForm(props: AccountFormProps) {
+  const [visit, setVisit] = useState(0);
+  const resetOnLeave = props.variant === "signup" || props.variant === "forgot";
+
+  useLayoutEffect(() => {
+    if (resetOnLeave) {
+      // Cache Components hides the page on navigation and preserves its action state.
+      return () => setVisit((current) => current + 1);
+    }
+  }, [resetOnLeave]);
+
+  return <AccountFormContent key={visit} {...props} />;
+}
+
+function AccountFormContent({ variant, next, invalidLink }: AccountFormProps) {
   const { locale } = useLanguage();
   const copy = authMessages(locale);
   const [state, submit, pending] = useActionState(actions[variant], {});

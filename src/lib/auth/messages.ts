@@ -34,7 +34,7 @@ const en = {
   rateLimit: "Too many attempts. Wait a moment and try again.",
   passwordPolicy: "Choose a different password that meets the password requirements.",
   invalidLink: "This link is invalid or has expired. Request a new link and open it in the same browser.",
-  signupSent: "Check your inbox for a confirmation email. If you already have an account, log in or reset your password.",
+  signupSent: "Check your inbox and spam folder for a confirmation email. If you already have an account, log in or reset your password.",
   resetSent: "If an account exists for this email, you’ll receive a password reset link.",
   resent: "If the email is awaiting confirmation, you’ll receive a new link.",
 };
@@ -73,7 +73,7 @@ const pt: typeof en = {
   rateLimit: "Muitas tentativas. Aguarde um pouco e tente novamente.",
   passwordPolicy: "Escolha uma senha diferente que atenda aos requisitos.",
   invalidLink: "Este link é inválido ou expirou. Solicite um novo link e abra-o no mesmo navegador.",
-  signupSent: "Confira sua caixa de entrada. Se você já tem uma conta, faça login ou redefina a senha.",
+  signupSent: "Confira sua caixa de entrada e a pasta de spam. Se você já tem uma conta, faça login ou redefina a senha.",
   resetSent: "Se existir uma conta com esse e-mail, você receberá um link para redefinir a senha.",
   resent: "Se o e-mail estiver aguardando confirmação, você receberá um novo link.",
 };
