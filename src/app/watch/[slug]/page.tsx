@@ -9,10 +9,9 @@ import { watchCollections as staticCollections } from "@/data/watch";
 import { getFavoriteVideoIds } from "@/lib/favorites/data";
 import { getDictionary } from "@/lib/i18n/server";
 
-import type { Locale } from "@/lib/i18n/config";
+import { getVideoEras } from "@/lib/watch/eras";
 
 import WatchVideoGrid, {
-  type WatchEra,
   type WatchVideo,
 } from "@/components/WatchVideoGrid";
 
@@ -152,7 +151,6 @@ async function CollectionContent({ params }: PageProps) {
   );
 
   let videos: WatchVideo[] = [];
-  let eras: WatchEra[] = [];
 
   if (videoIds.length > 0) {
     const {
@@ -189,38 +187,15 @@ async function CollectionContent({ params }: PageProps) {
       ])
     );
 
-    videos = ((videoData ?? []) as WatchVideo[]).sort(
-      (a, b) =>
-        (orderMap.get(a.id) ?? 0) -
-        (orderMap.get(b.id) ?? 0)
-    );
-
-    const eraIds = Array.from(
-      new Set(
-        videos
-          .map((video) => video.era_id)
-          .filter((eraId): eraId is string => Boolean(eraId))
-      )
-    );
-
-    if (eraIds.length > 0) {
-      const { data: eraData, error: erasError } = await supabase
-        .from("watch_eras")
-        .select("id, name, slug, display_order, is_active")
-        .in("id", eraIds)
-        .order("display_order")
-        .order("name");
-
-      if (erasError) {
-        // Keep the video archive usable even if era filters cannot be loaded.
-        console.error("Error loading public Watch eras:", erasError.message);
-      } else {
-        eras = (eraData ?? []) as WatchEra[];
-      }
-    }
+    videos = (videoData ?? [])
+      .map((video) => ({ ...video, collection_slug: slug }))
+      .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0));
   }
 
-  const savedIds = await getFavoriteVideoIds(videos.map((video) => video.id));
+  const [eras, savedIds] = await Promise.all([
+    getVideoEras(supabase, videos),
+    getFavoriteVideoIds(videos.map((video) => video.id)),
+  ]);
 
   // 4. Retrieve localized collection content.
   const collectionTranslation =
@@ -279,18 +254,20 @@ async function CollectionContent({ params }: PageProps) {
 
         {videos.length > 0 ? (
           <WatchVideoGrid
-            slug={slug}
             videos={videos}
             eras={eras}
             savedIds={savedIds}
             collectionGradient={collectionGradient}
-            locale={locale as Locale}
+            locale={locale}
             allLabel={dictionary.home.filters.all}
             videoDetails={copy.videoDetails}
             emptyEraMessage={emptyEraMessage}
             sortLabel={copy.sortLabel}
             newestFirst={copy.newestFirst}
             oldestFirst={copy.oldestFirst}
+            campaignsLabel={copy.campaigns}
+            videoSingular={copy.videoSingular}
+            videoPlural={copy.videoPlural}
           />
         ) : (
           <div className="mt-12 rounded-xl border border-white/10 bg-white/[0.03] px-6 py-20 text-center">

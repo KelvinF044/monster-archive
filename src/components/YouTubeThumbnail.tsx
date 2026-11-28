@@ -10,12 +10,14 @@ type Props = {
   thumbnailUrl?: string | null;
   alt: string;
   fallbackGradient: string;
+  showLabels?: boolean;
 };
 
 type ThumbnailImageProps = {
   sources: string[];
   alt: string;
   fallbackGradient: string;
+  showLabels?: boolean;
 };
 
 // This component is keyed by the video and thumbnail source.
@@ -25,6 +27,7 @@ function ThumbnailImage({
   sources,
   alt,
   fallbackGradient,
+  showLabels = true,
 }: ThumbnailImageProps) {
   const [sourceIndex, setSourceIndex] = useState(0);
 
@@ -57,15 +60,19 @@ function ThumbnailImage({
             ▶
           </span>
 
-          <span className="text-[10px] font-bold tracking-widest text-white/60">
-            THUMBNAIL UNAVAILABLE
-          </span>
+          {showLabels && (
+            <span className="text-[10px] font-bold tracking-widest text-white/60">
+              THUMBNAIL UNAVAILABLE
+            </span>
+          )}
         </div>
       )}
 
-      <span className="absolute bottom-4 left-4 text-[10px] font-bold tracking-widest text-white/80">
-        OFFICIAL VIDEO SOURCE
-      </span>
+      {showLabels && (
+        <span className="absolute bottom-4 left-4 text-[10px] font-bold tracking-widest text-white/80">
+          OFFICIAL VIDEO SOURCE
+        </span>
+      )}
     </div>
   );
 }
@@ -75,6 +82,7 @@ export default function YouTubeThumbnail({
   thumbnailUrl,
   alt,
   fallbackGradient,
+  showLabels,
 }: Props) {
   // First try the custom Supabase image.
   // Then try the official YouTube thumbnails.
@@ -102,6 +110,7 @@ export default function YouTubeThumbnail({
       sources={sources}
       alt={alt}
       fallbackGradient={fallbackGradient}
+      showLabels={showLabels}
     />
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CampaignFilters, type CampaignFilter } from "@/components/CampaignFilters";
 import Link from "next/link";
 
 import FavoriteButton from "@/components/FavoriteButton";
@@ -13,6 +14,7 @@ export type WatchEra = {
   slug: string;
   display_order: number;
   is_active: boolean;
+  release: { id: string; name: string } | null;
 };
 
 export type WatchVideo = {
@@ -28,10 +30,10 @@ export type WatchVideo = {
   thumbnail_alt: string | null;
   era: string | null;
   era_id: string | null;
+  collection_slug: string;
 };
 
 type Props = {
-  slug: string;
   videos: WatchVideo[];
   eras: WatchEra[];
   savedIds: string[] | null;
@@ -43,6 +45,9 @@ type Props = {
   sortLabel: string;
   newestFirst: string;
   oldestFirst: string;
+  campaignsLabel: string;
+  videoSingular: string;
+  videoPlural: string;
 };
 
 type SortOrder = "newest" | "oldest";
@@ -73,7 +78,6 @@ function formatLocalizedDate(value: string | null, locale: Locale) {
 }
 
 export default function WatchVideoGrid({
-  slug,
   videos,
   eras,
   savedIds,
@@ -85,30 +89,23 @@ export default function WatchVideoGrid({
   sortLabel,
   newestFirst,
   oldestFirst,
+  campaignsLabel,
+  videoSingular,
+  videoPlural,
 }: Props) {
-  const [activeEraId, setActiveEraId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<CampaignFilter>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
 
-  // Keep only catalog eras that are actually represented in this collection.
-  // The catalog already arrives sorted by its configured display_order.
-  const availableEras = useMemo(() => {
-    const linkedEraIds = new Set(
-      videos
-        .map((video) => video.era_id)
-        .filter((eraId): eraId is string => Boolean(eraId))
-    );
-
-    return eras.filter((era) => linkedEraIds.has(era.id));
-  }, [eras, videos]);
-
-  const eraNames = useMemo(
-    () => new Map(eras.map((era) => [era.id, era.name])),
+  const erasById = useMemo(
+    () => new Map(eras.map((era) => [era.id, era])),
     [eras]
   );
 
   const filteredVideos = useMemo(() => {
-    const eraFilteredVideos = activeEraId
-      ? videos.filter((video) => video.era_id === activeEraId)
+    const eraFilteredVideos = filter
+      ? videos.filter(({ era_id }) => filter.type === "campaign"
+          ? era_id === filter.id
+          : Boolean(era_id && erasById.get(era_id)?.release?.id === filter.id))
       : videos;
 
     return eraFilteredVideos
@@ -134,7 +131,7 @@ export default function WatchVideoGrid({
         return sortOrder === "newest" ? -difference : difference;
       })
       .map((item) => item.video);
-  }, [activeEraId, sortOrder, videos]);
+  }, [erasById, filter, sortOrder, videos]);
 
   return (
     <div className="mt-10">
@@ -162,39 +159,14 @@ export default function WatchVideoGrid({
 
       {/* ERA FILTERS */}
 
-      {availableEras.length > 0 && (
-        <div className="mb-9">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveEraId(null)}
-              aria-pressed={activeEraId === null}
-              className={`rounded-full px-5 py-3 text-xs font-bold transition ${
-                activeEraId === null
-                  ? "bg-purple-500 text-white"
-                  : "border border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10"
-              }`}
-            >
-              {allLabel}
-            </button>
-
-            {availableEras.map((era) => (
-              <button
-                key={era.id}
-                type="button"
-                onClick={() => setActiveEraId(era.id)}
-                aria-pressed={activeEraId === era.id}
-                className={`rounded-full px-5 py-3 text-xs font-bold transition ${
-                  activeEraId === era.id
-                    ? "bg-purple-500 text-white"
-                    : "border border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10"
-                }`}
-              >
-                {era.name}
-              </button>
-            ))}
-          </div>
-        </div>
+      {eras.length > 0 && (
+        <CampaignFilters
+          eras={eras}
+          filter={filter}
+          onChange={setFilter}
+          allLabel={allLabel}
+          campaignsLabel={campaignsLabel}
+        />
       )}
 
       {/* VIDEO RESULTS */}
@@ -203,13 +175,13 @@ export default function WatchVideoGrid({
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredVideos.map((video) => {
             const eraName =
-              (video.era_id ? eraNames.get(video.era_id) : null) ??
+              (video.era_id ? erasById.get(video.era_id)?.name : null) ??
               normalizeLegacyEra(video.era);
 
             return (
               <article key={video.id} className="group relative min-w-0 rounded-xl border border-white/10 bg-white/[0.03] transition hover:-translate-y-1 hover:border-purple-400/50">
                 <Link
-                  href={`/watch/${slug}/${video.slug}`}
+                  href={`/watch/${video.collection_slug}/${video.slug}`}
                   className="block overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-purple-400"
                 >
                   <YouTubeThumbnail
@@ -258,7 +230,7 @@ export default function WatchVideoGrid({
 
       <p className="mt-6 text-xs text-zinc-600">
         {String(filteredVideos.length).padStart(2, "0")}{" "}
-        {filteredVideos.length === 1 ? "VIDEO" : "VIDEOS"}
+        {filteredVideos.length === 1 ? videoSingular : videoPlural}
       </p>
     </div>
   );

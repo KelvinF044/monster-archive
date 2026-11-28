@@ -46,6 +46,7 @@ type InitialVideo = {
   youtube_metadata_refreshed_at: string | null;
   collectionIds: string[];
   memberIds: string[];
+  profileMemberIds: string[];
 };
 
 type Props = {
@@ -170,6 +171,10 @@ export default function AdminVideoForm({
       initialVideo?.memberIds ?? []
     );
 
+  const [profileMembers, setProfileMembers] = useState(
+    initialVideo?.profileMemberIds ?? []
+  );
+
   const [status, setStatus] = useState<VideoStatus>(
     initialVideo?.status ?? "draft"
   );
@@ -292,6 +297,14 @@ export default function AdminVideoForm({
       era_id: selectedEraRecord?.id ?? null,
     };
 
+    function memberLink(videoId: string, memberId: string) {
+      return {
+        video_id: videoId,
+        member_id: memberId,
+        show_on_profile: profileMembers.includes(memberId),
+      };
+    }
+
     try {
       // --------------------------------------------------
       // EDIT EXISTING VIDEO
@@ -350,12 +363,7 @@ export default function AdminVideoForm({
         // Add new member relationships.
 
         if (membersToAdd.length > 0) {
-          const memberLinks = membersToAdd.map(
-            (memberId) => ({
-              video_id: initialVideo.id,
-              member_id: memberId,
-            })
-          );
+          const memberLinks = membersToAdd.map((memberId) => memberLink(initialVideo.id, memberId));
 
           const { error: memberError } = await supabase
             .from("watch_video_members")
@@ -417,6 +425,22 @@ export default function AdminVideoForm({
           }
 
           throw new Error(updateError.message);
+        }
+
+        const profileChanges = selectedMembers
+          .filter((id) => previousMembers.includes(id) &&
+            profileMembers.includes(id) !== initialVideo.profileMemberIds.includes(id))
+          .map((id) => memberLink(initialVideo.id, id));
+
+        if (profileChanges.length > 0) {
+          const { error: profileError } = await supabase
+            .from("watch_video_members")
+            .upsert(profileChanges, { onConflict: "video_id,member_id" });
+
+          if (profileError) {
+            router.refresh();
+            throw new Error(t("Could not save profile visibility. Reopen the video to review its member settings."));
+          }
         }
 
         // --------------------------------------------------
@@ -521,12 +545,7 @@ export default function AdminVideoForm({
       // Connect selected members.
 
       if (selectedMembers.length > 0) {
-        const memberLinks = selectedMembers.map(
-          (memberId) => ({
-            video_id: video.id,
-            member_id: memberId,
-          })
-        );
+        const memberLinks = selectedMembers.map((memberId) => memberLink(video.id, memberId));
 
         const { error: memberError } = await supabase
           .from("watch_video_members")
@@ -780,33 +799,43 @@ export default function AdminVideoForm({
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {members.map((member) => (
-            <label
-              key={member.id}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition ${
-                selectedMembers.includes(member.id)
-                  ? "border-purple-400 bg-purple-400/10"
-                  : "border-white/10 bg-black/20 hover:border-white/30"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={selectedMembers.includes(member.id)}
-                onChange={() =>
-                  toggleSelection(
-                    member.id,
-                    selectedMembers,
-                    setSelectedMembers
-                  )
-                }
-                className="h-4 w-4 accent-purple-500"
-              />
+          {members.map((member) => {
+            const selected = selectedMembers.includes(member.id);
 
-              <span className="text-sm font-bold">
-                {member.name}
-              </span>
-            </label>
-          ))}
+            return (
+              <div
+                key={member.id}
+                className={`rounded-lg border p-4 ${selected ? "border-purple-400 bg-purple-400/10" : "border-white/10 bg-black/20"}`}
+              >
+                <label className="flex cursor-pointer items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={() => {
+                      toggleSelection(member.id, selectedMembers, setSelectedMembers);
+                      if (selected) {
+                        setProfileMembers((current) => current.filter((id) => id !== member.id));
+                      }
+                    }}
+                    className="h-4 w-4 accent-purple-500"
+                  />
+                  <span className="text-sm font-bold">{member.name}</span>
+                </label>
+                {selected && (
+                  <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={profileMembers.includes(member.id)}
+                      onChange={() => toggleSelection(member.id, profileMembers, setProfileMembers)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-purple-500"
+                    />
+                    {t("Show on member profile")}
+                    <span className="sr-only"> · {member.name}</span>
+                  </label>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
 

@@ -31,11 +31,15 @@ export default async function AdminErasPage() {
     redirect("/admin/login?access=denied");
   }
 
-  const { data: eraRows, error: erasError } = await supabase
-    .from("watch_eras")
-    .select("id, name, slug, display_order, is_active")
-    .order("display_order")
-    .order("name");
+  const [eraResult, releaseResult] = await Promise.all([
+    supabase
+      .from("watch_eras")
+      .select("id, name, slug, display_order, is_active, release_id")
+      .order("display_order")
+      .order("name"),
+    supabase.from("watch_releases").select("id, name").order("name"),
+  ]);
+  const erasError = eraResult.error ?? releaseResult.error;
 
   if (erasError) {
     return (
@@ -56,7 +60,7 @@ export default async function AdminErasPage() {
               {erasError.message}
             </p>
             <p className="mt-3 text-xs leading-6 text-zinc-500">
-              <AdminText>Confirm that migration 202611230002_manage_watch_eras.sql has been applied in Supabase.</AdminText>
+              <AdminText>Confirm that migration 20261128140003_watch_campaigns_and_member_archives.sql has been applied in Supabase.</AdminText>
             </p>
           </div>
         </div>
@@ -65,7 +69,7 @@ export default async function AdminErasPage() {
   }
 
   const eras = await Promise.all(
-    (eraRows ?? []).map(async (era) => {
+    (eraResult.data ?? []).map(async (era) => {
       const { count, error } = await supabase
         .from("watch_videos")
         .select("id", { count: "exact", head: true })
@@ -111,7 +115,7 @@ export default async function AdminErasPage() {
         </div>
 
         <div className="mt-10">
-          <AdminEraManager initialEras={eras} />
+          <AdminEraManager initialEras={eras} initialReleases={releaseResult.data ?? []} />
         </div>
 
         <footer className="mt-16 border-t border-white/10 pt-7 text-xs text-zinc-600">
