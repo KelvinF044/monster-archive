@@ -100,6 +100,8 @@ export type Dictionary = {
     behindDescription: string;
 
     comingSoon: string;
+    archiveEmpty: string;
+    backToProfile: string;
     footerDisclaimer: string;
   };
 
@@ -148,6 +150,9 @@ export type Dictionary = {
     videoDetails: string;
     sortLabel: string;
     newestFirst: string;
+    campaigns: string;
+    videoSingular: string;
+    videoPlural: string;
     oldestFirst: string;
 
     archiveGrowingTitle: string;
@@ -330,6 +335,8 @@ export const messages: Record<Locale, Dictionary> = {
         "Behind the scenes and special content",
 
       comingSoon: "ARCHIVE COMING SOON",
+      archiveEmpty: "No videos in this category yet.",
+      backToProfile: "Back to profile",
       footerDisclaimer: "Independent fan-made project.",
     },
 
@@ -401,6 +408,9 @@ export const messages: Record<Locale, Dictionary> = {
       videoDetails: "WATCH DETAILS ↗",
       sortLabel: "SORT BY PUBLICATION DATE",
       newestFirst: "Newest first",
+      campaigns: "Campaigns",
+      videoSingular: "video",
+      videoPlural: "videos",
       oldestFirst: "Oldest first",
 
       archiveGrowingTitle: "The archive is growing.",
@@ -590,6 +600,8 @@ export const messages: Record<Locale, Dictionary> = {
         "Conteúdos dos bastidores e materiais especiais",
 
       comingSoon: "CONTEÚDO EM BREVE",
+      archiveEmpty: "Ainda não há vídeos nesta categoria.",
+      backToProfile: "Voltar ao perfil",
       footerDisclaimer: "Projeto independente feito por fãs.",
     },
 
@@ -663,6 +675,9 @@ export const messages: Record<Locale, Dictionary> = {
       videoDetails: "VER DETALHES ↗",
       sortLabel: "ORDENAR POR DATA DE PUBLICAÇÃO",
       newestFirst: "Mais recentes primeiro",
+      campaigns: "Campanhas",
+      videoSingular: "vídeo",
+      videoPlural: "vídeos",
       oldestFirst: "Mais antigos primeiro",
 
       archiveGrowingTitle: "O arquivo está crescendo.",

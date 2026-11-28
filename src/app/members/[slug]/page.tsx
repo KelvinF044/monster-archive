@@ -8,6 +8,12 @@ import { Suspense } from "react";
 import { members } from "@/data/members";
 import { createClient } from "@/lib/supabase/server";
 import { getDictionary } from "@/lib/i18n/server";
+import YouTubeThumbnail from "@/components/YouTubeThumbnail";
+import {
+  getMemberArchiveCategory,
+  getMemberArchiveVideos,
+  memberArchiveCategoryKeys,
+} from "@/lib/watch/member-archive";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -71,7 +77,7 @@ async function MemberProfileContent({ params }: PageProps) {
 
   const { data: memberData, error } = await supabase
     .from("members")
-    .select("image_url, image_alt")
+    .select("id, image_url, image_alt")
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();
@@ -99,23 +105,19 @@ async function MemberProfileContent({ params }: PageProps) {
     }
   ).format(new Date(`${member.birthday}T00:00:00.000Z`));
 
-  const profileSections = [
-    {
-      title: copy.performancesTitle,
-      detail: copy.performancesDescription,
-      number: "01",
-    },
-    {
-      title: copy.varietyTitle,
-      detail: copy.varietyDescription,
-      number: "02",
-    },
-    {
-      title: copy.behindTitle,
-      detail: copy.behindDescription,
-      number: "03",
-    },
-  ];
+  const profileSections = await Promise.all(
+    memberArchiveCategoryKeys.map(async (category) => {
+      const info = getMemberArchiveCategory(category, copy);
+      const [cover] = memberData
+        ? await getMemberArchiveVideos(supabase, memberData.id, category, 1).catch((archiveError) => {
+            console.error("Error loading member archive:", archiveError.message);
+            return [];
+          })
+        : [];
+
+      return { ...info, category, cover };
+    })
+  );
 
   const labels =
     locale === "pt-BR"
@@ -283,38 +285,37 @@ async function MemberProfileContent({ params }: PageProps) {
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
-            {profileSections.map((item) => (
-              <article
-                key={item.number}
-                className="group rounded-xl border border-white/10 bg-[#101116] p-6 transition hover:-translate-y-1 hover:border-purple-400/40"
-              >
-
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold tracking-[0.2em] text-purple-400">
-                    {item.number}
-                  </span>
-
-                  <span className="text-zinc-600 transition group-hover:text-purple-400">
-                    ↗
-                  </span>
+            {profileSections.map(({ category, title, description, gradient, cover }) => {
+              const cardClass = "overflow-hidden rounded-xl border border-white/10 bg-[#101116]";
+              const cardText = (
+                <div className="p-6">
+                  <h3 className="text-lg font-black">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p>
                 </div>
+              );
 
-                <h3 className="mt-8 text-lg font-black">
-                  {item.title}
-                </h3>
-
-                <p className="mt-3 min-h-12 text-sm leading-6 text-zinc-500">
-                  {item.detail}
-                </p>
-
-                <div className="mt-7 border-t border-white/10 pt-4">
-                  <p className="text-[10px] font-bold tracking-widest text-purple-400">
-                    {copy.comingSoon.toUpperCase()}
-                  </p>
-                </div>
-
-              </article>
-            ))}
+              return cover ? (
+                <Link
+                  key={category}
+                  href={`/members/${slug}/videos/${category}`}
+                  className={`group block ${cardClass} transition hover:border-purple-400/50 focus-visible:outline-2 focus-visible:outline-purple-400`}
+                >
+                  <YouTubeThumbnail
+                    videoId={cover.youtube_video_id}
+                    thumbnailUrl={cover.thumbnail_url}
+                    alt=""
+                    fallbackGradient={gradient}
+                    showLabels={false}
+                  />
+                  {cardText}
+                </Link>
+              ) : (
+                <article key={category} className={cardClass}>
+                  {cardText}
+                  <p className="px-6 pb-6 text-xs font-bold text-zinc-400">{copy.archiveEmpty}</p>
+                </article>
+              );
+            })}
 
           </div>
 

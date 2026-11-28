@@ -149,7 +149,7 @@ async function EditVideoContent({ params }: PageProps) {
 
     supabase
       .from("watch_video_members")
-      .select("member_id")
+      .select("member_id, show_on_profile")
       .eq("video_id", id),
 
     supabase
@@ -212,9 +212,10 @@ async function EditVideoContent({ params }: PageProps) {
     collectionIds: (collectionLinksResult.data ?? []).map(
       (item) => item.collection_id
     ),
-    memberIds: (memberLinksResult.data ?? []).map(
-      (item) => item.member_id
-    ),
+    memberIds: (memberLinksResult.data ?? []).map(({ member_id }) => member_id),
+    profileMemberIds: (memberLinksResult.data ?? [])
+      .filter(({ show_on_profile }) => show_on_profile)
+      .map(({ member_id }) => member_id),
   };
 
   return (
