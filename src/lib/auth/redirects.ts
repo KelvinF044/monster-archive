@@ -1,6 +1,12 @@
 import { headers } from "next/headers";
 
 export const RECOVERY_COOKIE = "monster_password_recovery";
+export const SIGNUP_CONFIRMATION_COOKIE = "monster_signup_confirmation";
+export const signupConfirmationPath = "/confirm-email";
+
+export function isSignupTokenHash(value: string | null | undefined): value is string {
+  return typeof value === "string" && /^[a-z0-9_-]{24,128}$/i.test(value);
+}
 
 export function afterLogin(next: unknown) {
   if (next === "admin") return "/admin";

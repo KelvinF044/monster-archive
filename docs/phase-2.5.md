@@ -42,7 +42,7 @@ No painel de Auth do Supabase de homologação, confirmar o SMTP e o envio para
 um destinatário de teste autorizado. Configurar o endereço do Preview nas URLs
 de redirecionamento permitidas para `/auth/callback`, incluindo o parâmetro
 `sb_flow_id` que o Supabase acrescenta durante o fluxo PKCE. Os modelos de
-confirmação e recuperação usam o link `ConfirmationURL` do Supabase.
+confirmação e recuperação usavam o link `ConfirmationURL` no primeiro Preview.
 Validar confirmação, reenvio, recuperação e link expirado em PT-BR e inglês
 com o link aberto no mesmo navegador que fez a solicitação.
 
@@ -166,8 +166,9 @@ com o link aberto no mesmo navegador que fez a solicitação.
 - A configuração pertence a cada projeto Supabase. Para enviar como
   MONSTER ARCHIVE no projeto oficial, configurar SMTP próprio com um
   endereço do domínio verificado e personalizar os modelos de confirmação
-  e recuperação no Supabase Auth. Preservar `{{ .ConfirmationURL }}` em
-  ambos os modelos para manter o fluxo de autenticação já homologado.
+  e recuperação no Supabase Auth. O modelo de recuperação mantém
+  `{{ .ConfirmationURL }}`. O modelo de cadastro usa a rota dedicada após
+  sua disponibilização no ambiente correspondente.
 - Validar o remetente, o texto e o destino dos links com um endereço de
   teste autorizado antes de abrir o cadastro ao público.
 - Referências: [SMTP personalizado](https://supabase.com/docs/guides/auth/auth-smtp)
@@ -234,8 +235,9 @@ com o link aberto no mesmo navegador que fez a solicitação.
    **Confirme seu e-mail / Confirm your email · MONSTER ARCHIVE** e
    **Redefina sua senha / Reset your password · MONSTER ARCHIVE**.
    Novos cadastros guardam o idioma escolhido. Para contas anteriores sem
-   essa preferência, o corpo inclui as duas versões. Os dois modelos
-   mantêm `{{ .ConfirmationURL }}`.
+  essa preferência, o corpo inclui as duas versões. A confirmação usa
+  `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}` e a
+  recuperação mantém `{{ .ConfirmationURL }}`.
 5. Conferir o remetente e testar abertura dos links de cadastro e
    recuperação usando uma conta de teste autorizada. Verificar os limites
    de envio no Supabase e no Resend. A ativação externa depende de acesso
@@ -257,3 +259,18 @@ com o link aberto no mesmo navegador que fez a solicitação.
 - A confirmação final dos e-mails e dos links reais de cadastro e
   recuperação no domínio oficial está pendente. A classificação no Hotmail
   fica em acompanhamento.
+
+### Confirmação aberta em outro navegador
+
+- O teste em produção confirmou o endereço, mas o link original foi
+  reutilizado sem iniciar uma sessão para a conta. Os links originais
+  continuam aceitos e a tela de login orienta a entrar quando a confirmação
+  já tiver sido processada.
+- O novo modelo leva o usuário a uma tela do site e confirma a inscrição
+  após o clique no botão. O link pode ser aberto em outro navegador e a
+  confirmação mantém a sessão que já estiver aberta.
+- Após disponibilizar a rota de confirmação no ambiente correspondente,
+  aplicar `supabase/templates/confirmation.html` em **Authentication →
+  Emails → Templates → Confirm sign up**. Conferir se **Site URL** aponta
+  para esse ambiente. A alteração do modelo usa a configuração de cada
+  projeto Supabase.

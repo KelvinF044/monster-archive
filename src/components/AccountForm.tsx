@@ -53,6 +53,7 @@ type AccountFormProps = {
   variant: keyof typeof actions;
   next?: string;
   invalidLink?: boolean;
+  emailConfirmed?: boolean;
 };
 
 export default function AccountForm(props: AccountFormProps) {
@@ -69,7 +70,7 @@ export default function AccountForm(props: AccountFormProps) {
   return <AccountFormContent key={visit} {...props} />;
 }
 
-function AccountFormContent({ variant, next, invalidLink }: AccountFormProps) {
+function AccountFormContent({ variant, next, invalidLink, emailConfirmed }: AccountFormProps) {
   const { locale } = useLanguage();
   const copy = authMessages(locale);
   const [state, submit, pending] = useActionState(actions[variant], {});
@@ -92,6 +93,7 @@ function AccountFormContent({ variant, next, invalidLink }: AccountFormProps) {
 
         <div className="auth-card space-y-5 rounded-2xl border p-5 sm:p-7">
           {invalidLink && <Feedback state={{ error: "invalidLink" }} />}
+          {emailConfirmed && <p role="status" className="rounded-lg border border-purple-400/30 bg-purple-500/10 p-3 text-sm text-purple-100">{copy.signupConfirmed}</p>}
           {!state.success && (
             <form action={submit} className="space-y-5">
               {next && <input type="hidden" name="next" value={next} />}
@@ -121,7 +123,7 @@ function AccountFormContent({ variant, next, invalidLink }: AccountFormProps) {
           {state.success && (
             <>
               <Feedback state={state} />
-              <p className="text-sm text-zinc-400">{copy.openingLink}</p>
+              <p className="text-sm text-zinc-400">{signup ? copy.signupOpeningLink : copy.openingLink}</p>
             </>
           )}
           {state.email && <Resend key={state.email} email={state.email} />}
