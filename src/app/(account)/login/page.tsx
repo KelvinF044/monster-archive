@@ -11,8 +11,9 @@ export default async function LoginPage({
 }) {
   const { next, status } = await searchParams;
   const invalidLink = status === "invalid-link";
-  if (!invalidLink && await getSessionClaims()) redirect(afterLogin(next));
+  const emailConfirmed = status === "email-confirmed";
+  if (!invalidLink && !emailConfirmed && await getSessionClaims()) redirect(afterLogin(next));
 
   const destination = afterLogin(next);
-  return <AccountForm variant="login" next={destination === "/account" ? undefined : next} invalidLink={invalidLink} />;
+  return <AccountForm variant="login" next={destination === "/account" ? undefined : next} invalidLink={invalidLink} emailConfirmed={emailConfirmed} />;
 }

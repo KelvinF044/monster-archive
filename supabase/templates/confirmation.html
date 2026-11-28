@@ -12,14 +12,14 @@
       <section lang="pt-BR" style="margin:24px 0">
         <h1 style="font-size:25px;line-height:1.25;margin:0 0 12px">Confirme seu e-mail</h1>
         <p style="line-height:1.6;margin:0 0 18px">Confirme seu endereço de e-mail para concluir o cadastro e entrar na comunidade do MONSTER ARCHIVE.</p>
-        <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 18px;background:#6518b2;border-radius:8px;color:#fff;font-weight:bold;text-decoration:none">Confirmar meu e-mail</a>
+        <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}" style="display:inline-block;padding:12px 18px;background:#6518b2;border-radius:8px;color:#fff;font-weight:bold;text-decoration:none">Confirmar meu e-mail</a>
       </section>
       {{ end }}
       {{ if ne .Data.locale "pt-BR" }}
       <section lang="en" style="margin:24px 0">
         <h1 style="font-size:25px;line-height:1.25;margin:0 0 12px">Confirm your email</h1>
         <p style="line-height:1.6;margin:0 0 18px">Confirm your email address to finish creating your account and join the MONSTER ARCHIVE community.</p>
-        <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 18px;background:#6518b2;border-radius:8px;color:#fff;font-weight:bold;text-decoration:none">Confirm my email</a>
+        <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}" style="display:inline-block;padding:12px 18px;background:#6518b2;border-radius:8px;color:#fff;font-weight:bold;text-decoration:none">Confirm my email</a>
       </section>
       {{ end }}
     </main>

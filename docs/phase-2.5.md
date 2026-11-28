@@ -234,8 +234,9 @@ com o link aberto no mesmo navegador que fez a solicitação.
    **Confirme seu e-mail / Confirm your email · MONSTER ARCHIVE** e
    **Redefina sua senha / Reset your password · MONSTER ARCHIVE**.
    Novos cadastros guardam o idioma escolhido. Para contas anteriores sem
-   essa preferência, o corpo inclui as duas versões. Os dois modelos
-   mantêm `{{ .ConfirmationURL }}`.
+  essa preferência, o corpo inclui as duas versões. A confirmação usa
+  `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}` e a
+  recuperação mantém `{{ .ConfirmationURL }}`.
 5. Conferir o remetente e testar abertura dos links de cadastro e
    recuperação usando uma conta de teste autorizada. Verificar os limites
    de envio no Supabase e no Resend. A ativação externa depende de acesso
@@ -257,3 +258,18 @@ com o link aberto no mesmo navegador que fez a solicitação.
 - A confirmação final dos e-mails e dos links reais de cadastro e
   recuperação no domínio oficial está pendente. A classificação no Hotmail
   fica em acompanhamento.
+
+### Confirmação aberta em outro navegador
+
+- O teste em produção confirmou o endereço, mas o link original foi
+  reutilizado sem iniciar uma sessão para a conta. Os links originais
+  continuam aceitos e a tela de login orienta a entrar quando a confirmação
+  já tiver sido processada.
+- O novo modelo leva o usuário a uma tela do site e confirma a inscrição
+  após o clique no botão. O link pode ser aberto em outro navegador e a
+  confirmação mantém a sessão que já estiver aberta.
+- Após disponibilizar a rota de confirmação no ambiente correspondente,
+  aplicar `supabase/templates/confirmation.html` em **Authentication →
+  Emails → Templates → Confirm sign up**. Conferir se **Site URL** aponta
+  para esse ambiente. A alteração do modelo usa a configuração de cada
+  projeto Supabase.
