@@ -1,7 +1,7 @@
 # Fase 2.5 — Comunidade
 
-A Etapa 2.5.1 usa o Supabase de homologação (monster-archive-test) no Preview da
-branch feat/community. A produção depende de aprovação do responsável pelo projeto.
+A Fase 2.5 foi homologada no Supabase `monster-archive-test` pelo Preview da
+branch `feat/community` e publicada no site oficial com o Supabase `monster-archive-br`.
 
 | Etapa | Escopo |
 | --- | --- |
@@ -142,7 +142,7 @@ com o link aberto no mesmo navegador que fez a solicitação.
   papéis simulados em uma execução local do build.
 - Build, lint e os 80 testes do repositório passaram. Os seis roteiros SQL
   da Fase 2.5 passaram no Supabase de homologação com transações revertidas.
-- A etapa 2.5.8 depende da aprovação do responsável antes da publicação.
+- O responsável aprovou a publicação da etapa 2.5.8 após homologar as correções.
 
 ### Retorno da homologação
 
@@ -242,3 +242,18 @@ com o link aberto no mesmo navegador que fez a solicitação.
    autenticado ao Resend, ao DNS do Porkbun e ao projeto oficial do Supabase.
 
 [Plano Resend](https://resend.com/pricing) · [SMTP Resend no Supabase](https://resend.com/docs/send-with-supabase-smtp) · [Configuração Supabase](https://supabase.com/docs/guides/auth/auth-smtp)
+
+## Etapa 2.5.8 — Publicação oficial
+
+- As oito migrações da Comunidade foram aplicadas em `monster-archive-br`.
+  As verificações em produção confirmaram as proteções de acesso à lista de
+  perfis e ao histórico de ações e a continuidade do administrador ativo.
+- Kelvin confirmou a configuração do SMTP do Resend em produção. O PR #10
+  foi integrado à `main` no commit `e0973d10fdeab043d600a67f4c47471842ae4ea3`.
+- O deploy de produção da Vercel ficou pronto e o domínio oficial respondeu.
+  A verificação incluiu login, cadastro, recuperação, troca de idioma em
+  português e inglês, redirecionamento das áreas restritas sem sessão e
+  tratamento de links de autenticação inválidos.
+- A confirmação final dos e-mails e dos links reais de cadastro e
+  recuperação no domínio oficial está pendente. A classificação no Hotmail
+  fica em acompanhamento.
