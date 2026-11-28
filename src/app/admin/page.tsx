@@ -5,32 +5,18 @@ import { createClient } from "@/lib/supabase/server";
 import AdminLogoutButton from "@/components/AdminLogoutButton";
 import { connection } from "next/server";
 import AdminText from "@/components/AdminText";
+import { getAccount } from "@/lib/auth/session";
+import { profilesHref } from "@/lib/admin/community-profiles/model";
+import { moderationHref } from "@/lib/moderation/model";
 
 export default async function AdminDashboard() {
   await connection();
+  const account = await getAccount();
+  if (!account) redirect("/login?next=admin");
+  if (account.role === "member") redirect("/account?status=restricted");
+  if (account.role === "moderator") redirect(moderationHref);
+
   const supabase = await createClient();
-
-  // 1. Validate the authenticated user.
-  const { data: claimsData, error: claimsError } =
-    await supabase.auth.getClaims();
-
-  const userId = claimsData?.claims?.sub;
-
-  if (claimsError || !userId) {
-    redirect("/admin/login");
-  }
-
-  // 2. Confirm administrator authorization in the database.
-  const { data: admin, error: adminError } = await supabase
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .maybeSingle();
-
-  if (adminError || !admin) {
-    redirect("/admin/login?access=denied");
-  }
 
   // 3. Load dashboard statistics.
   const [videosResult, collectionsResult, membersResult] =
@@ -93,6 +79,9 @@ export default async function AdminDashboard() {
               <AdminText>VIEW WEBSITE ↗</AdminText>
             </Link>
 
+            <Link href={profilesHref} className="rounded-lg border border-purple-400/35 px-4 py-3 text-xs font-bold text-purple-200 hover:border-purple-400">
+              <AdminText>Community profiles</AdminText>
+            </Link>
             <AdminLogoutButton />
           </div>
 

@@ -29,9 +29,7 @@ export async function createClient() {
               cookieStore.set(name, value, options);
             });
           } catch {
-            // Server Components não podem gravar cookies.
-            // O gerenciamento de sessões será configurado
-            // quando implementarmos a autenticação.
+            // The proxy refreshes cookies for Server Components.
           }
         },
       },

@@ -6,6 +6,7 @@ import { connection } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { watchCollections as staticCollections } from "@/data/watch";
+import { getFavoriteVideoIds } from "@/lib/favorites/data";
 import { getDictionary } from "@/lib/i18n/server";
 
 import type { Locale } from "@/lib/i18n/config";
@@ -219,6 +220,8 @@ async function CollectionContent({ params }: PageProps) {
     }
   }
 
+  const savedIds = await getFavoriteVideoIds(videos.map((video) => video.id));
+
   // 4. Retrieve localized collection content.
   const collectionTranslation =
     dictionary.home.collectionContent[slug];
@@ -279,6 +282,7 @@ async function CollectionContent({ params }: PageProps) {
             slug={slug}
             videos={videos}
             eras={eras}
+            savedIds={savedIds}
             collectionGradient={collectionGradient}
             locale={locale as Locale}
             allLabel={dictionary.home.filters.all}

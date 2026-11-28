@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import AdminLogoutButton from "@/components/AdminLogoutButton";
+import { profilesHref } from "@/lib/admin/community-profiles/model";
 import { useAdminText } from "@/components/useAdminText";
 
 type NavItem = {
@@ -32,6 +33,20 @@ const navigation: NavEntry[] = [
     compactLabel: "D",
     description: "Archive overview",
     match: (pathname) => pathname === "/admin",
+  },
+  {
+    href: "/admin/moderation",
+    label: "Moderation",
+    compactLabel: "M",
+    description: "Review community reports",
+    match: (pathname) => pathname === "/admin/moderation",
+  },
+  {
+    href: profilesHref,
+    label: "Community profiles",
+    compactLabel: "PF",
+    description: "Manage community profiles",
+    match: (pathname) => pathname === profilesHref,
   },
   {
     id: "watch",

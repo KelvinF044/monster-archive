@@ -70,7 +70,7 @@ function LanguageSwitcher({
         aria-label={`Selected language: ${currentLabel}`}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-10 w-[88px] shrink-0 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-0 text-xs font-bold text-white transition hover:border-purple-400/50 hover:bg-white/10"
+        className="flex h-10 w-16 shrink-0 sm:w-[88px] items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-0 text-xs font-bold text-white transition hover:border-purple-400/50 hover:bg-white/10"
       >
         {currentLabel}
 
@@ -247,7 +247,9 @@ function DesktopNavigationItem({
 
 export default function SiteHeader({
   memberLinks,
+  signedIn,
 }: {
+  signedIn: boolean;
   memberLinks: { slug: string; name: string }[];
 }) {
   const pathname = usePathname();
@@ -308,11 +310,11 @@ export default function SiteHeader({
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#08090d]/95 text-white backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_360px_minmax(0,1fr)]">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-3 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_360px_minmax(0,1fr)]">
         <Link
           href="/"
           onClick={closeMobileNavigation}
-          className="shrink-0 text-xl font-black tracking-[0.18em] lg:justify-self-start"
+          className="shrink-0 text-base font-black tracking-[0.18em] sm:text-xl lg:justify-self-start"
         >
           MONSTER<span className="text-purple-400">.</span>
         </Link>
@@ -334,11 +336,19 @@ export default function SiteHeader({
           ))}
         </nav>
 
-        <div className="flex items-center gap-3 lg:justify-self-end">
+        <div className="flex items-center gap-2 sm:gap-3 lg:justify-self-end">
           <span className="hidden whitespace-nowrap text-xs font-bold tracking-wider text-zinc-500 xl:block">
             {dictionary.navigation.globalArchive}
           </span>
           <LanguageSwitcher locale={locale} onChange={setLocale} />
+          <Link
+            href={signedIn ? "/account" : "/login"}
+            prefetch={false}
+            onClick={closeMobileNavigation}
+            className="flex h-10 w-16 shrink-0 items-center justify-center rounded-lg border border-purple-500/40 bg-purple-700 text-xs font-bold text-white transition hover:bg-purple-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-400 sm:w-[88px]"
+          >
+            {signedIn ? (locale === "pt-BR" ? "Conta" : "Account") : (locale === "pt-BR" ? "Login" : "Log in")}
+          </Link>
           <button
             type="button"
             onClick={() => {

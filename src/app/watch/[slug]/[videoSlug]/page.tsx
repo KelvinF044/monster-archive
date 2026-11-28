@@ -2,13 +2,24 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { AddToListPicker } from "@/components/CommunityListForms";
+import { getListChoices } from "@/lib/lists/data";
+import FavoriteButton from "@/components/FavoriteButton";
+import { getFavoriteVideoIds } from "@/lib/favorites/data";
+import { favoritesMessages } from "@/lib/favorites/messages";
+import { getAccount } from "@/lib/auth/session";
+import { getWatchHistoryContext } from "@/lib/history/data";
+import { historyMessages } from "@/lib/history/messages";
+import { historyHref } from "@/lib/history/model";
 import YouTubePlayer from "@/components/YouTubePlayer";
 import { watchVideos } from "@/data/watch";
+import { headers } from "next/headers";
 import { connection } from "next/server";
 import { getDictionary } from "@/lib/i18n/server";
 import type { Locale } from "@/lib/i18n/config";
 
 type PageProps = {
+  searchParams: Promise<{ resume?: string }>;
   params: Promise<{
     slug: string;
     videoSlug: string;
@@ -54,7 +65,7 @@ function formatLocalizedDate(
   ).format(date);
 }
 
-export default async function VideoPage({ params }: PageProps) {
+export default async function VideoPage({ params, searchParams }: PageProps) {
   await connection();
 
   const { slug, videoSlug } = await params;
@@ -151,6 +162,20 @@ export default async function VideoPage({ params }: PageProps) {
 
   if (!relationship) notFound();
 
+  const [account, savedIds, { resume }] = await Promise.all([getAccount(), getFavoriteVideoIds([video.id]), searchParams]);
+  const [history, listChoices] = account ? await Promise.all([
+    getWatchHistoryContext(account.claims.sub, video.id, resume === "1"),
+    getListChoices(account.claims.sub),
+  ]) : [null, null];
+  const canSeeStaffDetails = account?.role === "admin" || account?.role === "moderator";
+  const favoriteCopy = favoritesMessages(locale);
+  const watchPath = `/watch/${slug}/${videoSlug}`;
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("host");
+  const origin = host && /^(?:[a-z0-9.-]+)(?::[0-9]+)?$/i.test(host)
+    ? `${requestHeaders.get("x-forwarded-proto") === "http" ? "http" : "https"}://${host}`
+    : undefined;
+
   // 4. Formatar a data no idioma selecionado
   const formattedDate = formatLocalizedDate(
     video.published_at,
@@ -166,17 +191,42 @@ export default async function VideoPage({ params }: PageProps) {
           {copy.archiveLabel}
         </p>
 
-        <h1 className="mb-8 text-3xl font-black leading-tight md:text-5xl">
-          {video.title}
-        </h1>
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-3xl font-black leading-tight md:text-5xl">{video.title}</h1>
+          <div className="flex flex-wrap items-start gap-2">
+            {savedIds ? (
+              <FavoriteButton videoId={video.id} title={video.title} saved={savedIds.includes(video.id)} />
+            ) : !account ? (
+              <Link href={`/login?next=${encodeURIComponent(watchPath)}`} prefetch={false} className="inline-flex min-h-10 items-center rounded-lg border border-purple-400/35 px-3.5 text-sm font-semibold text-purple-200 hover:bg-purple-500/15 focus-visible:outline-2 focus-visible:outline-purple-400">
+                {favoriteCopy.login}
+              </Link>
+            ) : (
+              <p className="text-sm text-zinc-400">{favoriteCopy.loadError}</p>
+            )}
+            {account && <AddToListPicker videoId={video.id} choices={listChoices} />}
+          </div>
+        </div>
 
         {/* YOUTUBE PLAYER */}
 
         <YouTubePlayer
+          key={`${watchPath}:${history?.startSeconds ?? 0}`}
+          origin={origin}
           videoId={video.youtube_video_id}
           title={video.title}
-          expectedPath={`/watch/${slug}/${videoSlug}`}
+          expectedPath={watchPath}
+          startSeconds={history?.startSeconds}
+          history={history && !history.paused ? { videoId: video.id, version: history.version } : undefined}
         />
+
+        {history && canSeeStaffDetails && (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-400">
+            <p>{history.paused ? historyMessages(locale).paused : historyMessages(locale).active}</p>
+            <Link href={historyHref} prefetch={false} className="font-semibold text-purple-200 hover:underline">
+              {historyMessages(locale).history}
+            </Link>
+          </div>
+        )}
 
         {/* VIDEO INFORMATION */}
 
@@ -224,15 +274,12 @@ export default async function VideoPage({ params }: PageProps) {
                 </p>
               </div>
 
-              <div>
-                <p className="text-[10px] font-bold tracking-widest text-zinc-600">
-                  {copy.archiveStatus}
-                </p>
-
-                <p className="mt-2 text-sm font-semibold text-green-400">
-                  {copy.published}
-                </p>
-              </div>
+              {canSeeStaffDetails && (
+                <div>
+                  <p className="text-[10px] font-bold tracking-widest text-zinc-600">{copy.archiveStatus}</p>
+                  <p className="mt-2 text-sm font-semibold text-green-400">{copy.published}</p>
+                </div>
+              )}
 
             </div>
 
