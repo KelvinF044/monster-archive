@@ -154,9 +154,10 @@ com o link aberto no mesmo navegador que fez a solicitação.
   teste em navegador com respostas simuladas verificou reenvio de
   confirmação, retorno pelo login, nova solicitação e retorno pelo
   histórico do navegador em português e inglês.
-- Os três e-mails de confirmação de cadastro chegaram na pasta de spam
-  durante o teste de Kelvin. A tela indica essa pasta como local de busca.
-  A entrega na caixa de entrada continua pendente de verificação.
+- Em testes com endereços reais, a confirmação de cadastro chegou à caixa
+  de entrada do Gmail e à pasta de spam do Hotmail. O e-mail de recuperação
+  chegou à caixa de entrada. A classificação no Hotmail continua pendente de
+  análise dos cabeçalhos da mensagem.
 - Os textos e as datas da fila de Moderação usam o contexto do seletor de
   idiomas. As consultas e a verificação de acesso continuam no servidor.
 
@@ -209,6 +210,9 @@ com o link aberto no mesmo navegador que fez a solicitação.
   para acompanhamento.
 - Histórico de ações exibe o administrador responsável, a conta afetada,
   o motivo, a hora, a mudança de cargo e o prazo quando houver.
+- Após excluir uma conta, o painel volta à lista atualizada e confirma a
+  exclusão. O histórico preserva o registro da ação. Um cadastro posterior
+  com o mesmo e-mail recebe um novo ID.
 - Migração `20261127224933_community_account_controls.sql` e verificação
   `supabase/checks/phase_2_5_community_account_controls.sql`.
 

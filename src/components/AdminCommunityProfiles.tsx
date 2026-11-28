@@ -61,15 +61,17 @@ function ProfileEditor({ entry, dateTime }: { entry: ProfileDirectoryEntry; date
   );
 }
 
-export default function AdminCommunityProfiles({ actorId, directory, search, sort, page }: {
+export default function AdminCommunityProfiles({ actorId, directory, search, sort, page, accountDeleted }: {
   actorId: string;
   directory: Awaited<ReturnType<typeof getCommunityProfileDirectory>>;
   search: string;
   sort: ProfileSort;
   page: number;
+  accountDeleted: boolean;
 }) {
   const { locale } = useLanguage();
   const copy = communityProfileAdminMessages(locale);
+  const controlsCopy = communityAccountControlMessages(locale);
   const dateTime = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "America/Sao_Paulo" });
 
   return (
@@ -77,8 +79,13 @@ export default function AdminCommunityProfiles({ actorId, directory, search, sor
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-3xl font-black sm:text-4xl">{copy.title}</h1>
-          <Link href={accountActivityHref()} className={button}>{communityAccountControlMessages(locale).audit}</Link>
+          <Link href={accountActivityHref()} className={button}>{controlsCopy.audit}</Link>
         </div>
+        {accountDeleted && (
+          <p role="status" className="mt-4 rounded-xl border border-purple-400/35 bg-purple-500/10 p-4 text-sm text-purple-100">
+            {controlsCopy.deletedNotice}
+          </p>
+        )}
 
         <div className="my-6 flex flex-wrap items-end gap-4">
           <Form action={profilesHref} prefetch={false} className="flex w-full max-w-md items-end gap-2">

@@ -1,4 +1,6 @@
 export const profilesHref = "/admin/profiles";
+export const accountDeletedStatus = "account-deleted";
+export const accountDeletedHref = `${profilesHref}?status=${accountDeletedStatus}`;
 export const profileDirectoryPageSize = 20;
 
 export type ProfileSort = "newest" | "oldest";

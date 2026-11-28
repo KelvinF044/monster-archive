@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { getAccount } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import {
-  accountActivityHref, accountOperations, accountRoles, profilesHref,
+  accountDeletedHref, accountOperations, accountRoles, profilesHref,
   type AccountControlState, type AccountOperation, type AccountRole, type ProfileEditState,
 } from "./model";
 
@@ -95,7 +95,7 @@ export async function manageCommunityAccount(_: AccountControlState, form: FormD
     revalidatePath("/u/[handle]", "page");
     if (operation === "delete_account") {
       revalidatePath("/lists/[id]", "page");
-      redirect(accountActivityHref());
+      redirect(accountDeletedHref, RedirectType.replace);
     }
   }
   if (

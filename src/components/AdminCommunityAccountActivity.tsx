@@ -30,7 +30,7 @@ export default function AdminCommunityAccountActivity({ activity, page }: {
             {activity.events.map((event) => (
               <li key={event.id} className="rounded-xl border border-white/10 bg-[#15111d] p-4">
                 <div className="flex flex-wrap justify-between gap-3">
-                  <h2 className="font-bold">{copy.operation[event.operation]}</h2>
+                  <h2 className="font-bold">{event.operation === "delete_account" ? copy.deletedEvent : copy.operation[event.operation]}</h2>
                   <time dateTime={event.created_at} className="text-sm text-zinc-300">{dateTime.format(new Date(event.created_at))}</time>
                 </div>
                 <dl className="mt-3 grid gap-2 break-words text-sm text-zinc-300 sm:grid-cols-2">
