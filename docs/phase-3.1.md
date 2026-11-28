@@ -9,7 +9,10 @@ As Eras representam campanhas promocionais. Um lançamento pode agregar várias 
 
 ## Validação e publicação
 
-Aplicar a migração primeiro no Supabase de homologação. Conferir um filtro com mais de uma campanha no mesmo álbum, uma campanha independente e os controles por mouse, teclado e toque. Validar em português e inglês pelo seletor.
+Cada etapa validada da Fase 3 é publicada no domínio oficial. O Preview e o Supabase de homologação servem para validar código, correções e melhorias. A curadoria dos lotes, da criação do rascunho à aprovação, acontece no acervo oficial.
+
+
+Aplicar a migração primeiro no Supabase de homologação. Conferir um filtro com mais de uma campanha no mesmo álbum, uma campanha independente e os controles por mouse, teclado e toque. Validar em português e inglês pelo seletor. A listagem de integrantes, os perfis e as categorias atualizam o texto assim que a preferência muda, enquanto a atualização do servidor ocorre em segundo plano.
 
 Validar a performance de HARAM em Apresentações no perfil da RAMI. Conferir uma dupla nos dois perfis, um vínculo com exibição desativada, um rascunho fora do acervo público e a capa mais recente. Testar o vídeo pelo endereço original no Watch.
 

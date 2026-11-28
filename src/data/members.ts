@@ -18,7 +18,7 @@ type LocalizedBio = {
   sources: BioSource[];
 };
 
-type Member = {
+export type Member = {
   slug: string;
   name: string;
   number: string;
