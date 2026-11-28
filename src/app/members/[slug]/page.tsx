@@ -294,26 +294,24 @@ async function MemberProfileContent({ params }: PageProps) {
                 </div>
               );
 
-              return cover ? (
+              return (
                 <Link
                   key={category}
                   href={`/members/${slug}/videos/${category}`}
                   className={`group block ${cardClass} transition hover:border-purple-400/50 focus-visible:outline-2 focus-visible:outline-purple-400`}
                 >
-                  <YouTubeThumbnail
-                    videoId={cover.youtube_video_id}
-                    thumbnailUrl={cover.thumbnail_url}
-                    alt=""
-                    fallbackGradient={gradient}
-                    showLabels={false}
-                  />
+                  {cover && (
+                    <YouTubeThumbnail
+                      videoId={cover.youtube_video_id}
+                      thumbnailUrl={cover.thumbnail_url}
+                      alt=""
+                      fallbackGradient={gradient}
+                      showLabels={false}
+                    />
+                  )}
                   {cardText}
+                  {!cover && <p className="px-6 pb-6 text-xs font-bold text-zinc-400">{copy.archiveEmpty}</p>}
                 </Link>
-              ) : (
-                <article key={category} className={cardClass}>
-                  {cardText}
-                  <p className="px-6 pb-6 text-xs font-bold text-zinc-400">{copy.archiveEmpty}</p>
-                </article>
               );
             })}
 
